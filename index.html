@@ -789,12 +789,38 @@ async function doLogin(){
   const name = document.getElementById('login-name').value.trim();
   const pin  = document.getElementById('login-pin').value.trim();
   const err  = document.getElementById('login-err');
+  const btn  = document.querySelector('.login-btn');
   if(!name){ err.textContent='이름을 입력하세요'; return; }
-  const {data} = await supa.from('player_profiles')
-    .select('*').ilike('name', name).single();
-  if(!data){ err.textContent='등록된 선수를 찾을 수 없습니다'; return; }
-  if(data.pin && pin !== data.pin){ err.textContent='PIN이 올바르지 않습니다'; return; }
-  await loginSuccess(data);
+
+  btn.textContent = t('login_btn')+' ...'; btn.disabled=true;
+  err.textContent='';
+
+  try {
+    const {data, error} = await supa.from('player_profiles')
+      .select('*').ilike('name', name);
+
+    if(error || !data?.length){
+      err.textContent='등록된 선수를 찾을 수 없습니다';
+      btn.textContent=t('login_btn'); btn.disabled=false;
+      return;
+    }
+
+    // 이름 정확히 일치하는 선수 찾기
+    const player = data.find(p=>p.name.trim()===name.trim()) || data[0];
+
+    // PIN 확인 (설정된 경우만)
+    const expectedPin = player.pin || '0000';
+    if(pin !== expectedPin){
+      err.textContent = lang==='pt'?'PIN incorreto':lang==='en'?'Incorrect PIN':'PIN이 올바르지 않습니다';
+      btn.textContent=t('login_btn'); btn.disabled=false;
+      return;
+    }
+
+    await loginSuccess(player);
+  } catch(e) {
+    err.textContent='오류: '+e.message;
+    btn.textContent=t('login_btn'); btn.disabled=false;
+  }
 }
 
 async function loginSuccess(player){
