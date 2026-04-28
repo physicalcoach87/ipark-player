@@ -473,9 +473,15 @@
         <div class="header-sub">PLAYER APP</div>
       </div>
     </div>
-    <div>
-      <div class="header-player" id="header-name">-</div>
-      <div class="header-pos" id="header-pos">-</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="text-align:right">
+        <div class="header-player" id="header-name">-</div>
+        <div class="header-pos" id="header-pos">-</div>
+      </div>
+      <button onclick="doLogout()"
+        style="font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:'Noto Sans KR',sans-serif">
+        로그아웃
+      </button>
     </div>
   </div>
 
@@ -578,14 +584,7 @@
     <div id="gps-list" class="loading"><div class="spinner"></div>불러오는 중...</div>
   </div>
 
-  <!-- 처방 화면 -->
-  <div id="screen-rx" class="screen">
-    <div class="section-header">
-      <div class="section-title">📋 오늘의 처방</div>
-      <div class="section-sub">Today's Program</div>
-    </div>
-    <div id="rx-content" class="loading"><div class="spinner"></div>불러오는 중...</div>
-  </div>
+  <!-- 처방 화면 제거 - 추후 추가 예정 -->
 
   <!-- 탭 바 -->
   <div class="tab-bar">
@@ -611,15 +610,7 @@
       <span>훈련기록</span>
       <div class="tab-indicator"></div>
     </button>
-    <button class="tab-item" onclick="switchScreen('rx')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="9" y="9" width="13" height="13" rx="2"/>
-        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-      </svg>
-      <span>처방</span>
-      <div class="tab-indicator"></div>
-    </button>
-  </div>
+  </div><!-- end tab-bar -->
 </div>
 
 <script>
@@ -642,7 +633,18 @@ let wellnessData = {}; // {fatigue:3, sleep_quality:3, ...}
 let existingWellnessId = null;
 let currentScreen = 'home';
 
-// ── 토큰 자동 로그인 (QR) ─────────────────
+function doLogout(){
+  if(!confirm('로그아웃 하시겠습니까?')) return;
+  currentPlayer = null;
+  localStorage.removeItem('ip_player');
+  document.getElementById('app').style.display='none';
+  document.getElementById('screen-login').style.display='flex';
+  document.getElementById('login-name').value='';
+  document.getElementById('login-pin').value='';
+  document.getElementById('login-err').textContent='';
+}
+
+
 async function checkTokenLogin(){
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
@@ -692,7 +694,6 @@ function switchScreen(name){
   currentScreen = name;
   if(name==='wellness') loadWellnessScreen();
   if(name==='gps') loadGpsScreen();
-  if(name==='rx') loadRxScreen();
 }
 
 // ── 홈 데이터 ────────────────────────────
