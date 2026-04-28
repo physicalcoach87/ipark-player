@@ -868,12 +868,20 @@ async function loadHomeData(){
   if(gps?.length){
     const r = gps[0];
     gpsEl.innerHTML=`
-      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${r.session_date} · ${r.session_type||'훈련'}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--text3)">${r.session_date} · ${r.session_type||''}</div>
+        <div style="text-align:right">
+          ${r.periodization?`<div style="font-size:11px;color:var(--accent);font-weight:600">${r.periodization}</div>`:''}
+          ${r.cycle?`<div style="font-size:10px;color:var(--text3)">${r.cycle}</div>`:''}
+        </div>
+      </div>
       <div class="stat-grid">
         <div class="stat-item"><div class="stat-val" style="color:var(--accent)">${Math.round(r.td)||'-'}</div><div class="stat-label">TD (m)</div></div>
         <div class="stat-item"><div class="stat-val" style="color:#f59e0b">${Math.round(r.running_high)||'-'}</div><div class="stat-label">HSR (m)</div></div>
         <div class="stat-item"><div class="stat-val" style="color:#ef4444">${Math.round(r.sprint)||'-'}</div><div class="stat-label">Sprint (m)</div></div>
-        <div class="stat-item"><div class="stat-val" style="color:#60a5fa">${r.max_speed||'-'}</div><div class="stat-label">Max Speed</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#60a5fa">${r.max_speed||'-'}</div><div class="stat-label">${lang==='pt'?'Vel. Máx':lang==='en'?'Max Speed':'최고속도'}</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#a78bfa">${r.player_load||'-'}</div><div class="stat-label">P.Load</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#fb923c">${r.accel||'-'}</div><div class="stat-label">${lang==='pt'?'Acel':lang==='en'?'Accel':'가속'}</div></div>
       </div>`;
   } else {
     gpsEl.innerHTML='<div class="empty-state"><div class="empty-icon">📡</div>훈련 데이터 없음</div>';
@@ -1222,17 +1230,21 @@ async function loadGpsScreen(){
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div>
           <div style="font-size:14px;font-weight:700">${r.session_date}</div>
-          <div style="font-size:11px;color:var(--text3)">${r.session_type||'훈련'} ${r.training_form||''} ${r.periodization?'· '+r.periodization:''}</div>
+          <div style="font-size:11px;color:var(--text3)">${r.session_type||''} ${r.training_form||''} ${r.session_topic?'· '+r.session_topic:''}</div>
         </div>
-        ${r.rpe?`<span class="badge ${r.rpe>=8?'badge-red':r.rpe>=6?'badge-amber':'badge-green'}">RPE ${r.rpe}</span>`:''}
+        <div style="text-align:right">
+          ${r.periodization?`<div style="font-size:11px;color:var(--accent);font-weight:600">${r.periodization}</div>`:''}
+          ${r.cycle?`<div style="font-size:10px;color:var(--text3)">${r.cycle}</div>`:''}
+        </div>
       </div>
       <div class="stat-grid">
         <div class="stat-item"><div class="stat-val" style="color:var(--accent)">${Math.round(r.td)||'-'}</div><div class="stat-label">TD (m)</div></div>
         <div class="stat-item"><div class="stat-val" style="color:#f59e0b">${Math.round(r.running_high)||'-'}</div><div class="stat-label">HSR (m)</div></div>
         <div class="stat-item"><div class="stat-val" style="color:#ef4444">${Math.round(r.sprint)||'-'}</div><div class="stat-label">Sprint (m)</div></div>
-        <div class="stat-item"><div class="stat-val" style="color:#60a5fa">${r.max_speed||'-'}</div><div class="stat-label">최고속도 km/h</div></div>
-        <div class="stat-item"><div class="stat-val" style="color:#a78bfa">${r.player_load||'-'}</div><div class="stat-label">Player Load</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#60a5fa">${r.max_speed||'-'}</div><div class="stat-label">${lang==='pt'?'Vel. Máx':lang==='en'?'Max Speed':'최고속도'} km/h</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#a78bfa">${r.player_load||'-'}</div><div class="stat-label">P.Load</div></div>
         <div class="stat-item"><div class="stat-val" style="color:#34d399">${r.rhie||'-'}</div><div class="stat-label">RHIE</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#fb923c">${r.accel||'-'}</div><div class="stat-label">${lang==='pt'?'Aceleração':lang==='en'?'Accel':'가속'}</div></div>
       </div>
     </div>`).join('');
 }
