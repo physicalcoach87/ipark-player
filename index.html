@@ -739,7 +739,11 @@ var I18N = {
 };
 
 var lang = 'ko';
-function t(key){ return I18N[lang]?.[key] || I18N['ko'][key] || key; }
+function t(key){ 
+  try {
+    return (I18N[lang] && I18N[lang][key]) ? I18N[lang][key] : (I18N['ko'][key] || key);
+  } catch(e) { return key; }
+}
 
 
 const W_COLORS = {1:'#ef4444',2:'#f97316',3:'#eab308',4:'#84cc16',5:'#22c55e'};
@@ -789,9 +793,15 @@ async function doLogin(){
   const pin  = document.getElementById('login-pin').value.trim();
   const err  = document.getElementById('login-err');
   const btn  = document.querySelector('.login-btn');
+
+  if(!supa){
+    err.textContent='앱 초기화 중입니다. 잠시 후 다시 시도해주세요.';
+    err.style.color='#ef4444';
+    return;
+  }
   if(!name){ err.textContent='이름을 입력하세요'; return; }
 
-  btn.textContent = t('login_btn')+' ...'; btn.disabled=true;
+  btn.textContent = (t('login_btn')||'로그인')+' ...'; if(btn) btn.disabled=true;
   err.textContent='';
 
   try {
@@ -1334,7 +1344,7 @@ async function init(){
   }
 }
 
-init();
+window.onload = function(){ init(); };
 </script>
 </body>
 </html>
