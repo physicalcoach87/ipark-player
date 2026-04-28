@@ -513,24 +513,50 @@
   <!-- 웰니스 화면 -->
   <div id="screen-wellness" class="screen">
     <div class="section-header">
-      <div class="section-title">💚 컨디션 체크</div>
+      <div class="section-title">📋 일일 기록</div>
       <div class="section-sub" id="wellness-today-label"></div>
     </div>
 
-    <div id="wellness-items"></div>
+    <!-- 아침 섹션 -->
+    <div style="background:var(--surface);border:1px solid rgba(0,229,160,0.3);border-radius:14px;padding:1.25rem;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:14px">🌅 아침 / Morning</div>
 
-    <div class="card" style="margin-top:4px">
-      <div class="card-title">메모 / Note</div>
-      <textarea id="wellness-note" rows="2"
-        placeholder="오늘 특이사항 / Any notes..."
-        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;resize:none"></textarea>
+      <!-- 웰니스 -->
+      <div id="wellness-items"></div>
+
+      <!-- 아침 체중 -->
+      <div style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px">⚖️ 아침 체중 / Morning Weight</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="number" id="morning-weight" placeholder="kg" step="0.1" min="50" max="120"
+            style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:18px;color:var(--text);font-family:'Noto Sans KR',sans-serif;outline:none;text-align:center">
+          <span style="font-size:14px;color:var(--text3)">kg</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin:0;padding:10px;background:var(--surface2);border:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">메모 / Note</div>
+        <textarea id="wellness-note" rows="2"
+          placeholder="오늘 특이사항 / Any notes..."
+          style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;resize:none"></textarea>
+      </div>
+
+      <button class="btn-primary" onclick="saveWellness()" id="wellness-save-btn" style="margin-top:10px">💾 아침 저장 / Save Morning</button>
+      <div id="wellness-msg" class="msg-box"></div>
     </div>
 
-    <button class="btn-primary" onclick="saveWellness()" id="wellness-save-btn">💾 저장 / Save</button>
-    <div id="wellness-msg" class="msg-box"></div>
+    <!-- 세션 섹션 -->
+    <div style="background:var(--surface);border:1px solid rgba(93,138,255,0.3);border-radius:14px;padding:1.25rem;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:#93c5fd">🏃 훈련 후 / Post Session</div>
+        <button onclick="addSessionCard()" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid #93c5fd;background:rgba(93,138,255,0.1);color:#93c5fd;cursor:pointer;font-family:'Noto Sans KR',sans-serif">+ 세션 추가</button>
+      </div>
+      <div id="session-cards"></div>
+      <div id="session-msg" class="msg-box"></div>
+    </div>
 
     <!-- 최근 7일 트렌드 -->
-    <div class="card" style="margin-top:16px">
+    <div class="card">
       <div class="card-title">최근 7일 트렌드 / 7-Day Trend</div>
       <div style="display:flex;gap:6px;margin-bottom:8px;font-size:10px;color:var(--text3)">
         <span style="width:70px"></span>
@@ -664,6 +690,7 @@ function switchScreen(name){
   const idx = tabs.indexOf(name);
   if(idx>=0) document.querySelectorAll('.tab-item')[idx].classList.add('active');
   currentScreen = name;
+  if(name==='wellness') loadWellnessScreen();
   if(name==='gps') loadGpsScreen();
   if(name==='rx') loadRxScreen();
 }
@@ -721,7 +748,110 @@ async function loadHomeData(){
   }
 }
 
-// ── 웰니스 화면 ──────────────────────────
+// ── 세션 카드 ─────────────────────────────
+let sessionCount = 0;
+let existingSessions = [];
+
+function addSessionCard(sessionData=null){
+  sessionCount++;
+  const sid = sessionCount;
+  const label = sid===1?'오전 / AM':sid===2?'오후 / PM':`세션 ${sid}`;
+  const container = document.getElementById('session-cards');
+  const div = document.createElement('div');
+  div.id = `session-card-${sid}`;
+  div.style.cssText='background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:10px';
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;color:#93c5fd">${label}</div>
+      ${sid>1?`<button onclick="document.getElementById('session-card-${sid}').remove();sessionCount--"
+        style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #7f1d1d;background:transparent;color:var(--red);cursor:pointer;font-family:'Noto Sans KR',sans-serif">삭제</button>`:''}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">운동 후 체중 / Post Weight</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="number" id="s${sid}-weight" placeholder="kg" step="0.1" min="50" max="120"
+            value="${sessionData?.post_weight||''}"
+            style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:16px;color:var(--text);font-family:'Noto Sans KR',sans-serif;outline:none;text-align:center">
+          <span style="font-size:12px;color:var(--text3)">kg</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">세션 RPE (1-10)</div>
+        <input type="number" id="s${sid}-rpe" placeholder="1~10" min="1" max="10" step="1"
+          value="${sessionData?.rpe||''}"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:16px;color:var(--text);font-family:'Noto Sans KR',sans-serif;outline:none;text-align:center">
+      </div>
+    </div>
+    <button onclick="saveSession(${sid})" id="s${sid}-btn"
+      style="width:100%;margin-top:10px;padding:11px;background:rgba(93,138,255,0.15);border:1px solid #93c5fd;border-radius:8px;color:#93c5fd;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif">
+      💾 세션 저장 / Save Session
+    </button>
+    <div id="s${sid}-msg" style="font-size:12px;text-align:center;margin-top:6px;min-height:16px"></div>`;
+  container.appendChild(div);
+
+  // 기존 데이터 로드
+  if(sessionData){
+    document.getElementById(`s${sid}-weight`).value = sessionData.post_weight||'';
+    document.getElementById(`s${sid}-rpe`).value = sessionData.rpe||'';
+  }
+}
+
+async function saveSession(sid){
+  if(!currentPlayer) return;
+  const btn = document.getElementById(`s${sid}-btn`);
+  const msg = document.getElementById(`s${sid}-msg`);
+  const weight = parseFloat(document.getElementById(`s${sid}-weight`).value)||null;
+  const rpe = parseInt(document.getElementById(`s${sid}-rpe`).value)||null;
+  const today = new Date().toISOString().split('T')[0];
+
+  if(!rpe){ msg.textContent='RPE를 입력하세요'; msg.style.color='var(--red)'; return; }
+  if(rpe<1||rpe>10){ msg.textContent='RPE는 1~10 사이로 입력하세요'; msg.style.color='var(--red)'; return; }
+
+  btn.textContent='저장 중...'; btn.disabled=true;
+
+  const payload = {
+    player_id: currentPlayer.id,
+    record_date: today,
+    session_order: sid,
+    session_label: sid===1?'오전':sid===2?'오후':`세션${sid}`,
+    post_weight: weight,
+    rpe,
+    notes: null
+  };
+
+  // upsert (있으면 업데이트, 없으면 삽입)
+  const {error} = await supa.from('session_records')
+    .upsert(payload, {onConflict:'player_id,record_date,session_order'});
+
+  btn.textContent='💾 세션 저장 / Save Session'; btn.disabled=false;
+  if(error){
+    msg.textContent='저장 실패: '+error.message; msg.style.color='var(--red)';
+  } else {
+    msg.textContent=`✅ 세션 ${sid} 저장 완료!`; msg.style.color='#93c5fd';
+    setTimeout(()=>msg.textContent='', 2500);
+  }
+}
+
+async function loadSessionCards(){
+  if(!currentPlayer) return;
+  const today = new Date().toISOString().split('T')[0];
+  const {data} = await supa.from('session_records')
+    .select('*').eq('player_id',currentPlayer.id).eq('record_date',today)
+    .order('session_order');
+  existingSessions = data||[];
+
+  document.getElementById('session-cards').innerHTML='';
+  sessionCount=0;
+
+  if(existingSessions.length>0){
+    existingSessions.forEach(s=>addSessionCard(s));
+  } else {
+    addSessionCard(); // 기본 세션 1개
+  }
+}
+
+
 async function loadWellnessScreen(){
   if(!currentPlayer) return;
   const today = new Date().toISOString().split('T')[0];
@@ -736,6 +866,7 @@ async function loadWellnessScreen(){
   });
   existingWellnessId = existing?.id || null;
   if(existing?.notes) document.getElementById('wellness-note').value = existing.notes;
+  if(existing?.morning_weight) document.getElementById('morning-weight').value = existing.morning_weight;
 
   // 폼 렌더
   const wrap = document.getElementById('wellness-items');
@@ -761,6 +892,8 @@ async function loadWellnessScreen(){
 
   // 트렌드
   loadWellnessTrend();
+  // 세션 카드 로드
+  loadSessionCards();
 }
 
 function selectW(key, val){
@@ -788,10 +921,12 @@ async function saveWellness(){
   const msg = document.getElementById('wellness-msg');
   btn.disabled=true; btn.textContent='저장 중...';
   const today = new Date().toISOString().split('T')[0];
+  const morningWeight = parseFloat(document.getElementById('morning-weight')?.value)||null;
   const payload = {
     player_id: currentPlayer.id,
     record_date: today,
     ...wellnessData,
+    morning_weight: morningWeight,
     notes: document.getElementById('wellness-note').value.trim()||null
   };
   let error;
@@ -802,7 +937,7 @@ async function saveWellness(){
     error = res.error;
     if(res.data) existingWellnessId = res.data.id;
   }
-  btn.disabled=false; btn.textContent='💾 저장 / Save';
+  btn.disabled=false; btn.textContent='💾 아침 저장 / Save Morning';
   if(error){
     msg.className='msg-box msg-error'; msg.textContent='저장 실패: '+error.message;
   } else {
