@@ -13,7 +13,942 @@
 <style>
   :root {
     --bg: #0a0a0f;
+    --surface: #13131a;<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>부산아이파크 | Player</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
     --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: #2a2a3a;
+    --accent: #00e5a0;
+    --accent2: #00b87a;
+    --accent-bg: rgba(0,229,160,0.08);
+    --red: #ff4d6d;
+    --amber: #ffd166;
+    --blue: #4dabf7;
+    --text: #f0f0f8;
+    --text2: #a0a0b8;
+    --text3: #606078;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans KR', sans-serif;
+    min-height:100vh;
+    max-width:480px;
+    margin:0 auto;
+    padding-bottom:80px;
+  }
+
+  /* ── 헤더 ── */
+  .header {
+    background:linear-gradient(135deg, #0a1628 0%, #0d1f3c 100%);
+    border-bottom:1px solid rgba(0,229,160,0.15);
+    padding:1rem 1.25rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;
+    top:0;
+    z-index:100;
+  }
+  .header-brand {
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .header-logo {
+    width:36px;
+    height:36px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Bebas Neue', sans-serif;
+    font-size:16px;
+    color:#000;
+    letter-spacing:.5px;
+  }
+  .header-title {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:18px;
+    letter-spacing:1.5px;
+    color:var(--accent);
+  }
+  .header-sub { font-size:10px; color:var(--text3); letter-spacing:.5px; }
+  .header-player {
+    text-align:right;
+    font-size:13px;
+    font-weight:700;
+    color:var(--text);
+  }
+  .header-pos {
+    font-size:10px;
+    color:var(--accent);
+    font-weight:400;
+    margin-top:1px;
+  }
+
+  /* ── 탭 바 ── */
+  .tab-bar {
+    position:fixed;
+    bottom:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:100%;
+    max-width:480px;
+    background:var(--surface);
+    border-top:1px solid var(--border);
+    display:flex;
+    z-index:100;
+  }
+  .tab-item {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:10px 4px 8px;
+    cursor:pointer;
+    border:none;
+    background:transparent;
+    color:var(--text3);
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:10px;
+    gap:4px;
+    transition:color .2s;
+  }
+  .tab-item.active { color:var(--accent); }
+  .tab-item svg { width:22px; height:22px; }
+  .tab-indicator {
+    width:4px; height:4px; border-radius:50%;
+    background:var(--accent);
+    opacity:0;
+    margin-top:2px;
+  }
+  .tab-item.active .tab-indicator { opacity:1; }
+
+  /* ── 화면 ── */
+  .screen { display:none; padding:1.25rem; }
+  .screen.active { display:block; }
+
+  /* ── 로그인 화면 ── */
+  #screen-login {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:2rem 1.5rem;
+    text-align:center;
+  }
+  .login-logo {
+    width:80px; height:80px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Bebas Neue', sans-serif;
+    font-size:36px;
+    color:#000;
+    margin-bottom:1.5rem;
+    box-shadow:0 0 40px rgba(0,229,160,0.3);
+  }
+  .login-title {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:28px;
+    letter-spacing:2px;
+    color:var(--accent);
+    margin-bottom:4px;
+  }
+  .login-sub { font-size:13px; color:var(--text3); margin-bottom:2.5rem; }
+  .login-card {
+    width:100%;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:1.5rem;
+  }
+  .login-input {
+    width:100%;
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:15px;
+    color:var(--text);
+    font-family:'Noto Sans KR', sans-serif;
+    outline:none;
+    margin-bottom:12px;
+    transition:border-color .2s;
+  }
+  .login-input:focus { border-color:var(--accent); }
+  .login-input::placeholder { color:var(--text3); }
+  .login-btn {
+    width:100%;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    border:none;
+    border-radius:10px;
+    padding:14px;
+    font-size:15px;
+    font-weight:700;
+    color:#000;
+    font-family:'Noto Sans KR', sans-serif;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .login-err { font-size:12px; color:var(--red); margin-top:10px; min-height:16px; }
+
+  /* ── 카드 ── */
+  .card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:1.25rem;
+    margin-bottom:12px;
+  }
+  .card-title {
+    font-size:11px;
+    font-weight:700;
+    color:var(--text3);
+    text-transform:uppercase;
+    letter-spacing:.8px;
+    margin-bottom:12px;
+  }
+
+  /* ── 웰니스 ── */
+  .wellness-item {
+    background:var(--surface2);
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:10px;
+  }
+  .wellness-label {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+  }
+  .wellness-name {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:14px;
+    font-weight:500;
+  }
+  .wellness-val {
+    font-size:15px;
+    font-weight:700;
+    transition:color .2s;
+  }
+  .wellness-btns {
+    display:flex;
+    gap:6px;
+  }
+  .w-btn {
+    flex:1;
+    padding:12px 0;
+    border-radius:8px;
+    border:2px solid var(--border);
+    background:var(--surface);
+    color:var(--text3);
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:'Noto Sans KR', sans-serif;
+    transition:all .15s;
+  }
+  .wellness-desc { font-size:11px; color:var(--text3); margin-top:8px; }
+
+  /* ── 통계 카드 ── */
+  .stat-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .stat-item {
+    background:var(--surface2);
+    border-radius:10px;
+    padding:12px;
+    text-align:center;
+  }
+  .stat-val { font-size:20px; font-weight:700; margin-bottom:2px; }
+  .stat-label { font-size:11px; color:var(--text3); }
+
+  /* ── 처방 카드 ── */
+  .rx-block {
+    background:var(--surface2);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:8px;
+  }
+  .rx-block-title {
+    font-size:11px;
+    font-weight:700;
+    color:var(--accent);
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    margin-bottom:10px;
+  }
+  .rx-ex {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 0;
+    border-bottom:1px solid var(--border);
+    font-size:13px;
+  }
+  .rx-ex:last-child { border-bottom:none; }
+  .rx-ex-name { color:var(--text); font-weight:500; }
+  .rx-ex-detail { color:var(--text3); font-size:12px; text-align:right; }
+
+  /* ── 세션 목록 ── */
+  .session-item {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+    font-size:13px;
+  }
+  .session-item:last-child { border-bottom:none; }
+  .session-date { color:var(--text2); font-size:12px; }
+  .session-vals { display:flex; gap:12px; }
+  .session-val { text-align:right; }
+  .session-val-num { font-weight:600; color:var(--accent); font-size:14px; }
+  .session-val-label { font-size:10px; color:var(--text3); }
+
+  /* ── 버튼 ── */
+  .btn-primary {
+    width:100%;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    border:none;
+    border-radius:12px;
+    padding:15px;
+    font-size:15px;
+    font-weight:700;
+    color:#000;
+    font-family:'Noto Sans KR', sans-serif;
+    cursor:pointer;
+    margin-top:8px;
+  }
+  .btn-primary:disabled { opacity:.5; }
+
+  /* ── 배지 ── */
+  .badge {
+    display:inline-block;
+    font-size:10px;
+    padding:3px 8px;
+    border-radius:4px;
+    font-weight:600;
+  }
+  .badge-green { background:#052e16; color:#4ade80; border:1px solid #15803d; }
+  .badge-red { background:#450a0a; color:#f87171; border:1px solid #991b1b; }
+  .badge-amber { background:#422006; color:#fbbf24; border:1px solid #92400e; }
+
+  /* ── 알림 ── */
+  .msg-box {
+    font-size:13px;
+    text-align:center;
+    padding:10px;
+    border-radius:8px;
+    margin-top:8px;
+    min-height:18px;
+  }
+  .msg-success { background:var(--accent-bg); color:var(--accent); }
+  .msg-error { background:#450a0a; color:#f87171; }
+
+  /* ── 섹션 헤더 ── */
+  .section-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+  }
+  .section-title { font-size:16px; font-weight:700; }
+  .section-sub { font-size:12px; color:var(--text3); }
+
+  /* ── 피지컬 데이터 ── */
+  .physical-grid {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .physical-item {
+    background:var(--surface2);
+    border-radius:10px;
+    padding:12px 8px;
+    text-align:center;
+  }
+  .physical-val { font-size:18px; font-weight:700; }
+  .physical-label { font-size:10px; color:var(--text3); margin-top:2px; }
+
+  /* ── 웰니스 트렌드 ── */
+  .trend-row {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid var(--border);
+    font-size:12px;
+  }
+  .trend-row:last-child { border-bottom:none; }
+  .trend-date { color:var(--text3); width:70px; flex-shrink:0; }
+  .trend-dots { display:flex; gap:4px; flex:1; }
+  .trend-dot {
+    width:24px; height:24px;
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:700;
+  }
+
+  /* ── 빈 상태 ── */
+  .empty-state {
+    text-align:center;
+    padding:2rem 1rem;
+    color:var(--text3);
+    font-size:13px;
+    line-height:1.8;
+  }
+  .empty-icon { font-size:36px; margin-bottom:8px; }
+
+  /* ── 로딩 ── */
+  .loading {
+    text-align:center;
+    padding:2rem;
+    color:var(--text3);
+    font-size:13px;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .spinner {
+    width:24px; height:24px;
+    border:2px solid var(--border);
+    border-top-color:var(--accent);
+    border-radius:50%;
+    animation:spin .8s linear infinite;
+    margin:0 auto 8px;
+  }
+
+  /* ── 오늘 날짜 표시 ── */
+  .today-badge {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--accent-bg);
+    border:1px solid rgba(0,229,160,0.2);
+    border-radius:20px;
+    padding:4px 12px;
+    font-size:12px;
+    color:var(--accent);
+    margin-bottom:14px;
+  }
+</style>
+</head>
+<body>
+
+<!-- 로그인 화면 -->
+<div id="screen-login">
+  <div class="login-logo">IP</div>
+  <div class="login-title">BUSAN IPARK</div>
+  <div class="login-sub">Player Performance App</div>
+  <div class="login-card">
+    <input type="text" id="login-name" class="login-input" placeholder="이름 / Name" autocomplete="off">
+    <input type="password" id="login-pin" class="login-input" placeholder="PIN (4자리)" maxlength="4" inputmode="numeric">
+    <button class="login-btn" onclick="doLogin()">로그인 / Login</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- 메인 앱 -->
+<div id="app" style="display:none">
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="header-brand">
+      <div class="header-logo">IP</div>
+      <div>
+        <div class="header-title">IPARK</div>
+        <div class="header-sub">PLAYER APP</div>
+      </div>
+    </div>
+    <div>
+      <div class="header-player" id="header-name">-</div>
+      <div class="header-pos" id="header-pos">-</div>
+    </div>
+  </div>
+
+  <!-- 홈 화면 -->
+  <div id="screen-home" class="screen active">
+    <div class="today-badge">
+      <span>📅</span>
+      <span id="today-label"></span>
+    </div>
+
+    <!-- 오늘 컨디션 상태 -->
+    <div class="card" id="home-wellness-card" onclick="switchScreen('wellness')" style="cursor:pointer;border-color:rgba(0,229,160,0.2)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:16px;font-weight:700;margin-bottom:4px">💚 오늘 컨디션</div>
+          <div id="home-wellness-status" style="font-size:13px;color:var(--text3)">탭해서 입력하세요</div>
+        </div>
+        <div id="home-wellness-score" style="font-size:28px;font-weight:700;color:var(--accent)">—</div>
+      </div>
+    </div>
+
+    <!-- 최근 GPS -->
+    <div class="card">
+      <div class="card-title">최근 훈련 데이터 / Last Session</div>
+      <div id="home-gps" class="loading"><div class="spinner"></div>불러오는 중...</div>
+    </div>
+
+    <!-- 피지컬 데이터 -->
+    <div class="card">
+      <div class="card-title">피지컬 프로필 / Physical Profile</div>
+      <div id="home-physical"></div>
+    </div>
+  </div>
+
+  <!-- 웰니스 화면 -->
+  <div id="screen-wellness" class="screen">
+    <div class="section-header">
+      <div class="section-title">💚 컨디션 체크</div>
+      <div class="section-sub" id="wellness-today-label"></div>
+    </div>
+
+    <div id="wellness-items"></div>
+
+    <div class="card" style="margin-top:4px">
+      <div class="card-title">메모 / Note</div>
+      <textarea id="wellness-note" rows="2"
+        placeholder="오늘 특이사항 / Any notes..."
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;resize:none"></textarea>
+    </div>
+
+    <button class="btn-primary" onclick="saveWellness()" id="wellness-save-btn">💾 저장 / Save</button>
+    <div id="wellness-msg" class="msg-box"></div>
+
+    <!-- 최근 7일 트렌드 -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">최근 7일 트렌드 / 7-Day Trend</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;font-size:10px;color:var(--text3)">
+        <span style="width:70px"></span>
+        <span style="width:24px;text-align:center">🔋</span>
+        <span style="width:24px;text-align:center">😴</span>
+        <span style="width:24px;text-align:center">🧠</span>
+        <span style="width:24px;text-align:center">💪</span>
+      </div>
+      <div id="wellness-trend"></div>
+    </div>
+  </div>
+
+  <!-- GPS 데이터 화면 -->
+  <div id="screen-gps" class="screen">
+    <div class="section-header">
+      <div class="section-title">📊 훈련 기록</div>
+      <div class="section-sub">Training Data</div>
+    </div>
+    <div id="gps-list" class="loading"><div class="spinner"></div>불러오는 중...</div>
+  </div>
+
+  <!-- 처방 화면 -->
+  <div id="screen-rx" class="screen">
+    <div class="section-header">
+      <div class="section-title">📋 오늘의 처방</div>
+      <div class="section-sub">Today's Program</div>
+    </div>
+    <div id="rx-content" class="loading"><div class="spinner"></div>불러오는 중...</div>
+  </div>
+
+  <!-- 탭 바 -->
+  <div class="tab-bar">
+    <button class="tab-item active" onclick="switchScreen('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span>홈</span>
+      <div class="tab-indicator"></div>
+    </button>
+    <button class="tab-item" onclick="switchScreen('wellness')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+      </svg>
+      <span>컨디션</span>
+      <div class="tab-indicator"></div>
+    </button>
+    <button class="tab-item" onclick="switchScreen('gps')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      <span>훈련기록</span>
+      <div class="tab-indicator"></div>
+    </button>
+    <button class="tab-item" onclick="switchScreen('rx')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="9" y="9" width="13" height="13" rx="2"/>
+        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+      </svg>
+      <span>처방</span>
+      <div class="tab-indicator"></div>
+    </button>
+  </div>
+</div>
+
+<script>
+const SUPA_URL = 'https://gmrhkbddhzpfqzkhuvgf.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcmhrYmRkaHpwZnF6a2h1dmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MzM4ODIsImV4cCI6MjA5MjQwOTg4Mn0.HMn3UIXqV2YJA5f067VpjNmgNU-yzusbDTOh3SC54cI';
+const { createClient } = supabase;
+const supa = createClient(SUPA_URL, SUPA_KEY);
+
+const W_COLORS = {1:'#ef4444',2:'#f97316',3:'#eab308',4:'#84cc16',5:'#22c55e'};
+const W_LABELS = {1:'최악',2:'나쁨',3:'보통',4:'좋음',5:'최상'};
+const W_ITEMS = [
+  {key:'fatigue',        label:'피로도',   en:'Fatigue',  icon:'🔋', desc:'1=극도로 피곤 / 5=매우 활기참'},
+  {key:'sleep_quality',  label:'수면질',   en:'Sleep',    icon:'😴', desc:'1=거의 못잠 / 5=깊고 충분히'},
+  {key:'stress',         label:'스트레스', en:'Stress',   icon:'🧠', desc:'1=극도의 스트레스 / 5=매우 편안'},
+  {key:'muscle_soreness',label:'근육통',   en:'Soreness', icon:'💪', desc:'1=심한 통증 / 5=통증 없음'},
+];
+
+let currentPlayer = null;
+let wellnessData = {}; // {fatigue:3, sleep_quality:3, ...}
+let existingWellnessId = null;
+let currentScreen = 'home';
+
+// ── 토큰 자동 로그인 (QR) ─────────────────
+async function checkTokenLogin(){
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  if(!token) return false;
+  const {data} = await supa.from('player_profiles')
+    .select('*').eq('access_token', token).single();
+  if(data){ await loginSuccess(data); return true; }
+  return false;
+}
+
+// ── 이름 + PIN 로그인 ─────────────────────
+async function doLogin(){
+  const name = document.getElementById('login-name').value.trim();
+  const pin  = document.getElementById('login-pin').value.trim();
+  const err  = document.getElementById('login-err');
+  if(!name){ err.textContent='이름을 입력하세요'; return; }
+  const {data} = await supa.from('player_profiles')
+    .select('*').ilike('name', name).single();
+  if(!data){ err.textContent='등록된 선수를 찾을 수 없습니다'; return; }
+  if(data.pin && pin !== data.pin){ err.textContent='PIN이 올바르지 않습니다'; return; }
+  await loginSuccess(data);
+}
+
+async function loginSuccess(player){
+  currentPlayer = player;
+  // 로컬 저장
+  localStorage.setItem('ip_player', JSON.stringify({id:player.id, name:player.name, position:player.position}));
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('header-name').textContent = player.name;
+  document.getElementById('header-pos').textContent = player.position;
+  const today = new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+  document.getElementById('today-label').textContent = today;
+  document.getElementById('wellness-today-label').textContent = today;
+  await loadHomeData();
+  await loadWellnessScreen();
+}
+
+// ── 화면 전환 ────────────────────────────
+function switchScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  const tabs = ['home','wellness','gps','rx'];
+  const idx = tabs.indexOf(name);
+  if(idx>=0) document.querySelectorAll('.tab-item')[idx].classList.add('active');
+  currentScreen = name;
+  if(name==='gps') loadGpsScreen();
+  if(name==='rx') loadRxScreen();
+}
+
+// ── 홈 데이터 ────────────────────────────
+async function loadHomeData(){
+  if(!currentPlayer) return;
+  const today = new Date().toISOString().split('T')[0];
+
+  // 오늘 웰니스
+  const {data:w} = await supa.from('wellness_records')
+    .select('*').eq('player_id',currentPlayer.id).eq('record_date',today).single();
+  if(w){
+    const total = (w.fatigue||0)+(w.sleep_quality||0)+(w.stress||0)+(w.muscle_soreness||0);
+    const color = total>=16?'#22c55e':total>=12?'#84cc16':total>=8?'#eab308':'#ef4444';
+    const status = total>=16?'최상 🟢':total>=12?'양호 🟡':total>=8?'주의 🟠':'위험 🔴';
+    document.getElementById('home-wellness-score').textContent = `${total}`;
+    document.getElementById('home-wellness-score').style.color = color;
+    document.getElementById('home-wellness-status').textContent = `${status} (탭해서 수정)`;
+  }
+
+  // 최근 GPS
+  const {data:gps} = await supa.from('gps_records')
+    .select('*').eq('player_id',currentPlayer.id)
+    .order('session_date',{ascending:false}).limit(1);
+  const gpsEl = document.getElementById('home-gps');
+  if(gps?.length){
+    const r = gps[0];
+    gpsEl.innerHTML=`
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${r.session_date} · ${r.session_type||'훈련'}</div>
+      <div class="stat-grid">
+        <div class="stat-item"><div class="stat-val" style="color:var(--accent)">${Math.round(r.td)||'-'}</div><div class="stat-label">TD (m)</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#f59e0b">${Math.round(r.running_high)||'-'}</div><div class="stat-label">HSR (m)</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#ef4444">${Math.round(r.sprint)||'-'}</div><div class="stat-label">Sprint (m)</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#60a5fa">${r.max_speed||'-'}</div><div class="stat-label">Max Speed</div></div>
+      </div>`;
+  } else {
+    gpsEl.innerHTML='<div class="empty-state"><div class="empty-icon">📡</div>훈련 데이터 없음</div>';
+  }
+
+  // 피지컬 프로필
+  const p = currentPlayer;
+  const physEl = document.getElementById('home-physical');
+  if(p.mas||p.mss){
+    physEl.innerHTML=`
+      <div class="physical-grid">
+        ${p.mas?`<div class="physical-item"><div class="physical-val" style="color:var(--accent)">${p.mas}</div><div class="physical-label">MAS km/h</div></div>`:''}
+        ${p.mss?`<div class="physical-item"><div class="physical-val" style="color:#60a5fa">${p.mss}</div><div class="physical-label">MSS km/h</div></div>`:''}
+        ${p.mas&&p.mss?`<div class="physical-item"><div class="physical-val" style="color:#fbbf24">${(p.mss-p.mas).toFixed(1)}</div><div class="physical-label">ASR km/h</div></div>`:''}
+        ${p.height?`<div class="physical-item"><div class="physical-val" style="color:var(--text)">${p.height}</div><div class="physical-label">신장 cm</div></div>`:''}
+        ${p.weight?`<div class="physical-item"><div class="physical-val" style="color:var(--text)">${p.weight}</div><div class="physical-label">체중 kg</div></div>`:''}
+      </div>`;
+  } else {
+    physEl.innerHTML='<div style="font-size:13px;color:var(--text3)">피지컬 데이터 미입력</div>';
+  }
+}
+
+// ── 웰니스 화면 ──────────────────────────
+async function loadWellnessScreen(){
+  if(!currentPlayer) return;
+  const today = new Date().toISOString().split('T')[0];
+
+  // 오늘 기존 데이터
+  const {data:existing} = await supa.from('wellness_records')
+    .select('*').eq('player_id',currentPlayer.id).eq('record_date',today).single();
+
+  // 초기값
+  W_ITEMS.forEach(item=>{
+    wellnessData[item.key] = existing ? (existing[item.key]||3) : 3;
+  });
+  existingWellnessId = existing?.id || null;
+  if(existing?.notes) document.getElementById('wellness-note').value = existing.notes;
+
+  // 폼 렌더
+  const wrap = document.getElementById('wellness-items');
+  wrap.innerHTML = W_ITEMS.map(item=>`
+    <div class="wellness-item">
+      <div class="wellness-label">
+        <div class="wellness-name">
+          <span>${item.icon}</span>
+          <span>${item.label} <span style="color:var(--text3);font-size:11px;font-weight:400">${item.en}</span></span>
+        </div>
+        <div class="wellness-val" id="wv-${item.key}" style="color:${W_COLORS[wellnessData[item.key]]}">
+          ${wellnessData[item.key]} — ${W_LABELS[wellnessData[item.key]]}
+        </div>
+      </div>
+      <div class="wellness-btns">
+        ${[1,2,3,4,5].map(n=>`
+          <button class="w-btn" id="wb-${item.key}-${n}" onclick="selectW('${item.key}',${n})"
+            style="${n===wellnessData[item.key]?`border-color:${W_COLORS[n]};background:${W_COLORS[n]}22;color:${W_COLORS[n]}`:''}">${n}</button>
+        `).join('')}
+      </div>
+      <div class="wellness-desc">${item.desc}</div>
+    </div>`).join('');
+
+  // 트렌드
+  loadWellnessTrend();
+}
+
+function selectW(key, val){
+  wellnessData[key] = val;
+  [1,2,3,4,5].forEach(n=>{
+    const btn = document.getElementById(`wb-${key}-${n}`);
+    if(!btn) return;
+    if(n===val){
+      btn.style.borderColor=W_COLORS[n];
+      btn.style.background=W_COLORS[n]+'22';
+      btn.style.color=W_COLORS[n];
+    } else {
+      btn.style.borderColor='var(--border)';
+      btn.style.background='var(--surface)';
+      btn.style.color='var(--text3)';
+    }
+  });
+  const valEl = document.getElementById(`wv-${key}`);
+  if(valEl){ valEl.textContent=`${val} — ${W_LABELS[val]}`; valEl.style.color=W_COLORS[val]; }
+}
+
+async function saveWellness(){
+  if(!currentPlayer) return;
+  const btn = document.getElementById('wellness-save-btn');
+  const msg = document.getElementById('wellness-msg');
+  btn.disabled=true; btn.textContent='저장 중...';
+  const today = new Date().toISOString().split('T')[0];
+  const payload = {
+    player_id: currentPlayer.id,
+    record_date: today,
+    ...wellnessData,
+    notes: document.getElementById('wellness-note').value.trim()||null
+  };
+  let error;
+  if(existingWellnessId){
+    ({error}=await supa.from('wellness_records').update(payload).eq('id',existingWellnessId));
+  } else {
+    const res = await supa.from('wellness_records').insert(payload).select().single();
+    error = res.error;
+    if(res.data) existingWellnessId = res.data.id;
+  }
+  btn.disabled=false; btn.textContent='💾 저장 / Save';
+  if(error){
+    msg.className='msg-box msg-error'; msg.textContent='저장 실패: '+error.message;
+  } else {
+    const total = Object.values(wellnessData).reduce((s,v)=>s+v,0);
+    const status = total>=16?'최상 🟢':total>=12?'양호 🟡':total>=8?'주의 🟠':'위험 🔴';
+    msg.className='msg-box msg-success';
+    msg.textContent=`✅ 저장 완료! 오늘 컨디션: ${total}/20 ${status}`;
+    loadHomeData();
+    loadWellnessTrend();
+  }
+}
+
+async function loadWellnessTrend(){
+  if(!currentPlayer) return;
+  const el = document.getElementById('wellness-trend');
+  const since = new Date();
+  since.setDate(since.getDate()-6);
+  const {data} = await supa.from('wellness_records')
+    .select('*').eq('player_id',currentPlayer.id)
+    .gte('record_date',since.toISOString().split('T')[0])
+    .order('record_date',{ascending:false});
+  if(!data?.length){
+    el.innerHTML='<div class="empty-state">최근 7일 데이터 없음</div>'; return;
+  }
+  el.innerHTML = data.map(r=>`
+    <div class="trend-row">
+      <div class="trend-date">${r.record_date.slice(5)}</div>
+      <div class="trend-dots">
+        ${W_ITEMS.map(item=>`
+          <div class="trend-dot" style="background:${W_COLORS[r[item.key]]}22;color:${W_COLORS[r[item.key]]}">${r[item.key]||'-'}</div>
+        `).join('')}
+        <div style="font-size:11px;color:var(--text3);margin-left:4px;align-self:center">
+          ${((r.fatigue||0)+(r.sleep_quality||0)+(r.stress||0)+(r.muscle_soreness||0))}/20
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── GPS 화면 ─────────────────────────────
+async function loadGpsScreen(){
+  if(!currentPlayer) return;
+  const el = document.getElementById('gps-list');
+  el.innerHTML='<div class="loading"><div class="spinner"></div>불러오는 중...</div>';
+  const {data} = await supa.from('gps_records')
+    .select('*').eq('player_id',currentPlayer.id)
+    .order('session_date',{ascending:false}).limit(20);
+  if(!data?.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">📡</div>훈련 데이터가 없습니다</div>'; return;
+  }
+  el.innerHTML = data.map(r=>`
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div>
+          <div style="font-size:14px;font-weight:700">${r.session_date}</div>
+          <div style="font-size:11px;color:var(--text3)">${r.session_type||'훈련'} ${r.training_form||''} ${r.periodization?'· '+r.periodization:''}</div>
+        </div>
+        ${r.rpe?`<span class="badge ${r.rpe>=8?'badge-red':r.rpe>=6?'badge-amber':'badge-green'}">RPE ${r.rpe}</span>`:''}
+      </div>
+      <div class="stat-grid">
+        <div class="stat-item"><div class="stat-val" style="color:var(--accent)">${Math.round(r.td)||'-'}</div><div class="stat-label">TD (m)</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#f59e0b">${Math.round(r.running_high)||'-'}</div><div class="stat-label">HSR (m)</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#ef4444">${Math.round(r.sprint)||'-'}</div><div class="stat-label">Sprint (m)</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#60a5fa">${r.max_speed||'-'}</div><div class="stat-label">최고속도 km/h</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#a78bfa">${r.player_load||'-'}</div><div class="stat-label">Player Load</div></div>
+        <div class="stat-item"><div class="stat-val" style="color:#34d399">${r.rhie||'-'}</div><div class="stat-label">RHIE</div></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── 처방 화면 ────────────────────────────
+async function loadRxScreen(){
+  if(!currentPlayer) return;
+  const el = document.getElementById('rx-content');
+  el.innerHTML='<div class="loading"><div class="spinner"></div>불러오는 중...</div>';
+  const today = new Date().toISOString().split('T')[0];
+
+  // 커스텀 프로그램에서 오늘 처방 조회
+  const {data:progs} = await supa.from('custom_programs')
+    .select('*')
+    .eq('position', currentPlayer.position)
+    .order('created_at',{ascending:false})
+    .limit(3);
+
+  if(!progs?.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div>오늘 처방이 없습니다<br>코치님께 문의하세요</div>`;
+    return;
+  }
+
+  el.innerHTML = progs.map(prog=>`
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div>
+          <div style="font-size:15px;font-weight:700">${prog.name}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${prog.position||''} ${prog.md_stage||''} ${prog.variant||''}</div>
+        </div>
+      </div>
+      ${prog.goal?`<div style="font-size:12px;color:var(--accent);margin-bottom:12px">🎯 ${prog.goal}</div>`:''}
+      ${(prog.blocks||[]).map(block=>`
+        <div class="rx-block">
+          <div class="rx-block-title">${block.l||'블록'}</div>
+          ${(block.ex||[]).map(ex=>`
+            <div class="rx-ex">
+              <div class="rx-ex-name">${ex.n}</div>
+              <div class="rx-ex-detail">${ex.s||''} ${ex.i?'· '+ex.i:''} ${ex.r?'· '+ex.r:''}</div>
+            </div>`).join('')}
+        </div>`).join('')}
+      ${prog.coaching?`<div style="font-size:12px;color:var(--text3);margin-top:8px;padding:10px;background:var(--surface2);border-radius:8px">💬 ${prog.coaching}</div>`:''}
+    </div>`).join('');
+}
+
+// ── 초기화 ───────────────────────────────
+async function init(){
+  // QR 토큰 자동 로그인
+  const tokenLogin = await checkTokenLogin();
+  if(!tokenLogin){
+    // 로컬 스토리지 확인
+    const saved = localStorage.getItem('ip_player');
+    if(saved){
+      const p = JSON.parse(saved);
+      const {data} = await supa.from('player_profiles').select('*').eq('id',p.id).single();
+      if(data){ await loginSuccess(data); return; }
+    }
+    document.getElementById('screen-login').style.display='flex';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
+
     --surface2: #1c1c26;
     --border: #2a2a3a;
     --accent: #00e5a0;
