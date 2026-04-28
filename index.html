@@ -787,13 +787,42 @@ function addSessionCard(sessionData=null){
       style="width:100%;margin-top:10px;padding:11px;background:rgba(93,138,255,0.15);border:1px solid #93c5fd;border-radius:8px;color:#93c5fd;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif">
       💾 세션 저장 / Save Session
     </button>
-    <div id="s${sid}-msg" style="font-size:12px;text-align:center;margin-top:6px;min-height:16px"></div>`;
+    <div id="s${sid}-msg" style="font-size:12px;text-align:center;margin-top:6px;min-height:16px"></div>
+    <div id="s${sid}-hydration"></div>`;
   container.appendChild(div);
 
   // 기존 데이터 로드
   if(sessionData){
     document.getElementById(`s${sid}-weight`).value = sessionData.post_weight||'';
     document.getElementById(`s${sid}-rpe`).value = sessionData.rpe||'';
+    // 기존 수분 계산 표시
+    if(sessionData.post_weight){
+      const morningW = parseFloat(document.getElementById('morning-weight')?.value)||null;
+      if(morningW){
+        const loss = morningW - sessionData.post_weight;
+        if(loss>0){
+          const total = Math.round(loss*1500);
+          const immediate = Math.min(500,total);
+          const remaining = total-immediate;
+          const hydrationEl = document.getElementById(`s${sid}-hydration`);
+          if(hydrationEl) hydrationEl.innerHTML=`
+            <div style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);border-radius:10px;padding:12px;margin-top:10px">
+              <div style="font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:8px">💧 수분 보충 권장</div>
+              <div style="font-size:13px;color:var(--text2);margin-bottom:6px">체중 감소 <strong style="color:#38bdf8">${loss.toFixed(1)}kg</strong> → 총 <strong style="color:#38bdf8">${total}ml</strong></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div style="background:var(--surface);border-radius:8px;padding:10px;text-align:center">
+                  <div style="font-size:18px;font-weight:700;color:#38bdf8">${immediate}ml</div>
+                  <div style="font-size:11px;color:var(--text3)">✅ 지금 바로</div>
+                </div>
+                <div style="background:var(--surface);border-radius:8px;padding:10px;text-align:center">
+                  <div style="font-size:18px;font-weight:700;color:#7dd3fc">${remaining}ml</div>
+                  <div style="font-size:11px;color:var(--text3)">⏱ 이후 4시간 이내</div>
+                </div>
+              </div>
+            </div>`;
+        }
+      }
+    }
   }
 }
 
@@ -829,6 +858,37 @@ async function saveSession(sid){
     msg.textContent='저장 실패: '+error.message; msg.style.color='var(--red)';
   } else {
     msg.textContent=`✅ 세션 ${sid} 저장 완료!`; msg.style.color='#93c5fd';
+
+    // 수분 보충량 계산
+    const morningW = parseFloat(document.getElementById('morning-weight')?.value)||null;
+    if(morningW && weight){
+      const loss = morningW - weight;
+      if(loss > 0){
+        const total = Math.round(loss * 1500); // ml
+        const immediate = Math.min(500, total);
+        const remaining = total - immediate;
+        const hydrationEl = document.getElementById(`s${sid}-hydration`);
+        if(hydrationEl){
+          hydrationEl.innerHTML = `
+            <div style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);border-radius:10px;padding:12px;margin-top:10px">
+              <div style="font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:8px">💧 수분 보충 권장 / Hydration</div>
+              <div style="font-size:13px;color:var(--text2);margin-bottom:6px">
+                체중 감소 <strong style="color:#38bdf8">${loss.toFixed(1)}kg</strong> → 총 보충 권장 <strong style="color:#38bdf8">${total}ml</strong>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div style="background:var(--surface);border-radius:8px;padding:10px;text-align:center">
+                  <div style="font-size:18px;font-weight:700;color:#38bdf8">${immediate}ml</div>
+                  <div style="font-size:11px;color:var(--text3)">✅ 지금 바로</div>
+                </div>
+                <div style="background:var(--surface);border-radius:8px;padding:10px;text-align:center">
+                  <div style="font-size:18px;font-weight:700;color:#7dd3fc">${remaining}ml</div>
+                  <div style="font-size:11px;color:var(--text3)">⏱ 이후 4시간 이내</div>
+                </div>
+              </div>
+            </div>`;
+        }
+      }
+    }
     setTimeout(()=>msg.textContent='', 2500);
   }
 }
