@@ -619,13 +619,142 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const { createClient } = supabase;
 const supa = createClient(SUPA_URL, SUPA_KEY);
 
+const I18N = {
+  ko: {
+    morning: '🌅 아침 / Morning',
+    wellness_title: '📋 일일 기록',
+    post_session: '🏃 훈련 후 / Post Session',
+    add_session: '+ 세션 추가',
+    morning_weight: '⚖️ 아침 체중',
+    post_weight: '운동 후 체중',
+    session_rpe: '세션 RPE (1-10)',
+    save_morning: '💾 아침 저장',
+    save_session: '💾 세션 저장',
+    note: '메모',
+    note_placeholder: '오늘 특이사항...',
+    hydration_title: t('hydration_title'),
+    hydration_now: t('hydration_now'),
+    hydration_later: '⏱ 이후 4시간 이내',
+    weight_loss: '체중 감소',
+    total_hydration: '총 보충 권장',
+    session_am: '오전',
+    session_pm: '오후',
+    session_n: '세션',
+    logout: '로그아웃',
+    login_name: '이름',
+    login_pin: 'PIN (4자리)',
+    login_btn: '로그인',
+    training_data: '훈련 기록',
+    todays_rx: '오늘의 처방',
+    home: '홈',
+    condition: '컨디션',
+    fatigue: '피로도',
+    sleep: '수면질',
+    stress: '스트레스',
+    soreness: '근육통',
+    trend: '최근 7일 트렌드',
+    last_session: '최근 훈련 데이터',
+    physical_profile: '피지컬 프로필',
+    no_data: '데이터 없음',
+    save_success: '저장 완료!',
+    save_fail: '저장 실패',
+  },
+  en: {
+    morning: '🌅 Morning',
+    wellness_title: '📋 Daily Check',
+    post_session: '🏃 Post Session',
+    add_session: '+ Add Session',
+    morning_weight: '⚖️ Morning Weight',
+    post_weight: 'Post Weight',
+    session_rpe: 'Session RPE (1-10)',
+    save_morning: '💾 Save Morning',
+    save_session: '💾 Save Session',
+    note: 'Note',
+    note_placeholder: 'Any notes today...',
+    hydration_title: '💧 Hydration Guide',
+    hydration_now: '✅ Right Now',
+    hydration_later: '⏱ Within 4 Hours',
+    weight_loss: 'Weight Loss',
+    total_hydration: 'Total Recommended',
+    session_am: 'AM',
+    session_pm: 'PM',
+    session_n: 'Session',
+    logout: 'Logout',
+    login_name: 'Name',
+    login_pin: 'PIN (4 digits)',
+    login_btn: 'Login',
+    training_data: 'Training Data',
+    todays_rx: "Today's Program",
+    home: 'Home',
+    condition: 'Condition',
+    fatigue: 'Fatigue',
+    sleep: 'Sleep',
+    stress: 'Stress',
+    soreness: 'Soreness',
+    trend: '7-Day Trend',
+    last_session: 'Last Session',
+    physical_profile: 'Physical Profile',
+    no_data: 'No Data',
+    save_success: 'Saved!',
+    save_fail: 'Save Failed',
+  },
+  pt: {
+    morning: '🌅 Manhã',
+    wellness_title: '📋 Registro Diário',
+    post_session: '🏃 Pós Sessão',
+    add_session: '+ Adicionar Sessão',
+    morning_weight: '⚖️ Peso Manhã',
+    post_weight: 'Peso Pós Treino',
+    session_rpe: 'RPE da Sessão (1-10)',
+    save_morning: '💾 Salvar Manhã',
+    save_session: '💾 Salvar Sessão',
+    note: 'Observação',
+    note_placeholder: 'Observações de hoje...',
+    hydration_title: '💧 Reidratação',
+    hydration_now: '✅ Agora',
+    hydration_later: '⏱ Nas próximas 4 horas',
+    weight_loss: 'Perda de Peso',
+    total_hydration: 'Total Recomendado',
+    session_am: 'Manhã',
+    session_pm: 'Tarde',
+    session_n: 'Sessão',
+    logout: 'Sair',
+    login_name: 'Nome',
+    login_pin: 'PIN (4 dígitos)',
+    login_btn: 'Entrar',
+    training_data: 'Dados de Treino',
+    todays_rx: 'Programa de Hoje',
+    home: 'Início',
+    condition: 'Condição',
+    fatigue: 'Fadiga',
+    sleep: 'Sono',
+    stress: 'Estresse',
+    soreness: 'Dor Muscular',
+    trend: 'Tendência 7 Dias',
+    last_session: 'Última Sessão',
+    physical_profile: 'Perfil Físico',
+    no_data: 'Sem Dados',
+    save_success: 'Salvo!',
+    save_fail: 'Falha ao Salvar',
+  }
+};
+
+let lang = 'ko';
+function t(key){ return I18N[lang]?.[key] || I18N.ko[key] || key; }
+
+
 const W_COLORS = {1:'#ef4444',2:'#f97316',3:'#eab308',4:'#84cc16',5:'#22c55e'};
-const W_LABELS = {1:'최악',2:'나쁨',3:'보통',4:'좋음',5:'최상'};
+const W_LABELS_ALL = {
+  ko:{1:'최악',2:'나쁨',3:'보통',4:'좋음',5:'최상'},
+  en:{1:'Very Bad',2:'Bad',3:'OK',4:'Good',5:'Great'},
+  pt:{1:'Péssimo',2:'Ruim',3:'Regular',4:'Bom',5:'Ótimo'},
+};
+function getWLabel(val){ return (W_LABELS_ALL[lang]||W_LABELS_ALL.ko)[val]; }
 const W_ITEMS = [
-  {key:'fatigue',        label:'피로도',   en:'Fatigue',  icon:'🔋', desc:'1=극도로 피곤 / 5=매우 활기참'},
-  {key:'sleep_quality',  label:'수면질',   en:'Sleep',    icon:'😴', desc:'1=거의 못잠 / 5=깊고 충분히'},
-  {key:'stress',         label:'스트레스', en:'Stress',   icon:'🧠', desc:'1=극도의 스트레스 / 5=매우 편안'},
-  {key:'muscle_soreness',label:'근육통',   en:'Soreness', icon:'💪', desc:'1=심한 통증 / 5=통증 없음'},
+  {key:'fatigue',        labelKey:'fatigue',  icon:'🔋', descKo:'1=극도로 피곤 / 5=매우 활기참',    descEn:'1=Exhausted / 5=Very energetic',      descPt:'1=Exausto / 5=Muito energético'},
+  {key:'sleep_quality',  labelKey:'sleep',    icon:'😴', descKo:'1=거의 못잠 / 5=깊고 충분히',       descEn:'1=Very poor / 5=Deep & restful',      descPt:'1=Muito ruim / 5=Profundo e suficiente'},
+  {key:'stress',         labelKey:'stress',   icon:'🧠', descKo:'1=극도의 스트레스 / 5=매우 편안',   descEn:'1=Extremely stressed / 5=Very relaxed', descPt:'1=Muito estressado / 5=Muito relaxado'},
+  {key:'muscle_soreness',labelKey:'soreness', icon:'💪', descKo:'1=심한 통증 / 5=통증 없음',         descEn:'1=Severe pain / 5=No pain',           descPt:'1=Dor severa / 5=Sem dor'},
 ];
 
 let currentPlayer = null;
@@ -670,15 +799,33 @@ async function doLogin(){
 
 async function loginSuccess(player){
   currentPlayer = player;
+  lang = player.language || 'ko';
   // 로컬 저장
   localStorage.setItem('ip_player', JSON.stringify({id:player.id, name:player.name, position:player.position}));
   document.getElementById('screen-login').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('header-name').textContent = player.name;
   document.getElementById('header-pos').textContent = player.position;
-  const today = new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+
+  // 날짜 현지화
+  const locales = {ko:'ko-KR', en:'en-US', pt:'pt-BR'};
+  const today = new Date().toLocaleDateString(locales[lang]||'ko-KR',{month:'long',day:'numeric',weekday:'short'});
   document.getElementById('today-label').textContent = today;
   document.getElementById('wellness-today-label').textContent = today;
+
+  // 로그인 버튼 언어 적용
+  document.getElementById('login-name').placeholder = t('login_name');
+  document.getElementById('login-pin').placeholder = t('login_pin');
+
+  // 탭 라벨 언어 적용
+  const tabLabels = document.querySelectorAll('.tab-item span');
+  const tabKeys = ['home','condition','training_data','todays_rx'];
+  tabLabels.forEach((el,i)=>{ if(tabKeys[i]) el.textContent=t(tabKeys[i]); });
+
+  // 로그아웃 버튼
+  const logoutBtn = document.querySelector('[onclick="doLogout()"]');
+  if(logoutBtn) logoutBtn.textContent=t('logout');
+
   await loadHomeData();
   await loadWellnessScreen();
 }
@@ -707,7 +854,7 @@ async function loadHomeData(){
   if(w){
     const total = (w.fatigue||0)+(w.sleep_quality||0)+(w.stress||0)+(w.muscle_soreness||0);
     const color = total>=16?'#22c55e':total>=12?'#84cc16':total>=8?'#eab308':'#ef4444';
-    const status = total>=16?'최상 🟢':total>=12?'양호 🟡':total>=8?'주의 🟠':'위험 🔴';
+    const status = total>=16?(lang==='pt'?'Ótimo 🟢':lang==='en'?'Great 🟢':'최상 🟢'):total>=12?(lang==='pt'?'Bom 🟡':lang==='en'?'Good 🟡':'양호 🟡'):total>=8?(lang==='pt'?'Atenção 🟠':lang==='en'?'Caution 🟠':'주의 🟠'):(lang==='pt'?'Perigo 🔴':lang==='en'?'Alert 🔴':'위험 🔴');
     document.getElementById('home-wellness-score').textContent = `${total}`;
     document.getElementById('home-wellness-score').style.color = color;
     document.getElementById('home-wellness-status').textContent = `${status} (탭해서 수정)`;
@@ -749,14 +896,33 @@ async function loadHomeData(){
   }
 }
 
-// ── 세션 카드 ─────────────────────────────
+// ── 다국어 시스템 ─────────────────────────
+
+function applyLanguage(){
+  // 탭 바
+  const tabLabels = document.querySelectorAll('.tab-item span');
+  const tabKeys = ['home','condition','training_data','todays_rx'];
+  tabLabels.forEach((el,i)=>{ if(tabKeys[i]) el.textContent=t(tabKeys[i]); });
+  // 로그아웃
+  const logoutBtn = document.querySelector('[onclick="doLogout()"]');
+  if(logoutBtn) logoutBtn.textContent=t('logout');
+  // 웰니스 타이틀
+  const wTitle = document.querySelector('.section-title');
+  // 웰니스 아이템 설명
+  const wItems = [{key:'fatigue',label:'fatigue'},{key:'sleep_quality',label:'sleep'},{key:'stress',label:'stress'},{key:'muscle_soreness',label:'soreness'}];
+  wItems.forEach(item=>{
+    const nameEl = document.querySelector(`[data-key="${item.key}"] .wellness-name span:last-child`);
+    // 언어 적용은 renderWellnessForm에서 처리
+  });
+}
+
 let sessionCount = 0;
 let existingSessions = [];
 
 function addSessionCard(sessionData=null){
   sessionCount++;
   const sid = sessionCount;
-  const label = sid===1?'오전 / AM':sid===2?'오후 / PM':`세션 ${sid}`;
+  const label = sid===1?t('session_am'):sid===2?t('session_pm'):`${t('session_n')} ${sid}`;
   const container = document.getElementById('session-cards');
   const div = document.createElement('div');
   div.id = `session-card-${sid}`;
@@ -769,7 +935,7 @@ function addSessionCard(sessionData=null){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">운동 후 체중 / Post Weight</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">${t('post_weight')} (kg)</div>
         <div style="display:flex;align-items:center;gap:6px">
           <input type="number" id="s${sid}-weight" placeholder="kg" step="0.1" min="50" max="120"
             value="${sessionData?.post_weight||''}"
@@ -778,7 +944,7 @@ function addSessionCard(sessionData=null){
         </div>
       </div>
       <div>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">세션 RPE (1-10)</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">${t('session_rpe')}</div>
         <input type="number" id="s${sid}-rpe" placeholder="1~10" min="1" max="10" step="1"
           value="${sessionData?.rpe||''}"
           style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:16px;color:var(--text);font-family:'Noto Sans KR',sans-serif;outline:none;text-align:center">
@@ -786,7 +952,7 @@ function addSessionCard(sessionData=null){
     </div>
     <button onclick="saveSession(${sid})" id="s${sid}-btn"
       style="width:100%;margin-top:10px;padding:11px;background:rgba(93,138,255,0.15);border:1px solid #93c5fd;border-radius:8px;color:#93c5fd;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif">
-      💾 세션 저장 / Save Session
+      ${t('save_session')}
     </button>
     <div id="s${sid}-msg" style="font-size:12px;text-align:center;margin-top:6px;min-height:16px"></div>
     <div id="s${sid}-hydration"></div>`;
@@ -817,7 +983,7 @@ function addSessionCard(sessionData=null){
                 </div>
                 <div style="background:var(--surface);border-radius:8px;padding:10px;text-align:center">
                   <div style="font-size:18px;font-weight:700;color:#7dd3fc">${remaining}ml</div>
-                  <div style="font-size:11px;color:var(--text3)">⏱ 이후 4시간 이내</div>
+                  <div style="font-size:11px;color:var(--text3)">⏱ '+t('hydration_later')+'</div>
                 </div>
               </div>
             </div>`;
@@ -883,7 +1049,7 @@ async function saveSession(sid){
                 </div>
                 <div style="background:var(--surface);border-radius:8px;padding:10px;text-align:center">
                   <div style="font-size:18px;font-weight:700;color:#7dd3fc">${remaining}ml</div>
-                  <div style="font-size:11px;color:var(--text3)">⏱ 이후 4시간 이내</div>
+                  <div style="font-size:11px;color:var(--text3)">⏱ '+t('hydration_later')+'</div>
                 </div>
               </div>
             </div>`;
@@ -931,15 +1097,17 @@ async function loadWellnessScreen(){
 
   // 폼 렌더
   const wrap = document.getElementById('wellness-items');
-  wrap.innerHTML = W_ITEMS.map(item=>`
+  wrap.innerHTML = W_ITEMS.map(item=>{
+    const desc = lang==='pt' ? item.descPt : lang==='en' ? item.descEn : item.descKo;
+    return `
     <div class="wellness-item">
       <div class="wellness-label">
         <div class="wellness-name">
           <span>${item.icon}</span>
-          <span>${item.label} <span style="color:var(--text3);font-size:11px;font-weight:400">${item.en}</span></span>
+          <span>${t(item.labelKey)}</span>
         </div>
         <div class="wellness-val" id="wv-${item.key}" style="color:${W_COLORS[wellnessData[item.key]]}">
-          ${wellnessData[item.key]} — ${W_LABELS[wellnessData[item.key]]}
+          ${wellnessData[item.key]} — ${getWLabel(wellnessData[item.key])}
         </div>
       </div>
       <div class="wellness-btns">
@@ -948,8 +1116,9 @@ async function loadWellnessScreen(){
             style="${n===wellnessData[item.key]?`border-color:${W_COLORS[n]};background:${W_COLORS[n]}22;color:${W_COLORS[n]}`:''}">${n}</button>
         `).join('')}
       </div>
-      <div class="wellness-desc">${item.desc}</div>
-    </div>`).join('');
+      <div class="wellness-desc">${desc}</div>
+    </div>`;
+  }).join('');
 
   // 트렌드
   loadWellnessTrend();
@@ -973,7 +1142,7 @@ function selectW(key, val){
     }
   });
   const valEl = document.getElementById(`wv-${key}`);
-  if(valEl){ valEl.textContent=`${val} — ${W_LABELS[val]}`; valEl.style.color=W_COLORS[val]; }
+  if(valEl){ valEl.textContent=`${val} — ${getWLabel(val)}`; valEl.style.color=W_COLORS[val]; }
 }
 
 async function saveWellness(){
@@ -1003,7 +1172,7 @@ async function saveWellness(){
     msg.className='msg-box msg-error'; msg.textContent='저장 실패: '+error.message;
   } else {
     const total = Object.values(wellnessData).reduce((s,v)=>s+v,0);
-    const status = total>=16?'최상 🟢':total>=12?'양호 🟡':total>=8?'주의 🟠':'위험 🔴';
+    const status = total>=16?(lang==='pt'?'Ótimo 🟢':lang==='en'?'Great 🟢':'최상 🟢'):total>=12?(lang==='pt'?'Bom 🟡':lang==='en'?'Good 🟡':'양호 🟡'):total>=8?(lang==='pt'?'Atenção 🟠':lang==='en'?'Caution 🟠':'주의 🟠'):(lang==='pt'?'Perigo 🔴':lang==='en'?'Alert 🔴':'위험 🔴');
     msg.className='msg-box msg-success';
     msg.textContent=`✅ 저장 완료! 오늘 컨디션: ${total}/20 ${status}`;
     loadHomeData();
