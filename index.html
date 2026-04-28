@@ -619,7 +619,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const { createClient } = supabase;
 const supa = createClient(SUPA_URL, SUPA_KEY);
 
-const I18N = {
+var I18N = {
   ko: {
     morning: '🌅 아침 / Morning',
     wellness_title: '📋 일일 기록',
@@ -739,8 +739,8 @@ const I18N = {
   }
 };
 
-let lang = 'ko';
-function t(key){ return I18N[lang]?.[key] || I18N.ko[key] || key; }
+var lang = 'ko';
+function t(key){ return I18N[lang]?.[key] || I18N['ko'][key] || key; }
 
 
 const W_COLORS = {1:'#ef4444',2:'#f97316',3:'#eab308',4:'#84cc16',5:'#22c55e'};
