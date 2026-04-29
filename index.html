@@ -456,7 +456,7 @@ if ('serviceWorker' in navigator) {
 
 const VAPID_PUBLIC_KEY = 'BCYH2o7EueZiDpC-bN8xUpZ-260VCSxS134wyERDH85T1SoRHYnDFchwSzUlgTAiGw9fVNeNUAj55TzV-5HYXd0';
 const SUPABASE_URL = 'https://gmrhkbddhzpfqzkhuvgf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcmhrYmRkaHpwZnF6a2h1dmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxNTU5NjIsImV4cCI6MjA1NDczMTk2Mn0.5q9oms8H6oRFoeHVhpd_X0qx7wmV1MScfNKML5POpuU';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcmhrYmRkaHpwZnF6a2h1dmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MzM4ODIsImV4cCI6MjA5MjQwOTg4Mn0.HMn3UIXqV2YJA5f067VpjNmgNU-yzusbDTOh3SC54cI';
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -1007,10 +1007,32 @@ async function loginSuccess(player){
   // 알림 배지 체크
   setTimeout(checkUnreadMessages, 2000);
 
-  // 푸시 알림 버튼 표시
+  // 푸시 알림 버튼 표시 + 기존 구독 자동 저장
   if ('Notification' in window && 'serviceWorker' in navigator) {
     document.getElementById('push-notice-wrap').style.display = 'block';
     checkPushStatus();
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        const subJson = sub.toJSON();
+        await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Prefer': 'return=minimal,resolution=merge-duplicates'
+          },
+          body: JSON.stringify({
+            player_id: player.id,
+            endpoint: subJson.endpoint,
+            p256dh: subJson.keys.p256dh,
+            auth: subJson.keys.auth
+          })
+        });
+      }
+    } catch(e) { console.warn('auto push save:', e); }
   }
 }
 
