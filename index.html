@@ -586,6 +586,45 @@
 
   <!-- 처방 화면 제거 - 추후 추가 예정 -->
 
+  <!-- 알림함 화면 -->
+  <div id="screen-inbox" class="screen">
+    <div class="section-header">
+      <div class="section-title" id="inbox-title">🔔 알림 / 메시지</div>
+    </div>
+
+    <!-- 서브 탭 -->
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="itab-notice" onclick="setInboxTab('notice')"
+        style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent2);font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:600;cursor:pointer">
+        📢 공지
+      </button>
+      <button id="itab-message" onclick="setInboxTab('message')"
+        style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:600;cursor:pointer;position:relative">
+        💬 메시지
+        <span id="msg-unread-badge" style="display:none;position:absolute;top:4px;right:8px;width:7px;height:7px;background:#ef4444;border-radius:50%"></span>
+      </button>
+    </div>
+
+    <!-- 공지 뷰 -->
+    <div id="iv-notice">
+      <div id="notice-list" class="loading"><div class="spinner"></div>불러오는 중...</div>
+    </div>
+
+    <!-- 메시지 뷰 -->
+    <div id="iv-message" style="display:none">
+      <div id="player-msg-thread" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;min-height:300px;max-height:380px;overflow-y:auto;margin-bottom:10px">
+        <div style="text-align:center;color:var(--text3);font-size:13px;padding:2rem">메시지 없음</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="player-msg-input" placeholder="메시지 입력..."
+          style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none"
+          onkeydown="if(event.key==='Enter')sendPlayerMessage()">
+        <button onclick="sendPlayerMessage()"
+          style="padding:11px 16px;border-radius:8px;background:var(--accent);border:none;color:#000;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;cursor:pointer">전송</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 탭 바 -->
   <div class="tab-bar">
     <button class="tab-item active" onclick="switchScreen('home')">
@@ -609,6 +648,22 @@
       </svg>
       <span>훈련기록</span>
       <div class="tab-indicator"></div>
+    </button>
+    <button class="tab-item" onclick="switchScreen('rx')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="9" y="9" width="13" height="13" rx="2"/>
+        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+      </svg>
+      <span>처방</span>
+      <div class="tab-indicator"></div>
+    </button>
+    <button class="tab-item" onclick="switchScreen('inbox')" style="position:relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+      </svg>
+      <span id="inbox-tab-label">알림</span>
+      <div class="tab-indicator"></div>
+      <div id="inbox-badge" style="display:none;position:absolute;top:6px;right:calc(50% - 14px);width:8px;height:8px;background:#ef4444;border-radius:50%"></div>
     </button>
   </div><!-- end tab-bar -->
 </div>
@@ -863,6 +918,8 @@ async function loginSuccess(player){
 
   await loadHomeData();
   await loadWellnessScreen();
+  // 알림 배지 체크
+  setTimeout(checkUnreadMessages, 2000);
 }
 
 // ── 화면 전환 ────────────────────────────
@@ -870,12 +927,150 @@ function switchScreen(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
-  const tabs = ['home','wellness','gps','rx'];
+  const tabs = ['home','wellness','gps','rx','inbox'];
   const idx = tabs.indexOf(name);
   if(idx>=0) document.querySelectorAll('.tab-item')[idx].classList.add('active');
   currentScreen = name;
   if(name==='wellness') loadWellnessScreen();
   if(name==='gps') loadGpsScreen();
+  if(name==='rx') loadRxScreen();
+  if(name==='inbox') loadInboxScreen();
+}
+
+// ── 알림함 / 메시지 ───────────────────────
+let _playerMsgInterval = null;
+
+async function loadInboxScreen(){
+  setInboxTab('notice');
+  checkUnreadMessages();
+}
+
+function setInboxTab(tab){
+  document.getElementById('iv-notice').style.display = tab==='notice'?'block':'none';
+  document.getElementById('iv-message').style.display = tab==='message'?'block':'none';
+  ['notice','message'].forEach(t=>{
+    const btn = document.getElementById(`itab-${t}`);
+    if(!btn) return;
+    btn.style.borderColor = t===tab?'var(--accent)':'var(--border)';
+    btn.style.background  = t===tab?'var(--accent-bg)':'var(--surface2)';
+    btn.style.color       = t===tab?'var(--accent2)':'var(--text2)';
+  });
+  if(tab==='notice') loadNoticeList();
+  if(tab==='message'){
+    loadPlayerMessageThread();
+    if(_playerMsgInterval) clearInterval(_playerMsgInterval);
+    _playerMsgInterval = setInterval(loadPlayerMessageThread, 5000);
+  } else {
+    if(_playerMsgInterval){ clearInterval(_playerMsgInterval); _playerMsgInterval=null; }
+  }
+}
+
+async function loadNoticeList(){
+  if(!currentPlayer) return;
+  const el = document.getElementById('notice-list');
+  if(!el) return;
+  const {data} = await supa.from('notifications').select('*').order('created_at',{ascending:false}).limit(30);
+  const myNotices = (data||[]).filter(n=>{
+    if(n.target_type==='all') return true;
+    if(n.target_type==='position'&&n.target_value===currentPlayer.position) return true;
+    if(n.target_type==='player'&&n.target_value===currentPlayer.id) return true;
+    return false;
+  });
+  const {data:reads} = await supa.from('notification_reads')
+    .select('notification_id').eq('player_id',currentPlayer.id);
+  const readIds = new Set((reads||[]).map(r=>r.notification_id));
+  if(!myNotices.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">🔔</div>새 알림이 없습니다</div>';
+    return;
+  }
+  el.innerHTML = myNotices.map(n=>{
+    const isRead = readIds.has(n.id);
+    const time = new Date(n.created_at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    return `
+    <div onclick="markNoticeRead('${n.id}',this)"
+      style="background:var(--surface);border:1px solid ${isRead?'var(--border)':'var(--accent)'};border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer;opacity:${isRead?0.7:1}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div style="font-size:14px;font-weight:${isRead?400:700};color:var(--text)">${isRead?'':'🔵 '}${n.title}</div>
+        <div style="font-size:11px;color:var(--text3);flex-shrink:0;margin-left:8px">${time}</div>
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.5">${n.body}</div>
+    </div>`;
+  }).join('');
+  const unreadCount = myNotices.filter(n=>!readIds.has(n.id)).length;
+  const badge = document.getElementById('inbox-badge');
+  if(badge) badge.style.display = unreadCount>0?'block':'none';
+}
+
+async function markNoticeRead(noticeId, el){
+  if(!currentPlayer) return;
+  await supa.from('notification_reads').upsert({
+    notification_id:noticeId, player_id:currentPlayer.id
+  },{onConflict:'notification_id,player_id'});
+  el.style.borderColor='var(--border)'; el.style.opacity='0.7';
+  const titleEl = el.querySelector('div div');
+  if(titleEl) titleEl.textContent=titleEl.textContent.replace('🔵 ','');
+}
+
+async function loadPlayerMessageThread(){
+  if(!currentPlayer) return;
+  const el = document.getElementById('player-msg-thread');
+  if(!el) return;
+  const {data} = await supa.from('messages').select('*')
+    .eq('player_id',currentPlayer.id).order('created_at',{ascending:true}).limit(50);
+  if(!data?.length){
+    el.innerHTML='<div style="text-align:center;color:var(--text3);font-size:13px;padding:2rem">메시지 없음</div>';
+    return;
+  }
+  el.innerHTML = data.map(m=>{
+    const isCoach = m.sender==='coach';
+    const time = new Date(m.created_at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    return `
+    <div style="display:flex;justify-content:${isCoach?'flex-start':'flex-end'};margin-bottom:10px">
+      <div style="max-width:75%">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;text-align:${isCoach?'left':'right'}">${isCoach?'코치님':currentPlayer.name} · ${time}</div>
+        <div style="padding:10px 14px;border-radius:${isCoach?'14px 14px 14px 4px':'14px 14px 4px 14px'};
+          background:${isCoach?'var(--surface2)':'var(--accent)'};
+          color:${isCoach?'var(--text)':'#000'};font-size:13px;line-height:1.5">
+          ${m.content}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+  await supa.from('messages').update({is_read:true})
+    .eq('player_id',currentPlayer.id).eq('sender','coach');
+}
+
+async function sendPlayerMessage(){
+  if(!currentPlayer) return;
+  const content = document.getElementById('player-msg-input').value.trim();
+  if(!content) return;
+  await supa.from('messages').insert({
+    player_id:currentPlayer.id, sender:'player', content, is_read:false
+  });
+  document.getElementById('player-msg-input').value='';
+  loadPlayerMessageThread();
+}
+
+async function checkUnreadMessages(){
+  if(!currentPlayer) return;
+  const {data:msgs} = await supa.from('messages').select('id')
+    .eq('player_id',currentPlayer.id).eq('sender','coach').eq('is_read',false);
+  const {data:notices} = await supa.from('notifications').select('id,target_type,target_value')
+    .order('created_at',{ascending:false}).limit(30);
+  const myNotices = (notices||[]).filter(n=>
+    n.target_type==='all'||
+    (n.target_type==='position'&&n.target_value===currentPlayer.position)||
+    (n.target_type==='player'&&n.target_value===currentPlayer.id)
+  );
+  const {data:reads} = await supa.from('notification_reads')
+    .select('notification_id').eq('player_id',currentPlayer.id);
+  const readIds = new Set((reads||[]).map(r=>r.notification_id));
+  const unread = myNotices.filter(n=>!readIds.has(n.id)).length;
+  const badge = document.getElementById('inbox-badge');
+  if(badge) badge.style.display=(unread>0||msgs?.length>0)?'block':'none';
+  const msgBadge = document.getElementById('msg-unread-badge');
+  if(msgBadge) msgBadge.style.display=msgs?.length>0?'block':'none';
 }
 
 // ── 홈 데이터 ────────────────────────────
