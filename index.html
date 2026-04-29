@@ -446,6 +446,80 @@
     margin-bottom:14px;
   }
 </style>
+<script>
+// ── PWA Service Worker 등록 ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW reg failed:', e));
+  });
+}
+
+const VAPID_PUBLIC_KEY = 'BCYH2o7EueZiDpC-bN8xUpZ-260VCSxS134wyERDH85T1SoRHYnDFchwSzUlgTAiGw9fVNeNUAj55TzV-5HYXd0';
+const SUPABASE_URL = 'https://gmrhkbddhzpfqzkhuvgf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcmhrYmRkaHpwZnF6a2h1dmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxNTU5NjIsImV4cCI6MjA1NDczMTk2Mn0.5q9oms8H6oRFoeHVhpd_X0qx7wmV1MScfNKML5POpuU';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function requestPushPermission(playerId) {
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    alert('이 브라우저는 푸시 알림을 지원하지 않습니다.');
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    alert('알림 권한이 거부되었습니다. 설정에서 허용해주세요.');
+    return;
+  }
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    const subJson = sub.toJSON();
+    await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        player_id: playerId,
+        endpoint: subJson.endpoint,
+        p256dh: subJson.keys.p256dh,
+        auth: subJson.keys.auth
+      })
+    });
+    document.getElementById('push-btn').textContent = '🔔 알림 허용됨';
+    document.getElementById('push-btn').style.background = 'var(--accent2)';
+    document.getElementById('push-btn').disabled = true;
+  } catch (e) {
+    console.error('Push subscribe error:', e);
+    alert('알림 등록 중 오류가 발생했습니다: ' + e.message);
+  }
+}
+
+async function checkPushStatus() {
+  if (!('serviceWorker' in navigator)) return;
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  if (sub) {
+    const btn = document.getElementById('push-btn');
+    if (btn) {
+      btn.textContent = '🔔 알림 허용됨';
+      btn.style.background = 'var(--accent2)';
+      btn.disabled = true;
+    }
+  }
+}
+</script>
 </head>
 <body>
 
@@ -490,6 +564,17 @@
     <div class="today-badge">
       <span>📅</span>
       <span id="today-label"></span>
+    </div>
+
+    <!-- 푸시 알림 허용 버튼 -->
+    <div id="push-notice-wrap" style="margin-bottom:12px;display:none">
+      <button id="push-btn"
+        onclick="requestPushPermission(currentPlayer && currentPlayer.id)"
+        style="width:100%;padding:12px;border-radius:12px;border:none;
+               background:var(--accent);color:#000;font-weight:700;
+               font-size:14px;cursor:pointer;letter-spacing:0.5px">
+        🔔 푸시 알림 허용하기
+      </button>
     </div>
 
     <!-- 오늘 컨디션 상태 -->
@@ -920,6 +1005,12 @@ async function loginSuccess(player){
   await loadWellnessScreen();
   // 알림 배지 체크
   setTimeout(checkUnreadMessages, 2000);
+
+  // 푸시 알림 버튼 표시
+  if ('Notification' in window && 'serviceWorker' in navigator) {
+    document.getElementById('push-notice-wrap').style.display = 'block';
+    checkPushStatus();
+  }
 }
 
 // ── 화면 전환 ────────────────────────────
