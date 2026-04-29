@@ -488,7 +488,7 @@ async function requestPushPermission(playerId) {
         'Content-Type': 'application/json',
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Prefer': 'resolution=merge-duplicates'
+        'Prefer': 'return=minimal,resolution=merge-duplicates'
       },
       body: JSON.stringify({
         player_id: playerId,
