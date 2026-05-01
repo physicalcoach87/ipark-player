@@ -250,6 +250,20 @@ button { cursor: pointer; border: none; background: transparent; }
 .hbar-ref   { position: absolute; top: -3px; width: 1.5px; height: 11px; background: #2a3050; border-radius: 1px; }
 .hbar-avg   { font-size: 9px; color: #252840; text-align: right; margin-top: 2px; }
 
+/* GPS 상세 — 수치 전용 그리드 */
+.stat-grid-gps {
+  display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 0; padding: 4px 0;
+}
+.stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 14px; border-bottom: 0.5px solid var(--border2);
+}
+.stat-row:nth-child(odd) { border-right: 0.5px solid var(--border2); }
+.stat-lbl     { font-size: 11px; color: var(--text3); }
+.stat-val     { font-size: 15px; font-weight: 500; }
+.stat-val-dash { font-size: 13px; color: var(--text3); }
+
 /* 홈 — 처방 미리보기 */
 .rx-preview-item {
   display: flex; align-items: flex-start; gap: 8px;
@@ -539,6 +553,20 @@ button { cursor: pointer; border: none; background: transparent; }
   color: #8090b0; outline: none; resize: none; line-height: 1.5;
 }
 .memo-field:focus { border-color: var(--blue); }
+
+/* GPS 상세 — 수치 전용 그리드 */
+.stat-grid-gps {
+  display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
+  padding: 4px 0;
+}
+.stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; border-bottom: 0.5px solid var(--border2);
+}
+.stat-row:nth-child(odd) { border-right: 0.5px solid var(--border2); }
+.stat-lbl      { font-size: 11px; color: var(--text3); }
+.stat-val      { font-size: 16px; font-weight: 500; }
+.stat-val-dash { font-size: 13px; color: var(--text3); }
 </style>
 </head>
 <body>
@@ -886,7 +914,7 @@ button { cursor: pointer; border: none; background: transparent; }
       <div class="detail-meta"  id="gps-detail-meta">위 표에서 행을 탭하면 상세가 표시됩니다</div>
     </div>
     <div id="gps-detail-body" style="padding:10px 14px;">
-      <div style="text-align:center;padding:16px 0;font-size:11px;color:#252840;">경기 대비 % 표시</div>
+      <div style="text-align:center;padding:16px 0;font-size:11px;color:#252840;">세션을 탭하면 데이터가 표시됩니다</div>
     </div>
   </div>
 </div><!-- /screen-gps -->
@@ -1164,34 +1192,11 @@ async function loginSuccess(player) {
   switchTab('home');
 }
 
-async function renderHeaderBadges() {
+function renderHeaderBadges() {
   const md = getMdStage();
   document.getElementById('hdr-badges').innerHTML = `
     <span class="badge badge-md">${md}</span>
-    <span class="badge badge-purple" id="hdr-dday-badge">로딩중...</span>
   `;
-  // 다음 경기 D-day 계산
-  try {
-    const { data } = await supa.from('gps_records')
-      .select('session_date')
-      .eq('player_id', currentPlayer.id)
-      .gte('session_date', today())
-      .or('periodization.ilike.%경기%,session_type.ilike.%경기%')
-      .order('session_date', { ascending: true })
-      .limit(1);
-    const badge = document.getElementById('hdr-dday-badge');
-    if (badge && data?.length) {
-      const matchDate = new Date(data[0].session_date + 'T00:00:00');
-      const todayDate = new Date(today() + 'T00:00:00');
-      const diff = Math.round((matchDate - todayDate) / (1000*60*60*24));
-      badge.textContent = diff === 0 ? '경기일' : `D-${diff}`;
-    } else if (badge) {
-      badge.textContent = 'D-?';
-    }
-  } catch(e) {
-    const badge = document.getElementById('hdr-dday-badge');
-    if (badge) badge.textContent = 'D-?';
-  }
 }
 
 /* ════════════════════════════════════════
@@ -1359,7 +1364,11 @@ function renderHomeGps(gps) {
     return;
   }
 
-  metaEl.textContent = `${formatDate(gps.session_date)} · ${gps.session_type || ''} · ${gps.duration || '—'}min`;
+  const homeParts = [formatDate(gps.session_date)];
+  if (gps.cycle)          homeParts.push(gps.cycle);
+  if (gps.periodization)  homeParts.push(gps.periodization);
+  if (gps.duration)       homeParts.push(gps.duration + 'min');
+  metaEl.textContent = homeParts.join(' · ');
 
   const bars = [
     { l:'TD',        n: Math.round(gps.td||0)+'m',      p: Math.round((gps.td||0)/MATCH_AVG.td*100),        c:'#3a6ab0' },
@@ -1369,12 +1378,8 @@ function renderHomeGps(gps) {
     { l:'RHIE',      n: (gps.rhie||0)+'회',              p: Math.round((gps.rhie||0)/MATCH_AVG.rhie*100),     c:'#604090' },
   ];
 
-  body.innerHTML = `<div class="hbar-wrap">
-    <div style="font-size:10px;color:var(--text3);margin-bottom:8px;">경기 대비 %</div>
+  body.innerHTML = `<div class="stat-grid-gps">
     ${bars.map(b => {
-      const w = Math.min(b.p, 100);
-      const over = b.p > 100;
-      const pc = b.p >= 90 ? '#3aaa6a' : b.p >= 60 ? '#d0a030' : '#e05050';
       return `<div class="hbar-item">
         <div class="hbar-row">
           <span class="hbar-lbl">${b.l}</span>
@@ -1389,7 +1394,6 @@ function renderHomeGps(gps) {
         </div>
       </div>`;
     }).join('')}
-    <div style="font-size:9px;color:#252840;text-align:right;margin-top:4px;">세로선 = 경기 평균</div>
   </div>`;
 }
 
@@ -1920,49 +1924,43 @@ function renderGpsDetail(r) {
     title.textContent = '세션 데이터 없음';
     title.style.color = 'var(--text3)';
     meta.textContent  = '위 표에서 완료된 세션을 탭하세요';
-    body.innerHTML    = '<div style="text-align:center;padding:16px 0;font-size:11px;color:#252840;">경기 대비 % 표시</div>';
+    body.innerHTML    = '<div style="text-align:center;padding:16px 0;font-size:11px;color:#252840;">세션을 탭하면 데이터가 표시됩니다</div>';
     return;
   }
 
-  const isMatch = r.session_type?.includes('경기');
-  title.textContent = `${formatDate(r.session_date)} · ${r.periodization||''} ${r.session_type||''}`;
+  // cycle = MD 단계, periodization = 라운드+상대 (R1 김해FC)
+  const isMatch     = r.cycle === 'MD';
+  const cycleLabel  = r.cycle || '';
+  const opponent    = r.periodization || '';  // R1 김해FC 등
+
+  // 타이틀: 날짜 · MD단계 · 상대팀
+  const titleParts = [formatDate(r.session_date)];
+  if (cycleLabel) titleParts.push(cycleLabel);
+  if (opponent)   titleParts.push(opponent);
+  title.textContent = titleParts.join(' · ');
   title.style.color = isMatch ? 'var(--purple)' : 'var(--blue)';
-  meta.textContent  = `${r.training_form||''} ${r.session_topic?'· '+r.session_topic:''} · ${r.duration||'—'}min`.trim();
 
-  // 값이 있는 항목만 표시 (0은 — 처리)
-  const fmtM  = v => v > 0 ? Math.round(v)+'m'    : '—';
-  const fmtKm = v => v > 0 ? v+' km/h'            : '—';
-  const fmtCnt= v => v > 0 ? v+'회'               : '—';
-  const pct   = (v, avg) => v > 0 ? Math.round(v / avg * 100) : 0;
+  // 메타: 훈련형태 · 훈련주제 · 시간
+  const metaParts = [r.training_form, r.session_topic, r.duration ? r.duration+'min' : null].filter(Boolean);
+  meta.textContent = metaParts.join(' · ');
 
-  const bars = [
-    { l:'TD',        n: r.td           > 0 ? Math.round(r.td)+'m'    : '—', p: pct(r.td,           MATCH_AVG.td),        c:'#3a6ab0', hasData: r.td > 0 },
-    { l:'HSR',       n: r.running_high > 0 ? Math.round(r.running_high)+'m':'—', p: pct(r.running_high, MATCH_AVG.hsr),   c:'#906020', hasData: r.running_high > 0 },
-    { l:'Sprint',    n: r.sprint       > 0 ? Math.round(r.sprint)+'m'     : '—', p: pct(r.sprint,       MATCH_AVG.sprint),c:'#803030', hasData: r.sprint > 0 },
-    { l:'Max Speed', n: r.max_speed    > 0 ? r.max_speed+' km/h'          : '—', p: pct(r.max_speed,    MATCH_AVG.maxSpeed),c:'#206040',hasData: r.max_speed > 0 },
-    { l:'RHIE',      n: r.rhie         > 0 ? r.rhie+'회'                  : '—', p: pct(r.rhie,         MATCH_AVG.rhie),  c:'#604090', hasData: r.rhie > 0 },
+  // GPS 수치 (% 없이 수치만)
+  const stats = [
+    { l:'TD',        n: r.td           > 0 ? Math.round(r.td).toLocaleString()+'m'  : '—', c:'#5a9de0' },
+    { l:'HSR',       n: r.running_high > 0 ? Math.round(r.running_high)+'m'          : '—', c:'#d0a030' },
+    { l:'Sprint',    n: r.sprint       > 0 ? Math.round(r.sprint)+'m'                : '—', c:'#e05050' },
+    { l:'Max Speed', n: r.max_speed    > 0 ? r.max_speed+' km/h'                    : '—', c:'#3aaa6a' },
+    { l:'RHIE',      n: r.rhie         > 0 ? r.rhie+'회'                              : '—', c:'#9060d0' },
+    { l:'가속',       n: r.accel        > 0 ? r.accel+'회'                             : '—', c:'#d07830' },
   ];
 
-  body.innerHTML = `<div style="font-size:10px;color:var(--text3);margin-bottom:8px;">경기 대비 %</div>
-    ${bars.map(b => {
-      const w = Math.min(b.p, 100);
-      const over = b.p > 100;
-      const pc = b.p >= 90 ? '#3aaa6a' : b.p >= 60 ? '#d0a030' : '#e05050';
-      return `<div class="hbar-item">
-        <div class="hbar-row">
-          <span class="hbar-lbl">${b.l}</span>
-          <div class="hbar-right">
-            <span style="color:#7888a8;">${b.n}</span>
-            <span class="hbar-pct" style="color:${pc};">${b.p}%${over?' ↑':''}</span>
-          </div>
-        </div>
-        <div class="hbar-track">
-          <div class="hbar-fill" style="width:${w}%;background:${over?'#c06020':b.c};"></div>
-          ${!over?'<div class="hbar-ref" style="left:100%;"></div>':''}
-        </div>
-      </div>`;
-    }).join('')}
-    <div style="font-size:9px;color:#252840;text-align:right;margin-top:4px;">세로선 = 경기 평균</div>`;
+  body.innerHTML = `<div class="stat-grid-gps">
+    ${stats.map(s => `
+      <div class="stat-row">
+        <div class="stat-lbl">${s.l}</div>
+        <div class="${s.n !== '—' ? 'stat-val' : 'stat-val-dash'}" style="${s.n !== '—' ? 'color:'+s.c+';' : ''}">${s.n}</div>
+      </div>`).join('')}
+  </div>`;
 }
 
 /* ════════════════════════════════════════
