@@ -29,9 +29,9 @@
   --blue:      #5a8de0;
   --purple:    #9060d0;
   --green:     #3aaa6a;
-  --text:      #e0e2f0;
-  --text2:     #9090b0;
-  --text3:     #404060;
+  --text:      #eaecf8;
+  --text2:     #a8b0d0;
+  --text3:     #7080b8;
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 body {
@@ -243,7 +243,7 @@ button { cursor: pointer; border: none; background: transparent; }
 .hbar-row   { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 3px; }
 .hbar-lbl   { color: var(--text3); }
 .hbar-right { display: flex; gap: 6px; }
-.hbar-num   { color: #505070; }
+.hbar-num   { color: #7888a8; }
 .hbar-pct   { font-weight: 500; min-width: 28px; text-align: right; }
 .hbar-track { background: var(--surface3); border-radius: 3px; height: 5px; position: relative; }
 .hbar-fill  { height: 5px; border-radius: 3px; }
@@ -360,9 +360,9 @@ button { cursor: pointer; border: none; background: transparent; }
   padding: 8px 14px; border-top: 0.5px solid var(--border2);
 }
 .rpe-hist-date { font-size: 10px; color: var(--text3); width: 40px; flex-shrink: 0; }
-.rpe-hist-type { font-size: 10px; color: #505070; flex: 1; }
+.rpe-hist-type { font-size: 10px; color: #7888a8; flex: 1; }
 .rpe-hist-score { font-size: 15px; font-weight: 500; }
-.rpe-hist-wt { font-size: 11px; color: #505070; text-align: right; }
+.rpe-hist-wt { font-size: 11px; color: #7888a8; text-align: right; }
 
 /* ════════════════════════════════════════
    GPS 화면
@@ -389,7 +389,7 @@ button { cursor: pointer; border: none; background: transparent; }
 .gps-table th:first-child { text-align: left; padding-left: 14px; width: 50px; }
 .gps-table th:nth-child(2) { width: 42px; }
 .gps-table td {
-  font-size: 11px; color: #505070; text-align: center;
+  font-size: 11px; color: #7888a8; text-align: center;
   padding: 8px 0; border-bottom: 0.5px solid var(--border2); cursor: pointer;
 }
 .gps-table td:first-child { text-align: left; padding-left: 14px; font-size: 10px; color: var(--text3); }
@@ -528,7 +528,7 @@ button { cursor: pointer; border: none; background: transparent; }
 .notif-row.read { opacity: .5; }
 .notif-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
 .notif-title { font-size: 12px; font-weight: 500; color: #b0b4d0; margin-bottom: 3px; }
-.notif-body  { font-size: 11px; color: #505070; line-height: 1.5; }
+.notif-body  { font-size: 11px; color: #7888a8; line-height: 1.5; }
 .notif-time  { font-size: 10px; color: var(--text3); margin-top: 3px; }
 .notif-empty { text-align: center; padding: 32px 16px; font-size: 13px; color: var(--text3); }
 
@@ -655,6 +655,20 @@ button { cursor: pointer; border: none; background: transparent; }
 <!-- 웰니스 -->
 <div class="screen" id="screen-wellness">
 
+  <!-- 날짜 배너 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px;background:var(--surface2);border-radius:12px;
+    margin-bottom:10px;border:0.5px solid var(--border);">
+    <div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">입력 날짜</div>
+      <div style="font-size:16px;font-weight:500;color:var(--text);" id="wellness-date-display">—</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:3px;" id="wellness-day-display">—</div>
+      <div style="font-size:10px;" id="wellness-time-display" style="color:var(--text3);">—</div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-head">
       <span class="card-title">아침 웰니스</span>
@@ -751,6 +765,20 @@ button { cursor: pointer; border: none; background: transparent; }
 
 <!-- RPE -->
 <div class="screen" id="screen-rpe">
+
+  <!-- 날짜 배너 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px;background:var(--surface2);border-radius:12px;
+    margin-bottom:10px;border:0.5px solid var(--border);">
+    <div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">세션 날짜</div>
+      <div style="font-size:16px;font-weight:500;color:var(--text);" id="rpe-date-display">—</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:3px;" id="rpe-day-display">—</div>
+      <div id="rpe-saved-info" style="font-size:10px;color:var(--text3);">—</div>
+    </div>
+  </div>
 
   <!-- 세션 타입 -->
   <div class="card">
@@ -991,6 +1019,72 @@ let morningWeightToday = null;
 ════════════════════════════════════════ */
 function today() { return new Date().toISOString().split('T')[0]; }
 
+function getDateInfo(dateStr) {
+  // dateStr: 'YYYY-MM-DD' 또는 undefined(오늘)
+  const d = dateStr ? new Date(dateStr + 'T00:00:00') : new Date();
+  const DAY_KO = ['일','월','화','수','목','금','토'];
+  const DAY_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const mm   = String(d.getMonth()+1).padStart(2,'0');
+  const dd   = String(d.getDate()).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  const isToday = dateStr ? dateStr === today() : true;
+  return {
+    full:  `${yyyy}.${mm}.${dd}`,
+    short: `${mm}/${dd}`,
+    day:   DAY_KO[d.getDay()] + '요일',
+    dayEn: DAY_EN[d.getDay()],
+    isToday,
+    label: isToday ? '오늘' : `${mm}/${dd}`,
+  };
+}
+
+function renderWellnessBanner(savedAt) {
+  const info = getDateInfo();
+  const now  = new Date();
+  const hh   = String(now.getHours()).padStart(2,'0');
+  const min  = String(now.getMinutes()).padStart(2,'0');
+
+  const dateEl = document.getElementById('wellness-date-display');
+  const dayEl  = document.getElementById('wellness-day-display');
+  const timeEl = document.getElementById('wellness-time-display');
+  if (!dateEl) return;
+
+  dateEl.textContent = info.full;
+  dayEl.textContent  = info.day;
+  if (savedAt) {
+    const t = savedAt.slice(11,16);
+    timeEl.textContent = `✅ ${t} 저장 완료`;
+    timeEl.style.color = 'var(--green)';
+  } else {
+    timeEl.textContent = `현재 ${hh}:${min}`;
+    timeEl.style.color = 'var(--text3)';
+  }
+}
+
+function renderRpeBanner(lastRecord) {
+  const info = getDateInfo();
+  const now  = new Date();
+  const hh   = String(now.getHours()).padStart(2,'0');
+  const min  = String(now.getMinutes()).padStart(2,'0');
+
+  const dateEl  = document.getElementById('rpe-date-display');
+  const dayEl   = document.getElementById('rpe-day-display');
+  const savedEl = document.getElementById('rpe-saved-info');
+  if (!dateEl) return;
+
+  dateEl.textContent = info.full;
+  dayEl.textContent  = info.day;
+  if (lastRecord) {
+    const t    = (lastRecord.created_at || '').slice(11,16);
+    const type = lastRecord.session_type || '';
+    savedEl.textContent = `✅ ${type} RPE ${lastRecord.rpe} · ${t} 저장`;
+    savedEl.style.color = 'var(--green)';
+  } else {
+    savedEl.textContent = `현재 ${hh}:${min} · 미입력`;
+    savedEl.style.color = 'var(--text3)';
+  }
+}
+
 function getMdStage() {
   // 현재 날짜 기반 MD 단계 추정 (실제로는 schedule DB에서 가져오는 것이 이상적)
   return 'MD+1';
@@ -1070,12 +1164,34 @@ async function loginSuccess(player) {
   switchTab('home');
 }
 
-function renderHeaderBadges() {
+async function renderHeaderBadges() {
   const md = getMdStage();
   document.getElementById('hdr-badges').innerHTML = `
     <span class="badge badge-md">${md}</span>
-    <span class="badge badge-purple" id="hdr-dday-badge">D-day 로딩중</span>
+    <span class="badge badge-purple" id="hdr-dday-badge">로딩중...</span>
   `;
+  // 다음 경기 D-day 계산
+  try {
+    const { data } = await supa.from('gps_records')
+      .select('session_date')
+      .eq('player_id', currentPlayer.id)
+      .gte('session_date', today())
+      .or('periodization.ilike.%경기%,session_type.ilike.%경기%')
+      .order('session_date', { ascending: true })
+      .limit(1);
+    const badge = document.getElementById('hdr-dday-badge');
+    if (badge && data?.length) {
+      const matchDate = new Date(data[0].session_date + 'T00:00:00');
+      const todayDate = new Date(today() + 'T00:00:00');
+      const diff = Math.round((matchDate - todayDate) / (1000*60*60*24));
+      badge.textContent = diff === 0 ? '경기일' : `D-${diff}`;
+    } else if (badge) {
+      badge.textContent = 'D-?';
+    }
+  } catch(e) {
+    const badge = document.getElementById('hdr-dday-badge');
+    if (badge) badge.textContent = 'D-?';
+  }
 }
 
 /* ════════════════════════════════════════
@@ -1106,7 +1222,7 @@ async function loadHome() {
   const [wellRes, sessRes, gpsRes, rxRes] = await Promise.all([
     supa.from('wellness_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).single(),
     supa.from('session_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).order('created_at', { ascending: false }).limit(1),
-    supa.from('gps_records').select('*').eq('player_id', currentPlayer.id).order('session_date', { ascending: false }).limit(1),
+    supa.from('gps_records').select('*').eq('player_id', currentPlayer.id).or('session_type2.neq.M,session_type2.is.null').order('session_date', { ascending: false }).limit(1),
     supa.from('custom_programs').select('*').eq('position', currentPlayer.position).order('created_at', { ascending: false }).limit(3),
   ]);
 
@@ -1263,7 +1379,7 @@ function renderHomeGps(gps) {
         <div class="hbar-row">
           <span class="hbar-lbl">${b.l}</span>
           <div class="hbar-right">
-            <span style="color:#505070;">${b.n}</span>
+            <span style="color:#7888a8;">${b.n}</span>
             <span class="hbar-pct" style="color:${pc};">${b.p}%${over?' ↑':''}</span>
           </div>
         </div>
@@ -1340,6 +1456,9 @@ async function loadWellness() {
     .select('*').eq('player_id', currentPlayer.id).eq('record_date', t).single();
 
   existingWellnessId = existing?.id || null;
+
+  // 날짜 배너 렌더
+  renderWellnessBanner(existing?.updated_at || existing?.created_at || null);
 
   W_ITEMS.forEach(item => {
     wellnessData[item.key] = existing ? (existing[item.key] || 3) : 3;
@@ -1523,6 +1642,7 @@ async function saveWellness() {
     showMsg('wellness-msg', 'ok', `✅ 저장 완료! 오늘 컨디션: ${total}/20`);
     document.getElementById('wellness-badge').textContent = '입력 완료';
     document.getElementById('wellness-badge').className   = 'badge badge-green';
+    renderWellnessBanner(new Date().toISOString());
     loadWellnessTrend();
   }
 }
@@ -1653,6 +1773,7 @@ async function saveRpe() {
   } else {
     showMsg('rpe-msg', 'ok', `✅ 저장 완료! RPE ${selectedRpe} · ${selectedSessionType}`);
     loadRpeHistory();
+    renderRpeBanner({ rpe: selectedRpe, session_type: selectedSessionType, created_at: new Date().toISOString() });
   }
 }
 
@@ -1667,6 +1788,10 @@ async function loadRpeHistory() {
   const { data: todayW } = await supa.from('wellness_records')
     .select('morning_weight').eq('player_id', currentPlayer.id).eq('record_date', today()).single();
   if (todayW?.morning_weight) morningWeightToday = todayW.morning_weight;
+
+  // 오늘 세션 찾아서 배너 업데이트
+  const todaySess = data?.find(r => r.record_date === today());
+  renderRpeBanner(todaySess || null);
 
   if (!data?.length) {
     el.innerHTML = '<div class="empty-state">세션 기록 없음</div>'; return;
@@ -1708,7 +1833,7 @@ async function loadGps() {
   const { data } = await supa.from('gps_records')
     .select('*').eq('player_id', currentPlayer.id)
     .gte('session_date', since.toISOString().split('T')[0])
-    .neq('session_type2', 'M')
+    .or('session_type2.neq.M,session_type2.is.null')
     .order('session_date', { ascending: false });
 
   gpsRows = data || [];
@@ -1819,7 +1944,7 @@ function renderGpsDetail(r) {
         <div class="hbar-row">
           <span class="hbar-lbl">${b.l}</span>
           <div class="hbar-right">
-            <span style="color:#505070;">${b.n}</span>
+            <span style="color:#7888a8;">${b.n}</span>
             <span class="hbar-pct" style="color:${pc};">${b.p}%${over?' ↑':''}</span>
           </div>
         </div>
