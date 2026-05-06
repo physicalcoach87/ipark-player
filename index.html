@@ -385,6 +385,49 @@ button { cursor: pointer; border: none; background: transparent; }
 .rpe-del-btn:active { opacity: .7; }
 
 /* ════════════════════════════════════════
+   홈 — 주간 일정
+════════════════════════════════════════ */
+.sched-day-hdr {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 14px 5px;
+  border-top: 0.5px solid var(--border2);
+  font-size: 11px; font-weight: 500; color: var(--text3);
+}
+.sched-day-hdr:first-child { border-top: none; }
+.sched-today-dot {
+  font-size: 9px; padding: 1px 6px; border-radius: 8px;
+  background: rgba(0,229,160,.12); color: var(--accent);
+  border: 0.5px solid rgba(0,229,160,.3);
+}
+.sched-event-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 14px 5px 28px;
+}
+.sched-event-time { font-size: 10px; color: var(--text3); width: 34px; flex-shrink: 0; }
+.sched-event-dot  { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.sched-event-title { font-size: 11px; color: #b0b8d8; flex: 1; }
+.sched-event-md   { font-size: 9px; font-weight: 700; flex-shrink: 0; }
+.sched-empty      { padding: 16px 14px; font-size: 12px; color: var(--text3); text-align: center; }
+
+/* 홈 — GPS 수치 그리드 */
+.gps-meta-hdr { padding: 8px 14px 2px; }
+.gps-meta-title { font-size: 13px; font-weight: 500; color: var(--blue); margin-bottom: 2px; }
+.gps-meta-sub   { font-size: 10px; color: var(--text3); }
+.gps-stat-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  border-top: 0.5px solid var(--border2); margin-top: 8px;
+}
+.gps-stat-cell {
+  padding: 10px 14px;
+  border-right: 0.5px solid var(--border2);
+  border-bottom: 0.5px solid var(--border2);
+}
+.gps-stat-cell:nth-child(2n) { border-right: none; }
+.gps-stat-cell:nth-last-child(-n+2) { border-bottom: none; }
+.gps-stat-lbl { font-size: 10px; color: var(--text3); margin-bottom: 4px; }
+.gps-stat-val { font-size: 18px; font-weight: 500; }
+
+/* ════════════════════════════════════════
    GPS 화면
 ════════════════════════════════════════ */
 .filter-row { display: flex; gap: 5px; margin-bottom: 10px; }
@@ -665,14 +708,24 @@ button { cursor: pointer; border: none; background: transparent; }
     </div>
   </div>
 
-  <!-- 전날 GPS 경기 대비 -->
+  <!-- 전날 GPS -->
   <div class="card">
     <div class="card-head">
-      <span class="card-title">전날 세션 · 경기 대비</span>
-      <span class="card-sub" id="home-gps-meta">—</span>
+      <span class="card-title">전날 세션</span>
     </div>
     <div id="home-gps-body">
       <div class="empty-state"><div class="empty-icon">📡</div>GPS 데이터 없음</div>
+    </div>
+  </div>
+
+  <!-- 이번 주 일정 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">이번 주 일정</span>
+      <span class="card-sub" style="font-size:9px;color:var(--text3);">코치 등록 · 읽기 전용</span>
+    </div>
+    <div id="home-schedule-body">
+      <div class="loading"><div class="spinner"></div>불러오는 중...</div>
     </div>
   </div>
 
@@ -1261,13 +1314,23 @@ async function loadHome() {
   if (!currentPlayer) return;
   const t = today();
 
+  // 이번 주 월~일 계산
+  const now = new Date();
+  const dow = now.getDay();
+  const diffMon = dow === 0 ? -6 : 1 - dow;
+  const wStart = new Date(now); wStart.setDate(now.getDate() + diffMon);
+  const wEnd   = new Date(wStart); wEnd.setDate(wStart.getDate() + 6);
+  const wStartStr = wStart.toISOString().split('T')[0];
+  const wEndStr   = wEnd.toISOString().split('T')[0];
+
   // 병렬로 데이터 로드
-  const [wellRes, sessRes, gpsRes, rxRes, schedRes] = await Promise.all([
+  const [wellRes, sessRes, gpsRes, rxRes, schedRes, weekRes] = await Promise.all([
     supa.from('wellness_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).single(),
     supa.from('session_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).order('created_at', { ascending: false }).limit(1),
     supa.from('gps_records').select('*').eq('player_id', currentPlayer.id).order('session_date', { ascending: false }).limit(1),
     supa.from('custom_programs').select('*').eq('position', currentPlayer.position).order('created_at', { ascending: false }).limit(3),
     supa.from('weekly_schedule').select('md_stage').eq('event_date', t).not('md_stage', 'is', null).limit(1),
+    supa.from('weekly_schedule').select('*').gte('event_date', wStartStr).lte('event_date', wEndStr).order('event_date').order('start_time'),
   ]);
 
   const wellness = wellRes.data;
@@ -1289,6 +1352,9 @@ async function loadHome() {
 
   // 처방
   renderHomeRx(rxRes.data, todayMd);
+
+  // 주간 일정
+  renderHomeSchedule(weekRes.data || [], t);
 }
 
 function renderRiskScore(w, sess, gps) {
@@ -1398,49 +1464,45 @@ function renderHomeWellness(w, sess) {
 }
 
 function renderHomeGps(gps) {
-  const metaEl = document.getElementById('home-gps-meta');
-  const body   = document.getElementById('home-gps-body');
+  const body = document.getElementById('home-gps-body');
 
   if (!gps) {
-    metaEl.textContent = '—';
     body.innerHTML = '<div class="empty-state"><div class="empty-icon">📡</div>GPS 데이터 없음</div>';
     return;
   }
 
-  const homeParts = [formatDate(gps.session_date)];
-  if (gps.cycle)          homeParts.push(gps.cycle);
-  if (gps.periodization)  homeParts.push(gps.periodization);
-  if (gps.duration)       homeParts.push(gps.duration + 'min');
-  metaEl.textContent = homeParts.join(' · ');
+  // 타이틀 라인 (날짜 · MD · 주기화)
+  const titleParts = [formatDate(gps.session_date)];
+  if (gps.cycle)         titleParts.push(gps.cycle);
+  if (gps.periodization) titleParts.push(gps.periodization);
 
-  const bars = [
-    { l:'TD',        n: Math.round(gps.td||0)+'m',      p: Math.round((gps.td||0)/MATCH_AVG.td*100),        c:'#3a6ab0' },
-    { l:'HSR',       n: Math.round(gps.running_high||0)+'m', p: Math.round((gps.running_high||0)/MATCH_AVG.hsr*100),  c:'#906020' },
-    { l:'Sprint',    n: Math.round(gps.sprint||0)+'m',  p: Math.round((gps.sprint||0)/MATCH_AVG.sprint*100), c:'#803030' },
-    { l:'Max Speed', n: (gps.max_speed||0)+' km/h',     p: Math.round((gps.max_speed||0)/MATCH_AVG.maxSpeed*100), c:'#206040' },
-    { l:'RHIE',      n: (gps.rhie||0)+'회',              p: Math.round((gps.rhie||0)/MATCH_AVG.rhie*100),     c:'#604090' },
+  // 서브 라인 (session_type2 · session_topic · 시간)
+  const subParts = [];
+  if (gps.session_type2) subParts.push(gps.session_type2);
+  if (gps.session_topic) subParts.push(gps.session_topic);
+  if (gps.duration)      subParts.push(gps.duration + 'min');
+
+  const stats = [
+    { l:'TD',        v: gps.td           > 0 ? Math.round(gps.td).toLocaleString()+'m' : '—', c:'#5a9de0' },
+    { l:'HSR',       v: gps.running_high > 0 ? Math.round(gps.running_high)+'m'         : '—', c:'#d0a030' },
+    { l:'Sprint',    v: gps.sprint       > 0 ? Math.round(gps.sprint)+'m'               : '—', c:'#e05050' },
+    { l:'Max Speed', v: gps.max_speed    > 0 ? gps.max_speed+' km/h'                   : '—', c:'#3aaa6a' },
+    { l:'RHIE',      v: gps.rhie         > 0 ? gps.rhie+'회'                             : '—', c:'#9060d0' },
+    { l:'가속',       v: gps.accel        > 0 ? gps.accel+'회'                            : '—', c:'#d07830' },
   ];
 
-  body.innerHTML = `<div class="stat-grid-gps">
-    ${bars.map(b => {
-      const over = b.p > 100;
-      const w    = Math.min(b.p, 100);
-      const pc   = b.p >= 80 ? '#3aaa6a' : b.p >= 60 ? '#d09030' : '#e04040';
-      return `<div class="hbar-item">
-        <div class="hbar-row">
-          <span class="hbar-lbl">${b.l}</span>
-          <div class="hbar-right">
-            <span style="color:#7888a8;">${b.n}</span>
-            <span class="hbar-pct" style="color:${pc};">${b.p}%${over?' ↑':''}</span>
-          </div>
-        </div>
-        <div class="hbar-track">
-          <div class="hbar-fill" style="width:${w}%;background:${over?'#c06020':b.c};"></div>
-          ${!over ? '<div class="hbar-ref" style="left:100%;"></div>' : ''}
-        </div>
-      </div>`;
-    }).join('')}
-  </div>`;
+  body.innerHTML = `
+    <div class="gps-meta-hdr">
+      <div class="gps-meta-title">${titleParts.join(' · ')}</div>
+      ${subParts.length ? `<div class="gps-meta-sub">${subParts.join(' · ')}</div>` : ''}
+    </div>
+    <div class="gps-stat-grid">
+      ${stats.map(s => `
+        <div class="gps-stat-cell">
+          <div class="gps-stat-lbl">${s.l}</div>
+          <div class="gps-stat-val" style="color:${s.v !== '—' ? s.c : 'var(--text3)'};">${s.v}</div>
+        </div>`).join('')}
+    </div>`;
 }
 
 function renderHomeRx(progs, mdStage) {
@@ -1459,6 +1521,70 @@ function renderHomeRx(progs, mdStage) {
       <div class="rx-text"><b>${b.label}</b> — ${b.name}</div>
     </div>`
   ).join('') + (progs.length > 1 ? `<div class="rx-preview-item"><div class="rx-dot" style="background:#303450;"></div><div class="rx-text" style="color:var(--text3);">처방 ${progs.length}개 · 처방 탭에서 확인</div></div>` : '');
+}
+
+/* ════════════════════════════════════════
+   홈 — 주간 일정 렌더
+════════════════════════════════════════ */
+const SCHED_TYPE_CLR = {
+  'TRAINING':'#5a9de0', 'MATCH':'#ef4444', 'GYM':'#d0a030',
+  'REST':'#7888a8',     'MEAL':'#3aaa6a',  'SNACK':'#d07830', 'EVENT':'#b060d0',
+};
+const SCHED_TYPE_ICON = {
+  'TRAINING':'🏃', 'MATCH':'⚽', 'GYM':'🏋️',
+  'REST':'😴',     'MEAL':'🍽️', 'SNACK':'🍌', 'EVENT':'📢',
+};
+const MD_CLR = {
+  'MD-5':'#5a9de0','MD-4':'#5a9de0','MD-3':'#e04040',
+  'MD-2':'#f97316','MD-1':'#4ade80','MD+1':'#14b8a6','MATCH':'#ef4444',
+};
+const DAY_KO = ['일','월','화','수','목','금','토'];
+
+function renderHomeSchedule(events, todayStr) {
+  const el = document.getElementById('home-schedule-body');
+  if (!events.length) {
+    el.innerHTML = '<div class="sched-empty">이번 주 등록된 일정이 없습니다.</div>'; return;
+  }
+
+  // 날짜별 그룹핑
+  const grouped = {};
+  events.forEach(ev => {
+    if (!grouped[ev.event_date]) grouped[ev.event_date] = [];
+    grouped[ev.event_date].push(ev);
+  });
+
+  const html = Object.keys(grouped).sort().map(dateStr => {
+    const dt      = new Date(dateStr + 'T00:00:00');
+    const dayKo   = DAY_KO[dt.getDay()];
+    const mmdd    = `${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')}`;
+    const isToday = dateStr === todayStr;
+
+    const dayLabel = `<div class="sched-day-hdr">
+      <span style="color:${isToday?'var(--accent)':'var(--text2)'};">${dayKo} ${mmdd}</span>
+      ${isToday ? '<span class="sched-today-dot">오늘</span>' : ''}
+    </div>`;
+
+    const evRows = grouped[dateStr].map(ev => {
+      const col   = SCHED_TYPE_CLR[ev.event_type] || '#7888a8';
+      const icon  = SCHED_TYPE_ICON[ev.event_type] || '📌';
+      const time  = ev.start_time ? ev.start_time.slice(0,5) : '';
+      const mdClr = ev.md_stage ? (MD_CLR[ev.md_stage] || 'var(--text3)') : null;
+      const mdBadge = mdClr
+        ? `<span class="sched-event-md" style="color:${mdClr};">${ev.md_stage}</span>` : '';
+      const teamTag = (ev.team && ev.team !== 'ALL')
+        ? `<span style="font-size:9px;color:var(--text3);">${ev.team}팀</span>` : '';
+      return `<div class="sched-event-row">
+        <span class="sched-event-time">${time}</span>
+        <span class="sched-event-dot" style="background:${col};"></span>
+        <span class="sched-event-title">${icon} ${ev.title || ev.event_type}</span>
+        ${mdBadge}${teamTag}
+      </div>`;
+    }).join('');
+
+    return dayLabel + evRows;
+  }).join('');
+
+  el.innerHTML = html;
 }
 
 /* ════════════════════════════════════════
