@@ -599,9 +599,12 @@ button { cursor: pointer; border: none; background: transparent; }
         <div class="hdr-sub">PLAYER APP</div>
       </div>
     </div>
-    <div class="hdr-player">
-      <div class="hdr-player-name" id="hdr-player-name">—</div>
-      <div class="hdr-player-pos"  id="hdr-player-pos">—</div>
+    <div class="hdr-player" style="display:flex;align-items:center;gap:10px">
+      <div>
+        <div class="hdr-player-name" id="hdr-player-name">—</div>
+        <div class="hdr-player-pos"  id="hdr-player-pos">—</div>
+      </div>
+      <button onclick="doLogout()" title="로그아웃" style="background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);border-radius:8px;color:var(--text3);font-size:11px;padding:5px 9px;cursor:pointer;font-family:inherit;white-space:nowrap">로그아웃</button>
     </div>
   </div>
   <div class="hdr-badges" id="hdr-badges"></div>
@@ -1176,6 +1179,20 @@ async function doLogin() {
     err.textContent = '오류: ' + e.message;
     btn.disabled = false; btn.textContent = '로그인 / Login';
   }
+}
+
+function doLogout() {
+  currentPlayer = null;
+  existingWellnessId = null;
+  existingFitnessId  = null;
+  selectedRpe        = null;
+  gpsRows            = [];
+  document.getElementById('app-header').style.display  = 'none';
+  document.getElementById('tab-bar').style.display     = 'none';
+  document.getElementById('screen-login').style.display = 'flex';
+  TABS.forEach(t => document.getElementById('screen-' + t).classList.remove('active'));
+  document.getElementById('login-id').value = '';
+  document.getElementById('login-pw').value = '';
 }
 
 async function loginSuccess(player) {
@@ -1763,11 +1780,10 @@ async function saveRpe() {
   const postWt = parseFloat(document.getElementById('post-weight').value) || null;
   const t = today();
   const payload = {
-    player_id:    currentPlayer.id,
-    record_date:  t,
-    session_type: selectedSessionType,
-    rpe:          selectedRpe,
-    post_weight:  postWt,
+    player_id:   currentPlayer.id,
+    record_date: t,
+    rpe:         selectedRpe,
+    post_weight: postWt,
   };
 
   const { error } = await supa.from('session_records').insert(payload);
