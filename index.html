@@ -377,6 +377,12 @@ button { cursor: pointer; border: none; background: transparent; }
 .rpe-hist-type { font-size: 10px; color: #7888a8; flex: 1; }
 .rpe-hist-score { font-size: 15px; font-weight: 500; }
 .rpe-hist-wt { font-size: 11px; color: #7888a8; text-align: right; }
+.rpe-del-btn {
+  font-size: 10px; padding: 3px 8px; border-radius: 5px; cursor: pointer;
+  background: #2a0a0a; color: #c04040; border: 0.5px solid #4a1a1a;
+  flex-shrink: 0; transition: opacity .15s;
+}
+.rpe-del-btn:active { opacity: .7; }
 
 /* ════════════════════════════════════════
    GPS 화면
@@ -1210,10 +1216,25 @@ async function loginSuccess(player) {
 }
 
 function renderHeaderBadges() {
-  const md = getMdStage();
-  document.getElementById('hdr-badges').innerHTML = `
-    <span class="badge badge-md">${md}</span>
-  `;
+  document.getElementById('hdr-badges').innerHTML =
+    `<span class="badge badge-md">—</span>`;
+}
+
+function updateHeaderBadges(wellness, sess, mdStage) {
+  const md = mdStage || getMdStage();
+  const wellnessDone = !!wellness;
+  const rpeDone      = !!sess;
+
+  const wellBadge = wellnessDone
+    ? `<span class="badge badge-green" style="font-size:9px;">💚 웰니스 ✓</span>`
+    : `<span class="badge badge-amber" style="font-size:9px;">💚 웰니스 미입력</span>`;
+
+  const rpeBadge = rpeDone
+    ? `<span class="badge badge-green" style="font-size:9px;">💪 RPE ✓</span>`
+    : `<span class="badge badge-amber" style="font-size:9px;">💪 RPE 미입력</span>`;
+
+  document.getElementById('hdr-badges').innerHTML =
+    `<span class="badge badge-md">${md}</span>${wellBadge}${rpeBadge}`;
 }
 
 /* ════════════════════════════════════════
@@ -1241,16 +1262,21 @@ async function loadHome() {
   const t = today();
 
   // 병렬로 데이터 로드
-  const [wellRes, sessRes, gpsRes, rxRes] = await Promise.all([
+  const [wellRes, sessRes, gpsRes, rxRes, schedRes] = await Promise.all([
     supa.from('wellness_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).single(),
     supa.from('session_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).order('created_at', { ascending: false }).limit(1),
     supa.from('gps_records').select('*').eq('player_id', currentPlayer.id).order('session_date', { ascending: false }).limit(1),
     supa.from('custom_programs').select('*').eq('position', currentPlayer.position).order('created_at', { ascending: false }).limit(3),
+    supa.from('weekly_schedule').select('md_stage').eq('event_date', t).not('md_stage', 'is', null).limit(1),
   ]);
 
   const wellness = wellRes.data;
   const lastSess = sessRes.data?.[0];
   const lastGps  = gpsRes.data?.[0];
+  const todayMd  = schedRes.data?.[0]?.md_stage || null;
+
+  // 헤더 badges 업데이트 (MD + 웰니스/RPE 상태)
+  updateHeaderBadges(wellness, lastSess, todayMd);
 
   // 부상 위험도 계산
   renderRiskScore(wellness, lastSess, lastGps);
@@ -1262,7 +1288,7 @@ async function loadHome() {
   renderHomeGps(lastGps);
 
   // 처방
-  renderHomeRx(rxRes.data);
+  renderHomeRx(rxRes.data, todayMd);
 }
 
 function renderRiskScore(w, sess, gps) {
@@ -1397,6 +1423,9 @@ function renderHomeGps(gps) {
 
   body.innerHTML = `<div class="stat-grid-gps">
     ${bars.map(b => {
+      const over = b.p > 100;
+      const w    = Math.min(b.p, 100);
+      const pc   = b.p >= 80 ? '#3aaa6a' : b.p >= 60 ? '#d09030' : '#e04040';
       return `<div class="hbar-item">
         <div class="hbar-row">
           <span class="hbar-lbl">${b.l}</span>
@@ -1414,10 +1443,10 @@ function renderHomeGps(gps) {
   </div>`;
 }
 
-function renderHomeRx(progs) {
+function renderHomeRx(progs, mdStage) {
   const badge = document.getElementById('home-md-badge');
   const body  = document.getElementById('home-rx-body');
-  badge.textContent = getMdStage();
+  badge.textContent = mdStage || getMdStage();
   if (!progs?.length) {
     body.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>처방 없음</div>';
     return;
@@ -1797,6 +1826,29 @@ async function saveRpe() {
   }
 }
 
+async function deleteRpe(id) {
+  if (!confirm('이 세션 기록을 삭제하시겠습니까?\n삭제 후 다시 입력할 수 있습니다.')) return;
+  const { error } = await supa.from('session_records').delete().eq('id', id);
+  if (error) {
+    showMsg('rpe-msg', 'err', '삭제 실패: ' + error.message);
+  } else {
+    showMsg('rpe-msg', 'ok', '✅ 세션 기록이 삭제되었습니다. 다시 입력해주세요.');
+    selectedRpe = null;
+    // RPE 선택 초기화
+    document.querySelectorAll('.rpe-seg').forEach(s => s.classList.remove('sel'));
+    document.getElementById('rpe-disp').textContent = '— 선택하세요';
+    document.getElementById('rpe-big-num').textContent = '—';
+    document.getElementById('rpe-big-num').style.color = 'var(--text3)';
+    document.getElementById('rpe-label').textContent = '탭하여 선택';
+    document.getElementById('rpe-label').style.color = 'var(--text3)';
+    document.getElementById('rpe-sub').textContent = '1 = 매우 쉬움 · 10 = 절대 최대';
+    document.getElementById('rpe-sub').style.color = 'var(--text3)';
+    document.getElementById('post-weight').value = '';
+    document.getElementById('hydro-grid').style.display = 'none';
+    loadRpeHistory();
+  }
+}
+
 async function loadRpeHistory() {
   if (!currentPlayer) return;
   const el = document.getElementById('rpe-history-body');
@@ -1817,12 +1869,17 @@ async function loadRpeHistory() {
     el.innerHTML = '<div class="empty-state">세션 기록 없음</div>'; return;
   }
   el.innerHTML = data.map(r => {
-    const rpeData = r.rpe ? RPE_DATA[r.rpe] : null;
+    const rpeData  = r.rpe ? RPE_DATA[r.rpe] : null;
+    const isToday  = r.record_date === today();
+    const delBtn   = isToday
+      ? `<button class="rpe-del-btn" onclick="deleteRpe('${r.id}')">취소</button>`
+      : '';
     return `<div class="rpe-hist-row">
       <div class="rpe-hist-date">${formatDate(r.record_date)}</div>
-      <div class="rpe-hist-type">${r.session_type || ''} · ${r.record_date === today() ? '오늘' : '훈련'}</div>
+      <div class="rpe-hist-type">${r.session_type || ''} · ${isToday ? '오늘' : '훈련'}</div>
       <div class="rpe-hist-score" style="color:${rpeData?.c||'var(--text3)'};">${r.rpe || '—'}</div>
       <div class="rpe-hist-wt">${r.post_weight ? r.post_weight+' kg' : '—'}</div>
+      ${delBtn}
     </div>`;
   }).join('');
 }
@@ -2166,24 +2223,35 @@ async function loadNotif() {
   const el = document.getElementById('notif-list');
   if (!currentPlayer) return;
 
-  // 알림 데이터 구성 (웰니스 미입력, 처방 도착 등)
   const t = today();
-  const [wellRes, rxRes, sessRes] = await Promise.all([
+  const [wellRes, sessRes, dbNotifRes] = await Promise.all([
     supa.from('wellness_records').select('id').eq('player_id', currentPlayer.id).eq('record_date', t).single(),
-    supa.from('custom_programs').select('id,name,created_at').eq('position', currentPlayer.position).order('created_at', { ascending: false }).limit(1),
     supa.from('session_records').select('id').eq('player_id', currentPlayer.id).eq('record_date', t).limit(1),
+    // 코치가 보낸 알림 (개인 / 포지션 / 전체)
+    supa.from('notifications')
+      .select('*')
+      .or(`target_type.eq.all,and(target_type.eq.player,target_value.eq.${currentPlayer.id}),and(target_type.eq.position,target_value.eq.${currentPlayer.position})`)
+      .order('created_at', { ascending: false })
+      .limit(30),
   ]);
 
   const notifs = [];
 
-  if (rxRes.data?.[0]) {
-    notifs.push({
-      color: '#b060d0', title: '코치 처방 도착',
-      body: `${rxRes.data[0].name} 처방이 등록되었습니다.`,
-      time: rxRes.data[0].created_at?.slice(11,16) || '', read: false
+  // ── 코치 DB 알림 (최신 순)
+  if (dbNotifRes.data?.length) {
+    dbNotifRes.data.forEach(n => {
+      const dt = n.created_at ? new Date(n.created_at) : null;
+      const timeStr = dt
+        ? `${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
+        : '';
+      notifs.push({
+        color: '#b060d0', title: n.title,
+        body: n.body, time: timeStr, read: false
+      });
     });
   }
 
+  // ── 상태 기반 로컬 알림
   if (!wellRes.data) {
     notifs.push({
       color: 'var(--amber)', title: '웰니스 미입력',
