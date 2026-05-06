@@ -1132,7 +1132,10 @@ let morningWeightToday = null;
 /* ════════════════════════════════════════
    유틸
 ════════════════════════════════════════ */
-function today() { return new Date().toISOString().split('T')[0]; }
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 
 function getDateInfo(dateStr) {
   // dateStr: 'YYYY-MM-DD' 또는 undefined(오늘)
@@ -1345,8 +1348,11 @@ async function loadHome() {
   const diffMon = dow === 0 ? -6 : 1 - dow;
   const wStart = new Date(now); wStart.setDate(now.getDate() + diffMon);
   const wEnd   = new Date(wStart); wEnd.setDate(wStart.getDate() + 6);
-  const wStartStr = wStart.toISOString().split('T')[0];
-  const wEndStr   = wEnd.toISOString().split('T')[0];
+  function ldsFmt(dt) {
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  }
+  const wStartStr = ldsFmt(wStart);
+  const wEndStr   = ldsFmt(wEnd);
 
   // 병렬로 데이터 로드
   const [wellRes, sessRes, gpsRes, rxRes, schedRes, weekRes] = await Promise.all([
@@ -1575,12 +1581,17 @@ function renderHomeSchedule(events, todayStr) {
     grouped[ev.event_date].push(ev);
   });
 
+  // 로컬 날짜 문자열 포맷 (UTC 변환 오류 방지)
+  function lds(dt) {
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  }
+
   // 오늘부터 D+4 (최대 5일) 컬럼 생성
   const cols = [];
   for (let d = 0; d <= 4; d++) {
     const dt = new Date(todayStr + 'T00:00:00');
     dt.setDate(dt.getDate() + d);
-    const ds = dt.toISOString().split('T')[0];
+    const ds = lds(dt);  // toISOString() 대신 로컬 기준 포맷
     cols.push({ ds, dt, d });
   }
 
