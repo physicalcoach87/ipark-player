@@ -385,29 +385,54 @@ button { cursor: pointer; border: none; background: transparent; }
 .rpe-del-btn:active { opacity: .7; }
 
 /* ════════════════════════════════════════
-   홈 — 주간 일정
+   홈 — 주간 일정 가로 슬라이더
 ════════════════════════════════════════ */
-.sched-day-hdr {
-  display: flex; align-items: center; gap: 7px;
-  padding: 7px 14px 5px;
-  border-top: 0.5px solid var(--border2);
-  font-size: 11px; font-weight: 500; color: var(--text3);
+.sched-scroll {
+  display: flex; gap: 8px;
+  overflow-x: auto; padding: 0 14px 12px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
-.sched-day-hdr:first-child { border-top: none; }
-.sched-today-dot {
-  font-size: 9px; padding: 1px 6px; border-radius: 8px;
+.sched-scroll::-webkit-scrollbar { display: none; }
+
+.sched-col {
+  flex: 0 0 62vw; max-width: 240px; min-width: 160px;
+  background: var(--surface2);
+  border: 0.5px solid var(--border);
+  border-radius: 10px; padding: 10px 11px;
+  scroll-snap-align: start;
+}
+.sched-col.today {
+  border-color: rgba(0,229,160,.35);
+  background: rgba(0,229,160,.04);
+}
+.sched-col-hdr {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.sched-col-day { font-size: 12px; font-weight: 500; color: var(--text2); }
+.sched-col.today .sched-col-day { color: var(--accent); }
+.sched-col-dlabel {
+  font-size: 9px; padding: 1px 6px; border-radius: 6px;
   background: rgba(0,229,160,.12); color: var(--accent);
-  border: 0.5px solid rgba(0,229,160,.3);
+  border: 0.5px solid rgba(0,229,160,.25);
 }
-.sched-event-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 5px 14px 5px 28px;
+.sched-col-future .sched-col-dlabel {
+  background: rgba(90,141,224,.1); color: var(--blue);
+  border-color: rgba(90,141,224,.25);
 }
-.sched-event-time { font-size: 10px; color: var(--text3); width: 34px; flex-shrink: 0; }
-.sched-event-dot  { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-.sched-event-title { font-size: 11px; color: #b0b8d8; flex: 1; }
-.sched-event-md   { font-size: 9px; font-weight: 700; flex-shrink: 0; }
-.sched-empty      { padding: 16px 14px; font-size: 12px; color: var(--text3); text-align: center; }
+.sched-ev {
+  display: flex; align-items: flex-start; gap: 6px;
+  margin-bottom: 6px;
+}
+.sched-ev:last-child { margin-bottom: 0; }
+.sched-ev-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.sched-ev-body { flex: 1; min-width: 0; }
+.sched-ev-time { font-size: 9px; color: var(--text3); line-height: 1.2; }
+.sched-ev-title { font-size: 11px; color: #b0b8d8; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sched-ev-md { font-size: 9px; font-weight: 700; margin-top: 1px; }
+.sched-empty-col { font-size: 10px; color: var(--text3); text-align: center; padding: 8px 0; }
+.sched-no-data { padding: 12px 14px; font-size: 12px; color: var(--text3); text-align: center; }
 
 /* 홈 — GPS 수치 그리드 */
 .gps-meta-hdr { padding: 8px 14px 2px; }
@@ -666,6 +691,17 @@ button { cursor: pointer; border: none; background: transparent; }
 <!-- 홈 -->
 <div class="screen" id="screen-home">
 
+  <!-- 이번 주 일정 (가로 슬라이더) -->
+  <div class="card" style="overflow:hidden;">
+    <div class="card-head" style="padding-bottom:6px;">
+      <span class="card-title">이번 주 일정</span>
+      <span class="card-sub" style="font-size:9px;color:var(--text3);">코치 등록 · 읽기 전용</span>
+    </div>
+    <div id="home-schedule-body">
+      <div class="loading"><div class="spinner"></div>불러오는 중...</div>
+    </div>
+  </div>
+
   <!-- 부상 위험도 -->
   <div class="card">
     <div class="card-head">
@@ -715,17 +751,6 @@ button { cursor: pointer; border: none; background: transparent; }
     </div>
     <div id="home-gps-body">
       <div class="empty-state"><div class="empty-icon">📡</div>GPS 데이터 없음</div>
-    </div>
-  </div>
-
-  <!-- 이번 주 일정 -->
-  <div class="card">
-    <div class="card-head">
-      <span class="card-title">이번 주 일정</span>
-      <span class="card-sub" style="font-size:9px;color:var(--text3);">코치 등록 · 읽기 전용</span>
-    </div>
-    <div id="home-schedule-body">
-      <div class="loading"><div class="spinner"></div>불러오는 중...</div>
     </div>
   </div>
 
@@ -1542,9 +1567,6 @@ const DAY_KO = ['일','월','화','수','목','금','토'];
 
 function renderHomeSchedule(events, todayStr) {
   const el = document.getElementById('home-schedule-body');
-  if (!events.length) {
-    el.innerHTML = '<div class="sched-empty">이번 주 등록된 일정이 없습니다.</div>'; return;
-  }
 
   // 날짜별 그룹핑
   const grouped = {};
@@ -1553,38 +1575,61 @@ function renderHomeSchedule(events, todayStr) {
     grouped[ev.event_date].push(ev);
   });
 
-  const html = Object.keys(grouped).sort().map(dateStr => {
-    const dt      = new Date(dateStr + 'T00:00:00');
-    const dayKo   = DAY_KO[dt.getDay()];
-    const mmdd    = `${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')}`;
-    const isToday = dateStr === todayStr;
+  // 오늘부터 D+4 (최대 5일) 컬럼 생성
+  const cols = [];
+  for (let d = 0; d <= 4; d++) {
+    const dt = new Date(todayStr + 'T00:00:00');
+    dt.setDate(dt.getDate() + d);
+    const ds = dt.toISOString().split('T')[0];
+    cols.push({ ds, dt, d });
+  }
 
-    const dayLabel = `<div class="sched-day-hdr">
-      <span style="color:${isToday?'var(--accent)':'var(--text2)'};">${dayKo} ${mmdd}</span>
-      ${isToday ? '<span class="sched-today-dot">오늘</span>' : ''}
+  // 이번 주 이후 이벤트가 있는 날도 포함
+  Object.keys(grouped).sort().forEach(ds => {
+    if (ds > cols[cols.length-1].ds) {
+      const dt = new Date(ds + 'T00:00:00');
+      cols.push({ ds, dt, d: null });
+    }
+  });
+
+  if (!events.length && cols.every(c => !grouped[c.ds]?.length)) {
+    // 오늘 컬럼만 표시 + 나머지 없음 메시지
+  }
+
+  const colHtml = cols.map(({ ds, dt, d }) => {
+    const dayKo  = DAY_KO[dt.getDay()];
+    const mmdd   = `${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')}`;
+    const isToday = ds === todayStr;
+    const dLabel  = isToday ? '오늘' : (d !== null ? `D+${d}` : '');
+    const evs     = grouped[ds] || [];
+
+    const evHtml = evs.length
+      ? evs.map(ev => {
+          const col   = SCHED_TYPE_CLR[ev.event_type] || '#7888a8';
+          const icon  = SCHED_TYPE_ICON[ev.event_type] || '📌';
+          const time  = ev.start_time ? ev.start_time.slice(0,5) : '';
+          const mdClr = ev.md_stage ? (MD_CLR[ev.md_stage] || null) : null;
+          return `<div class="sched-ev">
+            <div class="sched-ev-dot" style="background:${col};margin-top:4px;"></div>
+            <div class="sched-ev-body">
+              ${time ? `<div class="sched-ev-time">${time}</div>` : ''}
+              <div class="sched-ev-title">${icon} ${ev.title || ev.event_type}</div>
+              ${mdClr ? `<div class="sched-ev-md" style="color:${mdClr};">${ev.md_stage}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('')
+      : `<div class="sched-empty-col">—</div>`;
+
+    return `<div class="sched-col${isToday?' today':''}">
+      <div class="sched-col-hdr">
+        <span class="sched-col-day">${dayKo} ${mmdd}</span>
+        ${dLabel ? `<span class="sched-col-dlabel">${dLabel}</span>` : ''}
+      </div>
+      ${evHtml}
     </div>`;
-
-    const evRows = grouped[dateStr].map(ev => {
-      const col   = SCHED_TYPE_CLR[ev.event_type] || '#7888a8';
-      const icon  = SCHED_TYPE_ICON[ev.event_type] || '📌';
-      const time  = ev.start_time ? ev.start_time.slice(0,5) : '';
-      const mdClr = ev.md_stage ? (MD_CLR[ev.md_stage] || 'var(--text3)') : null;
-      const mdBadge = mdClr
-        ? `<span class="sched-event-md" style="color:${mdClr};">${ev.md_stage}</span>` : '';
-      const teamTag = (ev.team && ev.team !== 'ALL')
-        ? `<span style="font-size:9px;color:var(--text3);">${ev.team}팀</span>` : '';
-      return `<div class="sched-event-row">
-        <span class="sched-event-time">${time}</span>
-        <span class="sched-event-dot" style="background:${col};"></span>
-        <span class="sched-event-title">${icon} ${ev.title || ev.event_type}</span>
-        ${mdBadge}${teamTag}
-      </div>`;
-    }).join('');
-
-    return dayLabel + evRows;
   }).join('');
 
-  el.innerHTML = html;
+  el.innerHTML = `<div class="sched-scroll">${colHtml}</div>`;
 }
 
 /* ════════════════════════════════════════
