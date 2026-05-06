@@ -1203,10 +1203,7 @@ function renderRpeBanner(lastRecord) {
   }
 }
 
-function getMdStage() {
-  // 현재 날짜 기반 MD 단계 추정 (실제로는 schedule DB에서 가져오는 것이 이상적)
-  return 'MD+1';
-}
+function getMdStage() { return '—'; }
 
 function formatDate(d) {
   if (!d) return '—';
@@ -1360,14 +1357,17 @@ async function loadHome() {
     supa.from('session_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).order('created_at', { ascending: false }).limit(1),
     supa.from('gps_records').select('*').eq('player_id', currentPlayer.id).order('session_date', { ascending: false }).limit(1),
     supa.from('custom_programs').select('*').eq('position', currentPlayer.position).order('created_at', { ascending: false }).limit(3),
-    supa.from('weekly_schedule').select('md_stage').eq('event_date', t).not('md_stage', 'is', null).limit(1),
+    supa.from('weekly_schedule').select('md_stage').eq('event_date', t).not('md_stage', 'is', null).order('md_stage').limit(1),
     supa.from('weekly_schedule').select('*').gte('event_date', wStartStr).lte('event_date', wEndStr).order('event_date').order('start_time'),
   ]);
 
   const wellness = wellRes.data;
   const lastSess = sessRes.data?.[0];
   const lastGps  = gpsRes.data?.[0];
-  const todayMd  = schedRes.data?.[0]?.md_stage || null;
+  // MD 우선순위: ① 오늘 weekly_schedule.md_stage → ② 오늘 GPS cycle → ③ '—'
+  const todayMd = schedRes.data?.[0]?.md_stage
+    || (lastGps?.session_date === t ? lastGps?.cycle : null)
+    || null;
 
   // 헤더 badges 업데이트 (MD + 웰니스/RPE 상태)
   updateHeaderBadges(wellness, lastSess, todayMd);
