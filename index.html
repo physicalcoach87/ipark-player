@@ -1443,49 +1443,43 @@ function checkPushBanner() {
 }
 
 async function enablePushNotifications() {
-  if (!currentPlayer) return;
+  if (!currentPlayer) { alert('[1] currentPlayer 없음'); return; }
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.warn('이 브라우저는 푸시 미지원');
-    return;
+    alert('[2] 이 브라우저는 푸시 미지원'); return;
   }
-  // 1) Service Worker 등록 (sw.js는 ipark-player 루트에 위치)
-  const reg = await navigator.serviceWorker.register('/ipark-player/sw.js', { scope: '/ipark-player/' });
-  await navigator.serviceWorker.ready;
+  try {
+    const reg = await navigator.serviceWorker.register('/ipark-player/sw.js', { scope: '/ipark-player/' });
+    await navigator.serviceWorker.ready;
 
-  // 2) 알림 권한 — 사용자 제스처 후 호출되어야 함 (로그인 직후 호출이 안전)
-  let perm = Notification.permission;
-  if (perm === 'default') {
-    try { perm = await Notification.requestPermission(); } catch (_) {}
-  }
-  if (perm !== 'granted') {
-    console.warn('알림 권한 거부됨 — iOS는 홈화면 추가 + iOS 16.4+ 필수');
-    return;
-  }
+    let perm = Notification.permission;
+    if (perm === 'default') {
+      try { perm = await Notification.requestPermission(); } catch(e) { alert('[3] 권한요청 오류: '+e); }
+    }
+    if (perm !== 'granted') { alert('[4] 알림 권한 없음: '+perm); return; }
 
-  // 3) 기존 구독 확인 → 없으면 새로 구독
-  let sub = await reg.pushManager.getSubscription();
-  if (!sub) {
-    sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-    });
-  }
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+    if (!sub) { alert('[5] 구독 실패'); return; }
 
-  // 4) Supabase에 upsert (endpoint 기준 unique)
-  const json = sub.toJSON();
-  const payload = {
-    player_id:  currentPlayer.id,
-    endpoint:   json.endpoint,
-    p256dh:     json.keys?.p256dh,
-    auth:       json.keys?.auth,
-    user_agent: navigator.userAgent,
-    updated_at: new Date().toISOString(),
-  };
-  // endpoint 중복 시 update
-  const { error } = await supa.from('push_subscriptions')
-    .upsert(payload, { onConflict: 'endpoint' });
-  if (error) console.warn('push_subscriptions upsert', error);
-  else console.log('✅ 푸시 구독 완료', currentPlayer.name);
+    const json = sub.toJSON();
+    const payload = {
+      player_id:  currentPlayer.id,
+      endpoint:   json.endpoint,
+      p256dh:     json.keys?.p256dh,
+      auth:       json.keys?.auth,
+      user_agent: navigator.userAgent,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supa.from('push_subscriptions')
+      .upsert(payload, { onConflict: 'endpoint' });
+    if (error) { alert('[6] DB저장 실패: '+JSON.stringify(error)); }
+    else { alert('✅ 푸시 구독 완료!'); checkPushBanner(); }
+  } catch(e) { alert('[ERR] '+e.message); }
 }
 
 async function checkNewRx() {
