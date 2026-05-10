@@ -725,6 +725,16 @@ button { cursor: pointer; border: none; background: transparent; }
 <!-- 홈 -->
 <div class="screen" id="screen-home">
 
+  <!-- 푸시 알림 설정 버튼 (권한 미허용 시에만 표시) -->
+  <div id="push-banner" style="display:none;background:linear-gradient(135deg,#1a2a4a,#0d1b2a);border:1px solid #2a4a7a;border-radius:12px;padding:14px 16px;margin-bottom:4px;display:flex;align-items:center;gap:12px;">
+    <span style="font-size:24px;">🔔</span>
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:600;color:#d0e8ff;">알림 설정 필요</div>
+      <div style="font-size:11px;color:#7a9bbf;margin-top:2px;">코치 메시지를 실시간으로 받으려면 허용해주세요</div>
+    </div>
+    <button onclick="userEnablePush()" style="background:#2a6adb;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;">허용</button>
+  </div>
+
   <!-- 이번 주 일정 (가로 슬라이더) -->
   <div class="card" style="overflow:hidden;">
     <div class="card-head" style="padding-bottom:6px;">
@@ -1388,8 +1398,14 @@ async function loginSuccess(player) {
   buildWellnessSegs();
   switchTab('home');
   checkNewRx();
-  // 🔔 카톡처럼 앱이 닫혀있어도 소리/진동 알림이 울리도록 푸시 구독
-  setTimeout(() => enablePushNotifications().catch(e => console.warn('push setup', e)), 1500);
+  // 배너 표시 (권한 미허용 시 선수가 직접 탭하게)
+  setTimeout(() => checkPushBanner(), 500);
+  // 이미 권한 허용된 경우엔 자동으로 구독 등록/갱신
+  setTimeout(() => {
+    if (Notification.permission === 'granted') {
+      enablePushNotifications().catch(e => console.warn('push setup', e));
+    }
+  }, 1500);
 }
 
 /* ════════════════════════════════════════
@@ -1404,6 +1420,26 @@ function _urlBase64ToUint8Array(b64) {
   const out = new Uint8Array(raw.length);
   for (let i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
   return out;
+}
+
+async function userEnablePush() {
+  const btn = document.querySelector('#push-banner button');
+  if (btn) { btn.textContent = '설정 중...'; btn.disabled = true; }
+  await enablePushNotifications();
+  checkPushBanner();
+}
+
+function checkPushBanner() {
+  const banner = document.getElementById('push-banner');
+  if (!banner) return;
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    banner.style.display = 'none'; return;
+  }
+  if (Notification.permission === 'granted') {
+    banner.style.display = 'none';
+  } else {
+    banner.style.display = 'flex';
+  }
 }
 
 async function enablePushNotifications() {
