@@ -151,6 +151,18 @@ button { cursor: pointer; border: none; background: transparent; }
   color: #000; margin-top: 4px;
 }
 .login-err { font-size: 12px; color: var(--red); margin-top: 10px; min-height: 16px; }
+.lang-selector { display:flex; gap:8px; margin-bottom:1.8rem; }
+.lang-btn {
+  flex:1; background:var(--surface); border:0.5px solid var(--border);
+  border-radius:10px; padding:9px 6px; font-size:12px; font-weight:600;
+  color:var(--text3); cursor:pointer; transition:all .2s; font-family:inherit;
+  display:flex; flex-direction:column; align-items:center; gap:3px; line-height:1;
+}
+.lang-btn .lang-flag { font-size:20px; }
+.lang-btn.active {
+  border-color:var(--accent); color:var(--accent);
+  background:rgba(0,229,160,.08);
+}
 
 /* ════════════════════════════════════════
    앱 헤더
@@ -652,11 +664,25 @@ button { cursor: pointer; border: none; background: transparent; }
   <div class="login-logo">IP</div>
   <div class="login-title">IPARK</div>
   <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--text3);margin-bottom:4px;">PLAYER APP</div>
-  <div class="login-sub">부산아이파크 선수 전용</div>
+  <div class="login-sub" id="login-sub">부산아이파크 선수 전용</div>
+
+  <!-- 언어 선택 -->
+  <div class="lang-selector">
+    <button class="lang-btn active" id="langbtn-ko" onclick="setLang('ko')">
+      <span class="lang-flag">🇰🇷</span>한국어
+    </button>
+    <button class="lang-btn" id="langbtn-en" onclick="setLang('en')">
+      <span class="lang-flag">🇺🇸</span>English
+    </button>
+    <button class="lang-btn" id="langbtn-pt" onclick="setLang('pt')">
+      <span class="lang-flag">🇧🇷</span>Português
+    </button>
+  </div>
+
   <div class="login-card">
-    <input class="login-input" id="login-name" type="text" placeholder="이름 / Name / Nome">
+    <input class="login-input" id="login-name" type="text" placeholder="이름">
     <input class="login-input" id="login-pin"  type="password" placeholder="PIN (4자리)">
-    <button class="login-btn" onclick="doLogin()">로그인 / Login</button>
+    <button class="login-btn" id="login-btn-text" onclick="doLogin()">로그인</button>
     <div class="login-err" id="login-err"></div>
   </div>
 </div>
@@ -1221,6 +1247,64 @@ function showMsg(id, type, text) {
 }
 
 /* ════════════════════════════════════════
+   다국어 (KO / EN / PT-BR)
+════════════════════════════════════════ */
+const LANG_STRINGS = {
+  ko: {
+    sub:         '부산아이파크 선수 전용',
+    namePh:      '이름',
+    pinPh:       'PIN (4자리)',
+    loginBtn:    '로그인',
+    loggingIn:   '로그인 중...',
+    errInit:     '앱 초기화 중입니다. 잠시 후 다시 시도해주세요.',
+    errName:     '이름을 입력하세요.',
+    errNotFound: '등록된 선수를 찾을 수 없습니다.',
+    errPin:      'PIN이 올바르지 않습니다.',
+    errGeneral:  '오류: ',
+  },
+  en: {
+    sub:         'Busan IPark — Players Only',
+    namePh:      'Name',
+    pinPh:       'PIN (4 digits)',
+    loginBtn:    'Log In',
+    loggingIn:   'Logging in...',
+    errInit:     'App is initializing. Please try again shortly.',
+    errName:     'Please enter your name.',
+    errNotFound: 'No registered player found.',
+    errPin:      'Incorrect PIN.',
+    errGeneral:  'Error: ',
+  },
+  pt: {
+    sub:         'Busan IPark — Apenas Jogadores',
+    namePh:      'Nome',
+    pinPh:       'PIN (4 dígitos)',
+    loginBtn:    'Entrar',
+    loggingIn:   'Entrando...',
+    errInit:     'O aplicativo está inicializando. Tente novamente em breve.',
+    errName:     'Por favor, insira seu nome.',
+    errNotFound: 'Nenhum jogador cadastrado encontrado.',
+    errPin:      'PIN incorreto.',
+    errGeneral:  'Erro: ',
+  }
+};
+
+let currentLang = localStorage.getItem('ip_lang') || 'ko';
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('ip_lang', lang);
+  const s = LANG_STRINGS[lang];
+  document.getElementById('login-sub').textContent        = s.sub;
+  document.getElementById('login-name').placeholder       = s.namePh;
+  document.getElementById('login-pin').placeholder        = s.pinPh;
+  document.getElementById('login-btn-text').textContent   = s.loginBtn;
+  document.getElementById('login-err').textContent        = '';
+  ['ko','en','pt'].forEach(l => {
+    document.getElementById('langbtn-' + l).classList.toggle('active', l === lang);
+  });
+}
+
+/* ════════════════════════════════════════
    로그인
 ════════════════════════════════════════ */
 async function doLogin() {
@@ -1229,10 +1313,11 @@ async function doLogin() {
   const err  = document.getElementById('login-err');
   const btn  = document.querySelector('.login-btn');
 
-  if (!supa) { err.textContent = '앱 초기화 중입니다. 잠시 후 다시 시도해주세요.'; return; }
-  if (!name) { err.textContent = '이름을 입력하세요.'; return; }
+  const T = LANG_STRINGS[currentLang] || LANG_STRINGS.ko;
+  if (!supa) { err.textContent = T.errInit; return; }
+  if (!name) { err.textContent = T.errName; return; }
 
-  btn.disabled = true; btn.textContent = '로그인 중...';
+  btn.disabled = true; btn.textContent = T.loggingIn;
   err.textContent = '';
 
   try {
@@ -1241,8 +1326,8 @@ async function doLogin() {
       .select('*').ilike('name', name);
 
     if (error || !data?.length) {
-      err.textContent = '등록된 선수를 찾을 수 없습니다.';
-      btn.disabled = false; btn.textContent = '로그인 / Login';
+      err.textContent = T.errNotFound;
+      btn.disabled = false; btn.textContent = T.loginBtn;
       return;
     }
 
@@ -1252,16 +1337,16 @@ async function doLogin() {
     // PIN 확인 — DB에 PIN 없으면 기본값 '0000'
     const expectedPin = player.pin || '0000';
     if (pin !== expectedPin) {
-      err.textContent = 'PIN이 올바르지 않습니다.';
-      btn.disabled = false; btn.textContent = '로그인 / Login';
+      err.textContent = T.errPin;
+      btn.disabled = false; btn.textContent = T.loginBtn;
       return;
     }
 
     localStorage.setItem('ip_player', JSON.stringify({ id: player.id }));
     await loginSuccess(player);
   } catch (e) {
-    err.textContent = '오류: ' + e.message;
-    btn.disabled = false; btn.textContent = '로그인 / Login';
+    err.textContent = T.errGeneral + e.message;
+    btn.disabled = false; btn.textContent = T.loginBtn;
   }
 }
 
@@ -2226,17 +2311,64 @@ async function loadRx() {
   const el = document.getElementById('rx-content');
   el.innerHTML = '<div class="loading"><div class="spinner"></div>불러오는 중...</div>';
 
-  const { data: progs } = await supa.from('custom_programs')
-    .select('*').eq('position', currentPlayer.position)
-    .order('created_at', { ascending: false }).limit(5);
+  const [{ data: progs }, { data: aerRxList }] = await Promise.all([
+    supa.from('custom_programs')
+      .select('*').eq('position', currentPlayer.position)
+      .order('created_at', { ascending: false }).limit(5),
+    supa.from('notifications')
+      .select('*')
+      .eq('target_type', 'player')
+      .eq('target_value', currentPlayer.id)
+      .ilike('title', '[유산소 처방]%')
+      .order('created_at', { ascending: false })
+      .limit(3)
+  ]);
 
-  if (!progs?.length) {
-    el.innerHTML = renderAutoRx();
-    return;
+  let html = '';
+
+  // ── 유산소 처방 카드 (코치가 직접 전송한 개인 처방)
+  if (aerRxList?.length) {
+    const rx = aerRxList[0];
+    const dt = rx.created_at ? new Date(rx.created_at) : null;
+    const dtStr = dt ? `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}` : '';
+    const titleLabel = rx.title.replace('[유산소 처방] ', '');
+    // body 줄별 파싱 → 코칭 포인트 분리
+    const bodyLines = (rx.body || '').split('\n');
+    const coachIdx  = bodyLines.findIndex(l => l.includes('코칭 포인트'));
+    const mainLines = coachIdx > -1 ? bodyLines.slice(0, coachIdx) : bodyLines;
+    const coachLines= coachIdx > -1 ? bodyLines.slice(coachIdx + 1).join(' ').trim() : '';
+
+    html += `
+    <div class="card" style="border-color:rgba(139,92,246,0.3);margin-bottom:12px">
+      <div class="src-banner" style="background:rgba(139,92,246,0.12);color:#a78bfa;border-bottom:1px solid rgba(139,92,246,0.2)">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0;">
+          <circle cx="6" cy="4" r="2.2" stroke="#a78bfa" stroke-width="1.2"/>
+          <path d="M2 10c0-2 2-3 4-3s4 1 4 3" stroke="#a78bfa" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        🏃 유산소 처방 · ${dtStr}
+      </div>
+      <div style="padding:14px">
+        <div style="font-size:14px;font-weight:700;color:#a78bfa;margin-bottom:12px">${titleLabel}</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          ${mainLines.filter(l=>l.trim()).map(l => {
+            const [key, ...rest] = l.split(':');
+            const val = rest.join(':').trim();
+            return val
+              ? `<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;border-bottom:1px solid var(--border2);padding-bottom:6px">
+                   <span style="color:var(--text3)">${key.trim()}</span>
+                   <span style="font-weight:600;color:var(--text);text-align:right;max-width:60%">${val}</span>
+                 </div>`
+              : `<div style="font-size:12px;color:var(--text3);padding-top:2px">${l}</div>`;
+          }).join('')}
+        </div>
+        ${coachLines ? `<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--text3);line-height:1.6">💬 ${coachLines}</div>` : ''}
+      </div>
+    </div>`;
   }
 
-  // 코치 처방 있음
-  el.innerHTML = `
+  // ── 근력 처방 카드
+  if (progs?.length) {
+    html += `
     <div class="card">
       <div class="src-banner src-coach">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0;">
@@ -2247,6 +2379,13 @@ async function loadRx() {
       </div>
       ${renderCoachRxBlocks(progs[0])}
     </div>`;
+  }
+
+  if (!html) {
+    html = renderAutoRx();
+  }
+
+  el.innerHTML = html;
   initRxAccordion();
 }
 
@@ -2409,10 +2548,11 @@ async function loadNotif() {
   const [wellRes, sessRes, dbNotifRes] = await Promise.all([
     supa.from('wellness_records').select('id').eq('player_id', currentPlayer.id).eq('record_date', t).single(),
     supa.from('session_records').select('id').eq('player_id', currentPlayer.id).eq('record_date', t).limit(1),
-    // 코치가 보낸 알림 (개인 / 포지션 / 전체)
+    // 코치가 보낸 알림 (개인 / 포지션 / 전체) — 유산소 처방은 처방 탭에서만 표시
     supa.from('notifications')
       .select('*')
       .or(`target_type.eq.all,and(target_type.eq.player,target_value.eq.${currentPlayer.id}),and(target_type.eq.position,target_value.eq.${currentPlayer.position})`)
+      .not('title', 'ilike', '[유산소 처방]%')
       .order('created_at', { ascending: false })
       .limit(30),
   ]);
@@ -2478,6 +2618,9 @@ async function loadNotif() {
    초기화
 ════════════════════════════════════════ */
 async function init() {
+  // 저장된 언어 적용
+  setLang(localStorage.getItem('ip_lang') || 'ko');
+
   supa = supabase.createClient(SUPA_URL, SUPA_KEY);
   const saved = localStorage.getItem('ip_player');
   if (saved) {
