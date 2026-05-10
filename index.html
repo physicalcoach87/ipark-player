@@ -209,8 +209,16 @@ button { cursor: pointer; border: none; background: transparent; }
   width: 3px; height: 3px; border-radius: 50%;
   background: var(--accent); opacity: 0;
 }
+.tab-item { position: relative; }
 .tab-item.active { color: var(--accent); }
 .tab-item.active .tab-dot { opacity: 1; }
+.tab-new-badge {
+  position: absolute; top: 3px; right: calc(50% - 14px);
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #ef4444; border: 1.5px solid #0a0c18;
+  display: none;
+}
+.tab-new-badge.show { display: block; }
 
 /* ════════════════════════════════════════
    화면 컨테이너
@@ -1089,6 +1097,7 @@ button { cursor: pointer; border: none; background: transparent; }
       <div class="tab-dot"></div>
     </div>
     <div class="tab-item" id="tab-rx" onclick="switchTab('rx')">
+      <div class="tab-new-badge" id="rx-new-badge"></div>
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
         <rect x="4" y="4" width="12" height="14" rx="1.5"/>
         <line x1="7" y1="9"  x2="13" y2="9"/>
@@ -1376,6 +1385,22 @@ async function loginSuccess(player) {
   buildRpeBar();
   buildWellnessSegs();
   switchTab('home');
+  checkNewRx();
+}
+
+async function checkNewRx() {
+  if (!currentPlayer) return;
+  const { data } = await supa.from('notifications')
+    .select('id')
+    .eq('target_type', 'player')
+    .eq('target_value', currentPlayer.id)
+    .ilike('title', '[유산소 처방]%')
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (data?.length) {
+    const badge = document.getElementById('rx-new-badge');
+    if (badge) badge.classList.add('show');
+  }
 }
 
 function renderHeaderBadges() {
@@ -1413,7 +1438,7 @@ function switchTab(tab) {
   if (tab === 'wellness') loadWellness();
   if (tab === 'rpe')      loadRpeHistory();
   if (tab === 'gps')      loadGps();
-  if (tab === 'rx')       loadRx();
+  if (tab === 'rx')     { loadRx(); const b = document.getElementById('rx-new-badge'); if(b) b.classList.remove('show'); }
   if (tab === 'notif')    loadNotif();
 }
 
