@@ -1123,6 +1123,8 @@ button { cursor: pointer; border: none; background: transparent; }
 ════════════════════════════════════════ */
 const SUPA_URL = 'https://gmrhkbddhzpfqzkhuvgf.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcmhrYmRkaHpwZnF6a2h1dmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MzM4ODIsImV4cCI6MjA5MjQwOTg4Mn0.HMn3UIXqV2YJA5f067VpjNmgNU-yzusbDTOh3SC54cI';
+// ⚡ Web Push VAPID 공개키 (Supabase Edge Function의 VAPID_PRIVATE_KEY와 쌍)
+const VAPID_PUBLIC_KEY = 'BPD8_ri5bNPkOgrKfmwARUBWC_wTV5W3Hw4csHihSoqYLy4yG92T9BzPTWXH9qaGfB5d5PCqu5qFb-YQuiC9_FE';
 let supa, currentPlayer = null, lang = 'ko';
 
 /* ════════════════════════════════════════
@@ -1386,6 +1388,68 @@ async function loginSuccess(player) {
   buildWellnessSegs();
   switchTab('home');
   checkNewRx();
+  // 🔔 카톡처럼 앱이 닫혀있어도 소리/진동 알림이 울리도록 푸시 구독
+  setTimeout(() => enablePushNotifications().catch(e => console.warn('push setup', e)), 1500);
+}
+
+/* ════════════════════════════════════════
+   🔔 Web Push 구독 (Service Worker + Notification API)
+   - 권한 허용 → push subscription 생성 → push_subscriptions 테이블 저장
+   - iOS는 PWA(홈화면 추가 + iOS 16.4+)에서만 작동
+   ════════════════════════════════════════ */
+function _urlBase64ToUint8Array(b64) {
+  const padding = '='.repeat((4 - b64.length % 4) % 4);
+  const base64  = (b64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+async function enablePushNotifications() {
+  if (!currentPlayer) return;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    console.warn('이 브라우저는 푸시 미지원');
+    return;
+  }
+  // 1) Service Worker 등록 (sw.js는 ipark-player 루트에 위치)
+  const reg = await navigator.serviceWorker.register('/ipark-player/sw.js', { scope: '/ipark-player/' });
+  await navigator.serviceWorker.ready;
+
+  // 2) 알림 권한 — 사용자 제스처 후 호출되어야 함 (로그인 직후 호출이 안전)
+  let perm = Notification.permission;
+  if (perm === 'default') {
+    try { perm = await Notification.requestPermission(); } catch (_) {}
+  }
+  if (perm !== 'granted') {
+    console.warn('알림 권한 거부됨 — iOS는 홈화면 추가 + iOS 16.4+ 필수');
+    return;
+  }
+
+  // 3) 기존 구독 확인 → 없으면 새로 구독
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+  }
+
+  // 4) Supabase에 upsert (endpoint 기준 unique)
+  const json = sub.toJSON();
+  const payload = {
+    player_id:  currentPlayer.id,
+    endpoint:   json.endpoint,
+    p256dh:     json.keys?.p256dh,
+    auth:       json.keys?.auth,
+    user_agent: navigator.userAgent,
+    updated_at: new Date().toISOString(),
+  };
+  // endpoint 중복 시 update
+  const { error } = await supa.from('push_subscriptions')
+    .upsert(payload, { onConflict: 'endpoint' });
+  if (error) console.warn('push_subscriptions upsert', error);
+  else console.log('✅ 푸시 구독 완료', currentPlayer.name);
 }
 
 async function checkNewRx() {
