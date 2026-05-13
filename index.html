@@ -1492,7 +1492,6 @@ async function enablePushNotifications() {
       p256dh:     json.keys?.p256dh,
       auth:       json.keys?.auth,
       user_agent: navigator.userAgent,
-      updated_at: new Date().toISOString(),
     };
     const { error } = await supa.from('push_subscriptions')
       .upsert(payload, { onConflict: 'endpoint' });
