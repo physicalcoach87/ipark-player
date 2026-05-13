@@ -2660,7 +2660,7 @@ async function loadNotif() {
   if (!currentPlayer) return;
 
   const t = today();
-  const [wellRes, sessRes, dbNotifRes] = await Promise.all([
+  const [wellRes, sessRes, dbNotifRes, msgRes] = await Promise.all([
     supa.from('wellness_records').select('id').eq('player_id', currentPlayer.id).eq('record_date', t).single(),
     supa.from('session_records').select('id').eq('player_id', currentPlayer.id).eq('record_date', t).limit(1),
     // 코치가 보낸 알림 (개인 / 포지션 / 전체) — 유산소 처방은 처방 탭에서만 표시
@@ -2670,6 +2670,13 @@ async function loadNotif() {
       .not('title', 'ilike', '[유산소 처방]%')
       .order('created_at', { ascending: false })
       .limit(30),
+    // 코치 1:1 메시지
+    supa.from('messages')
+      .select('*')
+      .eq('player_id', currentPlayer.id)
+      .eq('sender', 'coach')
+      .order('created_at', { ascending: false })
+      .limit(20),
   ]);
 
   const notifs = [];
@@ -2686,6 +2693,22 @@ async function loadNotif() {
         body: n.body, time: timeStr, read: false
       });
     });
+  }
+
+  // ── 코치 1:1 메시지
+  if (msgRes.data?.length) {
+    msgRes.data.forEach(m => {
+      const dt = m.created_at ? new Date(m.created_at) : null;
+      const timeStr = dt
+        ? `${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
+        : '';
+      notifs.push({
+        color: '#2a80eb', title: '💬 코치 메시지',
+        body: m.content, time: timeStr, read: !!m.is_read
+      });
+    });
+    // 최신순 정렬
+    notifs.sort((a, b) => b.time > a.time ? 1 : -1);
   }
 
   // ── 상태 기반 로컬 알림
