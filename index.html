@@ -2655,6 +2655,28 @@ function toggleRxSec(key) {
 /* ════════════════════════════════════════
    알림
 ════════════════════════════════════════ */
+async function sendPlayerReply(msgId) {
+  const input = document.getElementById('reply-' + msgId);
+  if (!input) return;
+  const content = input.value.trim();
+  if (!content || !currentPlayer) return;
+  input.disabled = true;
+  const { error } = await supa.from('messages').insert({
+    player_id: currentPlayer.id,
+    sender: 'player',
+    content,
+    is_read: false
+  });
+  if (!error) {
+    input.value = '';
+    input.placeholder = '✅ 전송 완료';
+    setTimeout(() => { input.placeholder = '답장 입력...'; input.disabled = false; }, 2000);
+  } else {
+    input.disabled = false;
+    alert('전송 실패. 다시 시도해주세요.');
+  }
+}
+
 async function loadNotif() {
   const el = document.getElementById('notif-list');
   if (!currentPlayer) return;
@@ -2704,7 +2726,8 @@ async function loadNotif() {
         : '';
       notifs.push({
         color: '#2a80eb', title: '💬 코치 메시지',
-        body: m.content, time: timeStr, read: !!m.is_read
+        body: m.content, time: timeStr, read: !!m.is_read,
+        isMsg: true, msgId: m.id
       });
     });
     // 최신순 정렬
@@ -2744,10 +2767,18 @@ async function loadNotif() {
   el.innerHTML = notifs.map(n => `
     <div class="notif-row ${n.read ? 'read' : ''}">
       <div class="notif-dot" style="background:${n.color};"></div>
-      <div>
+      <div style="flex:1;">
         <div class="notif-title">${n.title}</div>
         <div class="notif-body">${n.body}</div>
         <div class="notif-time">${n.time}</div>
+        ${n.isMsg ? `
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <input id="reply-${n.msgId}" type="text" placeholder="답장 입력..."
+            style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text1);outline:none;"
+            onkeydown="if(event.key==='Enter') sendPlayerReply('${n.msgId}')"/>
+          <button onclick="sendPlayerReply('${n.msgId}')"
+            style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;">전송</button>
+        </div>` : ''}
       </div>
     </div>`).join('');
 }
