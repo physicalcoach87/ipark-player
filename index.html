@@ -2965,11 +2965,26 @@ async function sendChatMsg() {
   btn.disabled = true;
   input.disabled = true;
 
+  // 마지막 코치 메시지에서 coach_email 조회 → 해당 코치에게 답장 태깅
+  let coachEmail = null;
+  try {
+    const { data: lastCoach } = await supa.from('messages')
+      .select('coach_email')
+      .eq('player_id', currentPlayer.id)
+      .eq('sender', 'coach')
+      .not('coach_email', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    if (lastCoach?.coach_email) coachEmail = lastCoach.coach_email;
+  } catch(e) {}
+
   const { error } = await supa.from('messages').insert({
     player_id: currentPlayer.id,
     sender: 'player',
     content,
-    is_read: false
+    is_read: false,
+    coach_email: coachEmail
   });
 
   if (!error) {
