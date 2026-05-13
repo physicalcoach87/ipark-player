@@ -1442,49 +1442,28 @@ function checkPushBanner() {
   }
 }
 
-function _pushLog(msg) {
-  let el = document.getElementById('push-debug-log');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'push-debug-log';
-    el.style.cssText = 'position:fixed;bottom:80px;left:0;right:0;background:#111;color:#0f0;font-size:11px;padding:8px;z-index:9999;max-height:160px;overflow-y:auto;';
-    document.body.appendChild(el);
-  }
-  el.innerHTML += '<div>' + new Date().toLocaleTimeString() + ' ' + msg + '</div>';
-}
-
 async function enablePushNotifications() {
-  if (!currentPlayer) { _pushLog('[1] currentPlayer 없음'); return; }
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    _pushLog('[2] 푸시 미지원 브라우저'); return;
-  }
+  if (!currentPlayer) return;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
   try {
-    _pushLog('[3] SW 등록 시작...');
     const reg = await navigator.serviceWorker.register('/ipark-player/sw.js', { scope: '/ipark-player/' });
-    _pushLog('[4] SW 등록 완료, ready 대기...');
     await navigator.serviceWorker.ready;
-    _pushLog('[5] SW ready 완료');
 
     let perm = Notification.permission;
-    _pushLog('[6] 알림권한: ' + perm);
     if (perm === 'default') {
-      try { perm = await Notification.requestPermission(); } catch(e) { _pushLog('[6E] 권한요청 오류: '+e); }
+      try { perm = await Notification.requestPermission(); } catch(e) {}
     }
-    if (perm !== 'granted') { _pushLog('[7] 권한 없음: '+perm); return; }
+    if (perm !== 'granted') return;
 
-    _pushLog('[8] 구독 조회 중...');
     let sub = await reg.pushManager.getSubscription();
-    _pushLog('[9] 기존구독: ' + (sub ? '있음' : '없음'));
     if (!sub) {
-      _pushLog('[10] 새 구독 생성 중...');
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
     }
-    if (!sub) { _pushLog('[11] 구독 생성 실패'); return; }
+    if (!sub) return;
 
-    _pushLog('[12] DB 저장 중...');
     const json = sub.toJSON();
     const payload = {
       player_id:  currentPlayer.id,
@@ -1495,9 +1474,8 @@ async function enablePushNotifications() {
     };
     const { error } = await supa.from('push_subscriptions')
       .upsert(payload, { onConflict: 'endpoint' });
-    if (error) { _pushLog('[13E] DB오류: '+JSON.stringify(error)); }
-    else { _pushLog('[14] ✅ 구독 완료!'); checkPushBanner(); }
-  } catch(e) { _pushLog('[ERR] '+e.message); }
+    if (!error) checkPushBanner();
+  } catch(e) { console.warn('push setup', e); }
 }
 
 async function checkNewRx() {
