@@ -2939,11 +2939,12 @@ async function updateNotifTabBadge() {
       .eq('player_id', currentPlayer.id)
       .eq('sender', 'coach')
       .eq('is_read', false),
-    // 최근 24시간 내 새 공지 알림
+    // 아직 읽지 않은 공지 알림
     supa.from('notifications')
       .select('id', { count: 'exact', head: true })
       .or(`target_type.eq.all,and(target_type.eq.player,target_value.eq.${currentPlayer.id}),and(target_type.eq.position,target_value.eq.${currentPlayer.position})`)
-      .gte('created_at', new Date(Date.now() - 86400000).toISOString())
+      .not('title', 'ilike', '[유산소 처방]%')
+      .is('player_read_at', null)
   ]);
 
   const total = (msgRes.count || 0) + (notifRes.count || 0);
@@ -3031,17 +3032,27 @@ async function loadNotif() {
   const notifs = [];
 
   // ── 코치 DB 알림 (최신 순)
+  const unreadNotifIds = [];
   if (dbNotifRes.data?.length) {
     dbNotifRes.data.forEach(n => {
       const dt = n.created_at ? new Date(n.created_at) : null;
       const timeStr = dt
         ? `${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
         : '';
+      const isRead = !!n.player_read_at;
+      if (!isRead) unreadNotifIds.push(n.id);
       notifs.push({
         color: '#b060d0', title: n.title,
-        body: n.body, time: timeStr, read: false
+        body: n.body, time: timeStr, read: isRead
       });
     });
+    // 백그라운드에서 읽음 처리 (즉시, 화면 렌더링 블록 없이)
+    if (unreadNotifIds.length) {
+      supa.from('notifications')
+        .update({ player_read_at: new Date().toISOString() })
+        .in('id', unreadNotifIds)
+        .then(() => {});
+    }
   }
 
   // ── 코치 1:1 메시지 → 단일 채팅방 버튼으로 표시
