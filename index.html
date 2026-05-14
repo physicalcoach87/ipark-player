@@ -826,17 +826,17 @@ button { cursor: pointer; border: none; background: transparent; }
   <div id="push-banner" style="display:none;background:linear-gradient(135deg,#1a2a4a,#0d1b2a);border:1px solid #2a4a7a;border-radius:12px;padding:14px 16px;margin-bottom:4px;display:flex;align-items:center;gap:12px;">
     <span style="font-size:24px;">🔔</span>
     <div style="flex:1;">
-      <div style="font-size:13px;font-weight:600;color:#d0e8ff;">알림 설정 필요</div>
-      <div style="font-size:11px;color:#7a9bbf;margin-top:2px;">코치 메시지를 실시간으로 받으려면 허용해주세요</div>
+      <div id="push-title" style="font-size:13px;font-weight:600;color:#d0e8ff;">알림 설정 필요</div>
+      <div id="push-sub" style="font-size:11px;color:#7a9bbf;margin-top:2px;">코치 메시지를 실시간으로 받으려면 허용해주세요</div>
     </div>
-    <button onclick="userEnablePush()" style="background:#2a6adb;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;">허용</button>
+    <button id="push-allow-btn" onclick="userEnablePush()" style="background:#2a6adb;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;">허용</button>
   </div>
 
   <!-- 이번 주 일정 (가로 슬라이더) -->
   <div class="card" style="overflow:hidden;">
     <div class="card-head" style="padding-bottom:6px;">
-      <span class="card-title">이번 주 일정</span>
-      <span class="card-sub" style="font-size:9px;color:var(--text3);">코치 등록 · 읽기 전용</span>
+      <span class="card-title" data-i18n="homeSchedTitle">이번 주 일정</span>
+      <span class="card-sub" data-i18n="homeSchedSub" style="font-size:9px;color:var(--text3);">코치 등록 · 읽기 전용</span>
     </div>
     <div id="home-schedule-body">
       <div class="loading"><div class="spinner"></div>불러오는 중...</div>
@@ -846,7 +846,7 @@ button { cursor: pointer; border: none; background: transparent; }
   <!-- 부상 위험도 -->
   <div class="card">
     <div class="card-head">
-      <span class="card-title">부상 위험도</span>
+      <span class="card-title" data-i18n="homeRiskTitle">부상 위험도</span>
       <span id="risk-badge" class="badge badge-green" style="font-size:9px;">—</span>
     </div>
     <div class="risk-bar-wrap">
@@ -861,19 +861,19 @@ button { cursor: pointer; border: none; background: transparent; }
   <!-- 오늘 컨디션 -->
   <div class="card">
     <div class="card-head">
-      <span class="card-title">오늘 컨디션</span>
+      <span class="card-title" data-i18n="homeCondTitle">오늘 컨디션</span>
       <span id="home-wellness-badge" class="badge badge-amber" style="font-size:9px;">미입력</span>
     </div>
     <div class="cond-grid" id="home-cond-grid">
-      <div class="cond-item"><div class="cond-lbl">피로도</div><div class="cond-val" id="hc-fatigue">—</div><div class="cond-bar"><div class="cond-fill" id="hcb-fatigue" style="width:0%;"></div></div></div>
-      <div class="cond-item"><div class="cond-lbl">수면</div><div class="cond-val" id="hc-sleep">—</div><div class="cond-bar"><div class="cond-fill" id="hcb-sleep" style="width:0%;"></div></div></div>
-      <div class="cond-item"><div class="cond-lbl">근육통</div><div class="cond-val" id="hc-soreness">—</div><div class="cond-bar"><div class="cond-fill" id="hcb-soreness" style="width:0%;"></div></div></div>
-      <div class="cond-item"><div class="cond-lbl">스트레스</div><div class="cond-val" id="hc-stress">—</div><div class="cond-bar"><div class="cond-fill" id="hcb-stress" style="width:0%;"></div></div></div>
+      <div class="cond-item"><div class="cond-lbl" data-i18n="condFatigue">피로도</div><div class="cond-val" id="hc-fatigue">—</div><div class="cond-bar"><div class="cond-fill" id="hcb-fatigue" style="width:0%;"></div></div></div>
+      <div class="cond-item"><div class="cond-lbl" data-i18n="condSleep">수면</div><div class="cond-val" id="hc-sleep">—</div><div class="cond-bar"><div class="cond-fill" id="hcb-sleep" style="width:0%;"></div></div></div>
+      <div class="cond-item"><div class="cond-lbl" data-i18n="condSoreness">근육통</div><div class="cond-val" id="hc-soreness">—</div><div class="cond-bar"><div class="cond-fill" id="hcb-soreness" style="width:0%;"></div></div></div>
+      <div class="cond-item"><div class="cond-lbl" data-i18n="condStress">스트레스</div><div class="cond-val" id="hc-stress">—</div><div class="cond-bar"><div class="cond-fill" id="hcb-stress" style="width:0%;"></div></div></div>
     </div>
     <div class="cond-wt-row" id="home-wt-row" style="display:none;">
       <div>
         <div style="font-size:20px;font-weight:500;color:#d0d4f0;" id="home-wt-morning">— kg</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px;" id="home-wt-sub">아침 체중</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;" id="home-wt-sub" data-i18n="morningWeightLabel">아침 체중</div>
       </div>
       <div style="text-align:right;">
         <div id="home-wt-diff-badge" class="badge" style="font-size:10px;"></div>
@@ -881,14 +881,14 @@ button { cursor: pointer; border: none; background: transparent; }
       </div>
     </div>
     <div style="padding:10px 14px;" id="home-wellness-empty" style="display:none;">
-      <button class="save-btn" style="margin-top:0;" onclick="switchTab('wellness')">💚 오늘 컨디션 입력하기</button>
+      <button class="save-btn" data-i18n="homeEnterWellness" style="margin-top:0;" onclick="switchTab('wellness')">💚 오늘 컨디션 입력하기</button>
     </div>
   </div>
 
   <!-- 전날 GPS -->
   <div class="card">
     <div class="card-head">
-      <span class="card-title">전날 세션</span>
+      <span class="card-title" data-i18n="homeGpsTitle">전날 세션</span>
     </div>
     <div id="home-gps-body">
       <div class="empty-state"><div class="empty-icon">📡</div>GPS 데이터 없음</div>
@@ -898,7 +898,7 @@ button { cursor: pointer; border: none; background: transparent; }
   <!-- 오늘 처방 -->
   <div class="card">
     <div class="card-head">
-      <span class="card-title">오늘 처방</span>
+      <span class="card-title" data-i18n="homeRxTitle">오늘 처방</span>
       <span id="home-md-badge" class="badge badge-md" style="font-size:9px;">—</span>
     </div>
     <div id="home-rx-body">
@@ -916,7 +916,7 @@ button { cursor: pointer; border: none; background: transparent; }
     padding:10px 14px;background:var(--surface2);border-radius:12px;
     margin-bottom:10px;border:0.5px solid var(--border);">
     <div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">입력 날짜</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;" data-i18n="wellnessDateLabel">입력 날짜</div>
       <div style="font-size:16px;font-weight:500;color:var(--text);" id="wellness-date-display">—</div>
     </div>
     <div style="text-align:right;">
@@ -927,7 +927,7 @@ button { cursor: pointer; border: none; background: transparent; }
 
   <div class="card">
     <div class="card-head">
-      <span class="card-title">아침 웰니스</span>
+      <span class="card-title" data-i18n="wellnessTitle">아침 웰니스</span>
       <span id="wellness-badge" class="badge badge-amber" style="font-size:9px;">미입력</span>
     </div>
 
@@ -938,7 +938,7 @@ button { cursor: pointer; border: none; background: transparent; }
 
     <!-- 아침 체중 -->
     <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:0.5px solid var(--border2);">
-      <div style="font-size:11px;color:var(--text3);flex-shrink:0;width:64px;">아침 체중</div>
+      <div style="font-size:11px;color:var(--text3);flex-shrink:0;width:64px;" data-i18n="morningWeightLabel">아침 체중</div>
       <input class="num-input" type="number" step="0.1" id="morning-weight" placeholder="0.0" style="flex:1;font-size:16px;padding:8px 12px;">
       <div style="font-size:12px;color:var(--text3);">kg</div>
     </div>
@@ -949,8 +949,8 @@ button { cursor: pointer; border: none; background: transparent; }
       <div class="bc-toggle-left">
         <div class="bc-icon">📊</div>
         <div>
-          <div class="bc-toggle-lbl">체성분 추가</div>
-          <div class="bc-toggle-sub">인바디 측정 시 선택 입력 (근육량 · 체지방률)</div>
+          <div class="bc-toggle-lbl" data-i18n="bodyComp">체성분 추가</div>
+          <div class="bc-toggle-sub" data-i18n="bodyCompSub">인바디 측정 시 선택 입력 (근육량 · 체지방률)</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
@@ -964,28 +964,28 @@ button { cursor: pointer; border: none; background: transparent; }
       <div style="padding:7px 14px 5px;font-size:10px;color:var(--text3);">측정일: <span id="bc-date-lbl" style="color:var(--blue);">오늘</span> <span id="bc-wt-ref" style="color:var(--text3);margin-left:8px;"></span></div>
       <div class="bc-input-grid">
         <div class="bc-input-item">
-          <div class="bc-input-lbl">근육량</div>
+          <div class="bc-input-lbl" data-i18n="muscleMass">근육량</div>
           <input class="num-input" type="number" step="0.1" id="bc-muscle" placeholder="0.0" style="font-size:15px;padding:6px;">
           <div class="bc-input-unit">kg</div>
         </div>
         <div class="bc-input-item">
-          <div class="bc-input-lbl">체지방률</div>
+          <div class="bc-input-lbl" data-i18n="bodyFat">체지방률</div>
           <input class="num-input" type="number" step="0.1" id="bc-fat" placeholder="0.0" style="font-size:15px;padding:6px;">
           <div class="bc-input-unit">%</div>
         </div>
       </div>
       <div class="bc-diff-row" id="bc-diff-row" style="display:none;">
-        <div class="bc-diff-item"><div class="bc-diff-lbl">직전 체중</div><div class="bc-diff-val" id="bcd-wt">—</div></div>
-        <div class="bc-diff-item"><div class="bc-diff-lbl">근육량</div><div class="bc-diff-val" id="bcd-muscle">—</div></div>
-        <div class="bc-diff-item"><div class="bc-diff-lbl">체지방률</div><div class="bc-diff-val" id="bcd-fat">—</div></div>
+        <div class="bc-diff-item"><div class="bc-diff-lbl" data-i18n="bcPrevWeight">직전 체중</div><div class="bc-diff-val" id="bcd-wt">—</div></div>
+        <div class="bc-diff-item"><div class="bc-diff-lbl" data-i18n="muscleMass">근육량</div><div class="bc-diff-val" id="bcd-muscle">—</div></div>
+        <div class="bc-diff-item"><div class="bc-diff-lbl" data-i18n="bodyFat">체지방률</div><div class="bc-diff-val" id="bcd-fat">—</div></div>
       </div>
       <!-- 트렌드 SVG -->
       <div style="padding:9px 14px 12px;border-top:0.5px solid var(--border2);">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;">체성분 트렌드</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" data-i18n="bcTrendTitle">체성분 트렌드</div>
         <div style="display:flex;gap:10px;margin-bottom:6px;font-size:10px;">
-          <span style="color:var(--blue);">— 체중</span>
-          <span style="color:var(--green);">— 근육량</span>
-          <span style="color:var(--amber);">— 체지방%</span>
+          <span style="color:var(--blue);" data-i18n="bcWeightLine">— 체중</span>
+          <span style="color:var(--green);" data-i18n="bcMuscleLine">— 근육량</span>
+          <span style="color:var(--amber);" data-i18n="bcFatLine">— 체지방%</span>
         </div>
         <svg id="bc-trend-svg" viewBox="0 0 280 70" width="100%" height="70" style="overflow:visible;">
           <line x1="0" y1="18" x2="280" y2="18" stroke="#141828" stroke-width="0.5"/>
@@ -999,17 +999,17 @@ button { cursor: pointer; border: none; background: transparent; }
 
     <!-- 메모 -->
     <div style="padding:8px 14px;border-top:0.5px solid var(--border2);">
-      <textarea class="memo-field" id="wellness-note" rows="2" placeholder="메모 (선택사항)..."></textarea>
+      <textarea class="memo-field" id="wellness-note" rows="2" placeholder="메모 (선택사항)..." data-i18n-placeholder="memoPlaceholder"></textarea>
     </div>
   </div>
 
-  <button class="save-btn" id="wellness-save-btn" onclick="saveWellness()">💾 아침 저장</button>
+  <button class="save-btn" id="wellness-save-btn" data-i18n="saveMorning" onclick="saveWellness()">💾 아침 저장</button>
   <div class="msg-box" id="wellness-msg"></div>
 
   <!-- 7일 트렌드 -->
   <div class="card" style="margin-top:10px;">
     <div class="card-head">
-      <span class="card-title">최근 7일 컨디션</span>
+      <span class="card-title" data-i18n="trend7days">최근 7일 컨디션</span>
       <span class="card-sub">/20점</span>
     </div>
     <div id="wellness-trend-body" style="padding:4px 0 8px;">
@@ -1027,7 +1027,7 @@ button { cursor: pointer; border: none; background: transparent; }
     padding:10px 14px;background:var(--surface2);border-radius:12px;
     margin-bottom:10px;border:0.5px solid var(--border);">
     <div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">세션 날짜</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;" data-i18n="rpeSessionDate">세션 날짜</div>
       <div style="font-size:16px;font-weight:500;color:var(--text);" id="rpe-date-display">—</div>
     </div>
     <div style="text-align:right;">
@@ -1038,34 +1038,34 @@ button { cursor: pointer; border: none; background: transparent; }
 
   <!-- 세션 타입 -->
   <div class="card">
-    <div class="card-head"><span class="card-title">세션 타입</span></div>
+    <div class="card-head"><span class="card-title" data-i18n="rpeSessionType">세션 타입</span></div>
     <div style="display:flex;gap:5px;padding:0 14px 11px;" id="session-type-btns">
-      <button class="filter-btn active" onclick="setSessionType('AM',this)">AM 오전</button>
-      <button class="filter-btn" onclick="setSessionType('PM',this)">PM 오후</button>
-      <button class="filter-btn" onclick="setSessionType('추가',this)">추가 세션</button>
+      <button class="filter-btn active" data-i18n="rpeAM" onclick="setSessionType('AM',this)">AM 오전</button>
+      <button class="filter-btn" data-i18n="rpePM" onclick="setSessionType('PM',this)">PM 오후</button>
+      <button class="filter-btn" data-i18n="rpeExtra" onclick="setSessionType('추가',this)">추가 세션</button>
     </div>
   </div>
 
   <!-- RPE 입력 -->
   <div class="card">
     <div class="card-head">
-      <span class="card-title">세션 RPE</span>
+      <span class="card-title" data-i18n="rpeCardTitle">세션 RPE</span>
       <span id="rpe-disp" style="font-size:13px;font-weight:500;color:var(--purple);">— 선택하세요</span>
     </div>
     <div style="padding:0 14px 10px;">
       <div class="rpe-scale-bar" id="rpe-bar"></div>
       <div class="rpe-nums" id="rpe-nums"></div>
       <div class="rpe-zones">
-        <div class="rpe-zone" style="flex:3;color:var(--green);background:#0e2015;">쉬움 1–3</div>
-        <div class="rpe-zone" style="flex:3;color:var(--amber);background:#261c08;">보통 4–6</div>
-        <div class="rpe-zone" style="flex:2;color:var(--purple);background:#1e1040;">힘듦 7–8</div>
-        <div class="rpe-zone" style="flex:2;color:var(--red);background:#300808;">한계 9–10</div>
+        <div class="rpe-zone" data-i18n="rpeEasy" style="flex:3;color:var(--green);background:#0e2015;">쉬움 1–3</div>
+        <div class="rpe-zone" data-i18n="rpeMod" style="flex:3;color:var(--amber);background:#261c08;">보통 4–6</div>
+        <div class="rpe-zone" data-i18n="rpeHard" style="flex:2;color:var(--purple);background:#1e1040;">힘듦 7–8</div>
+        <div class="rpe-zone" data-i18n="rpeMax" style="flex:2;color:var(--red);background:#300808;">한계 9–10</div>
       </div>
       <div class="rpe-desc-box" id="rpe-desc-box" style="background:#1a1e30;border:0.5px solid #2a3050;margin-top:9px;">
         <div class="rpe-big-num" id="rpe-big-num" style="color:var(--text3);">—</div>
         <div>
-          <div class="rpe-label" id="rpe-label" style="color:var(--text3);">탭하여 선택</div>
-          <div class="rpe-sub"   id="rpe-sub"   style="color:var(--text3);">1 = 매우 쉬움 · 10 = 절대 최대</div>
+          <div class="rpe-label" id="rpe-label" style="color:var(--text3);" data-i18n="rpeTap">탭하여 선택</div>
+          <div class="rpe-sub"   id="rpe-sub"   style="color:var(--text3);" data-i18n="rpeRange">1 = 매우 쉬움 · 10 = 절대 최대</div>
         </div>
       </div>
     </div>
@@ -1073,31 +1073,31 @@ button { cursor: pointer; border: none; background: transparent; }
 
   <!-- 운동후 체중 + 수분 보충 -->
   <div class="card">
-    <div class="card-head"><span class="card-title">운동후 체중</span></div>
+    <div class="card-head"><span class="card-title" data-i18n="postWeightTitle">운동후 체중</span></div>
     <div style="padding:0 14px 10px;display:flex;align-items:center;gap:10px;">
       <input class="num-input" type="number" step="0.1" id="post-weight" placeholder="0.0" style="flex:1;" oninput="calcHydro()">
       <span style="font-size:13px;color:var(--text3);">kg</span>
     </div>
     <div class="hydro-grid" id="hydro-grid" style="display:none;">
       <div class="hydro-item">
-        <div class="hydro-lbl">체중 감소</div>
+        <div class="hydro-lbl" data-i18n="hydroLoss">체중 감소</div>
         <div class="hydro-val" id="h-loss" style="color:var(--blue);">— <span class="hydro-unit">kg</span></div>
-        <div class="hydro-sub" id="h-loss-sub">아침 체중 대비</div>
+        <div class="hydro-sub" id="h-loss-sub" data-i18n="hydroMorning">아침 체중 대비</div>
       </div>
       <div class="hydro-item">
-        <div class="hydro-lbl">수분 보충 권장</div>
+        <div class="hydro-lbl" data-i18n="hydroRec">수분 보충 권장</div>
         <div class="hydro-val" id="h-water" style="color:var(--green);">— <span class="hydro-unit">ml</span></div>
-        <div class="hydro-sub" id="h-water-sub">체중 감소 × 1.5</div>
+        <div class="hydro-sub" id="h-water-sub" data-i18n="hydroFormula">체중 감소 × 1.5</div>
       </div>
     </div>
   </div>
 
-  <button class="save-btn" id="rpe-save-btn" onclick="saveRpe()">💾 세션 저장</button>
+  <button class="save-btn" id="rpe-save-btn" data-i18n="saveSession" onclick="saveRpe()">💾 세션 저장</button>
   <div class="msg-box" id="rpe-msg"></div>
 
   <!-- RPE 히스토리 -->
   <div class="card" style="margin-top:10px;">
-    <div class="card-head"><span class="card-title">최근 RPE 히스토리</span></div>
+    <div class="card-head"><span class="card-title" data-i18n="rpeHistoryTitle">최근 RPE 히스토리</span></div>
     <div id="rpe-history-body">
       <div class="loading"><div class="spinner"></div>불러오는 중...</div>
     </div>
@@ -1108,9 +1108,9 @@ button { cursor: pointer; border: none; background: transparent; }
 <!-- GPS -->
 <div class="screen" id="screen-gps">
   <div class="filter-row">
-    <button class="filter-btn active" onclick="setGpsFilter('week',this)">이번 주</button>
-    <button class="filter-btn" onclick="setGpsFilter('2week',this)">최근 2주</button>
-    <button class="filter-btn" onclick="setGpsFilter('month',this)">이번 달</button>
+    <button class="filter-btn active" data-i18n="gpsWeek" onclick="setGpsFilter('week',this)">이번 주</button>
+    <button class="filter-btn" data-i18n="gps2week" onclick="setGpsFilter('2week',this)">최근 2주</button>
+    <button class="filter-btn" data-i18n="gpsMonth" onclick="setGpsFilter('month',this)">이번 달</button>
   </div>
 
   <div class="card">
@@ -1124,7 +1124,7 @@ button { cursor: pointer; border: none; background: transparent; }
     <!-- 테이블 헤더 고정 -->
     <table class="gps-table" style="border-bottom:0.5px solid var(--border2);">
       <thead><tr>
-        <th>날짜</th><th>주기</th><th>TD</th><th>HSR</th><th>Sprint</th><th>sRPE</th><th>상태</th>
+        <th data-i18n="gpsThDate">날짜</th><th data-i18n="gpsThCycle">주기</th><th>TD</th><th>HSR</th><th>Sprint</th><th>sRPE</th><th data-i18n="gpsThStatus">상태</th>
       </tr></thead>
     </table>
 
@@ -1132,17 +1132,17 @@ button { cursor: pointer; border: none; background: transparent; }
     <div class="table-scroll" id="gps-table-scroll">
       <table class="gps-table"><tbody id="gps-table-body"></tbody></table>
     </div>
-    <div class="scroll-hint" id="gps-scroll-hint">↕ 스크롤하여 더 보기</div>
+    <div class="scroll-hint" id="gps-scroll-hint" data-i18n="gpsScrollHint">↕ 스크롤하여 더 보기</div>
   </div>
 
   <!-- 세션 상세 -->
   <div class="card">
     <div class="detail-head">
-      <div class="detail-title" id="gps-detail-title" style="color:var(--text3);">세션을 선택하세요</div>
-      <div class="detail-meta"  id="gps-detail-meta">위 표에서 행을 탭하면 상세가 표시됩니다</div>
+      <div class="detail-title" id="gps-detail-title" style="color:var(--text3);" data-i18n="gpsSelectSession">세션을 선택하세요</div>
+      <div class="detail-meta"  id="gps-detail-meta" data-i18n="gpsTapHint">위 표에서 행을 탭하면 상세가 표시됩니다</div>
     </div>
     <div id="gps-detail-body" style="padding:10px 14px;">
-      <div style="text-align:center;padding:16px 0;font-size:11px;color:#252840;">세션을 탭하면 데이터가 표시됩니다</div>
+      <div id="gps-detail-hint" style="text-align:center;padding:16px 0;font-size:11px;color:#252840;" data-i18n="gpsNoDetailMsg">세션을 탭하면 데이터가 표시됩니다</div>
     </div>
   </div>
 </div><!-- /screen-gps -->
@@ -1158,7 +1158,7 @@ button { cursor: pointer; border: none; background: transparent; }
 <div class="screen" id="screen-notif">
   <div class="card">
     <div class="card-head">
-      <span class="card-title">알림</span>
+      <span class="card-title" data-i18n="notifTitle">알림</span>
       <span id="notif-unread-badge" class="badge badge-md" style="font-size:9px;display:none;">0</span>
     </div>
     <div id="notif-list">
@@ -1171,11 +1171,11 @@ button { cursor: pointer; border: none; background: transparent; }
 <div id="screen-chat">
   <div id="chat-header">
     <button id="chat-back-btn" onclick="closeChat()">&#8592;</button>
-    <span id="chat-header-title">&#128172; 코치 채팅</span>
+    <span id="chat-header-title" data-i18n="chatTitle">&#128172; 코치 채팅</span>
   </div>
   <div id="chat-messages"></div>
   <div id="chat-input-bar">
-    <textarea id="chat-input" rows="1" placeholder="메시지 입력..."
+    <textarea id="chat-input" rows="1" placeholder="메시지 입력..." data-i18n-placeholder="chatPlaceholder"
       oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"
       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMsg();}"></textarea>
     <button id="chat-send-btn" onclick="sendChatMsg()">&#10148;</button>
@@ -1192,7 +1192,7 @@ button { cursor: pointer; border: none; background: transparent; }
         <path d="M3 8l7-6 7 6v9a1 1 0 01-1 1H4a1 1 0 01-1-1z"/>
         <path d="M8 18V12h4v6"/>
       </svg>
-      <span>홈</span>
+      <span data-i18n="tabHome">홈</span>
       <div class="tab-dot"></div>
     </div>
     <div class="tab-item" id="tab-wellness" onclick="switchTab('wellness')">
@@ -1200,7 +1200,7 @@ button { cursor: pointer; border: none; background: transparent; }
         <path d="M10 3.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13z"/>
         <path d="M10 7v3l2 2"/>
       </svg>
-      <span>웰니스</span>
+      <span data-i18n="tabWellness">웰니스</span>
       <div class="tab-dot"></div>
     </div>
     <div class="tab-item" id="tab-rpe" onclick="switchTab('rpe')">
@@ -1208,14 +1208,14 @@ button { cursor: pointer; border: none; background: transparent; }
         <circle cx="10" cy="10" r="3"/>
         <path d="M10 3v2M10 15v2M3 10h2M15 10h2"/>
       </svg>
-      <span>RPE</span>
+      <span data-i18n="tabRpe">RPE</span>
       <div class="tab-dot"></div>
     </div>
     <div class="tab-item" id="tab-gps" onclick="switchTab('gps')">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
         <polyline points="2 12 6 8 10 13 14 6 18 10"/>
       </svg>
-      <span>GPS</span>
+      <span data-i18n="tabGps">GPS</span>
       <div class="tab-dot"></div>
     </div>
     <div class="tab-item" id="tab-rx" onclick="switchTab('rx')">
@@ -1225,7 +1225,7 @@ button { cursor: pointer; border: none; background: transparent; }
         <line x1="7" y1="9"  x2="13" y2="9"/>
         <line x1="7" y1="13" x2="11" y2="13"/>
       </svg>
-      <span>처방</span>
+      <span data-i18n="tabRx">처방</span>
       <div class="tab-dot"></div>
     </div>
     <div class="tab-item" id="tab-notif" onclick="switchTab('notif')">
@@ -1234,7 +1234,7 @@ button { cursor: pointer; border: none; background: transparent; }
         <path d="M10 2a5 5 0 00-5 5c0 5-2 7-2 7h14s-2-2-2-7a5 5 0 00-5-5z"/>
         <path d="M9 17a1 1 0 002 0"/>
       </svg>
-      <span>알림</span>
+      <span data-i18n="tabNotif">알림</span>
       <div class="tab-dot"></div>
     </div>
   </div>
@@ -1259,21 +1259,32 @@ const W_ITEMS = [
   { key:'muscle_soreness', icon:'💪', label:'근육통',  descDir:'심함←→없음' },
   { key:'stress',          icon:'🧠', label:'스트레스',descDir:'높음←→낮음' },
 ];
+function getWItems() {
+  return [
+    { key:'fatigue',         icon:'🔋', label:T('wFatigue'),  descDir:T('dirFatigueSleep') },
+    { key:'sleep_quality',   icon:'😴', label:T('wSleep'),    descDir:T('dirFatigueSleep') },
+    { key:'muscle_soreness', icon:'💪', label:T('wSoreness'), descDir:T('dirSoreness') },
+    { key:'stress',          icon:'🧠', label:T('wStress'),   descDir:T('dirStress') },
+  ];
+}
 const W_COLORS = { 1:'#e04040', 2:'#d07030', 3:'#c0a030', 4:'#3aaa6a', 5:'#30cc80' };
 const W_BG     = { 1:'#2a0808', 2:'#251508', 3:'#251c08', 4:'#0e3020', 5:'#0a2818' };
 
-const RPE_DATA = {
-  1:  { lbl:'Very Light',   desc:'거의 느껴지지 않음',         c:'#3aaa6a', bg:'#0e2818' },
-  2:  { lbl:'Light',        desc:'편하게 유지 가능',            c:'#50b050', bg:'#102015' },
-  3:  { lbl:'Moderate',     desc:'약간 노력 필요 · 대화 가능', c:'#a8a028', bg:'#201e08' },
-  4:  { lbl:'Somewhat Hard',desc:'노력 필요 · 지속 가능',       c:'#c09030', bg:'#261c08' },
-  5:  { lbl:'Hard',         desc:'힘듦 · 대화 짧게 가능',       c:'#d07820', bg:'#2a1808' },
-  6:  { lbl:'Hard+',        desc:'매우 힘듦 · 대화 거의 불가', c:'#d06020', bg:'#2c1408' },
-  7:  { lbl:'Very Hard',    desc:'한계에 가까움 · 대화 불가',   c:'#9060d0', bg:'#1e1040' },
-  8:  { lbl:'Very Hard+',   desc:'극도로 힘듦',                 c:'#c84040', bg:'#280e10' },
-  9:  { lbl:'Near Max',     desc:'거의 최대 노력',               c:'#e02020', bg:'#300808' },
-  10: { lbl:'Max Effort',   desc:'절대 최대 · 지속 불가',       c:'#ff2020', bg:'#380606' },
-};
+function getRpeData() {
+  return {
+    1:  { lbl:'Very Light',    desc:T('rpeDesc1'),  c:'#3aaa6a', bg:'#0e2818' },
+    2:  { lbl:'Light',         desc:T('rpeDesc2'),  c:'#50b050', bg:'#102015' },
+    3:  { lbl:'Moderate',      desc:T('rpeDesc3'),  c:'#a8a028', bg:'#201e08' },
+    4:  { lbl:'Somewhat Hard', desc:T('rpeDesc4'),  c:'#c09030', bg:'#261c08' },
+    5:  { lbl:'Hard',          desc:T('rpeDesc5'),  c:'#d07820', bg:'#2a1808' },
+    6:  { lbl:'Hard+',         desc:T('rpeDesc6'),  c:'#d06020', bg:'#2c1408' },
+    7:  { lbl:'Very Hard',     desc:T('rpeDesc7'),  c:'#9060d0', bg:'#1e1040' },
+    8:  { lbl:'Very Hard+',    desc:T('rpeDesc8'),  c:'#c84040', bg:'#280e10' },
+    9:  { lbl:'Near Max',      desc:T('rpeDesc9'),  c:'#e02020', bg:'#300808' },
+    10: { lbl:'Max Effort',    desc:T('rpeDesc10'), c:'#ff2020', bg:'#380606' },
+  };
+}
+const RPE_DATA = getRpeData();
 const RPE_COLORS = ['#3aaa6a','#50b050','#a8a028','#c09030','#d07820','#d06020','#9060d0','#c84040','#e02020','#ff2020'];
 
 // MD 단계별 경기 평균 (포지션 무관 기본값)
@@ -1300,19 +1311,19 @@ function today() {
 function getDateInfo(dateStr) {
   // dateStr: 'YYYY-MM-DD' 또는 undefined(오늘)
   const d = dateStr ? new Date(dateStr + 'T00:00:00') : new Date();
-  const DAY_KO = ['일','월','화','수','목','금','토'];
-  const DAY_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const mm   = String(d.getMonth()+1).padStart(2,'0');
   const dd   = String(d.getDate()).padStart(2,'0');
   const yyyy = d.getFullYear();
   const isToday = dateStr ? dateStr === today() : true;
+  const dayNames = T('scheduleDayNames');
+  const days = Array.isArray(dayNames) ? dayNames : ['일','월','화','수','목','금','토'];
+  const dayStr = currentLang === 'ko' ? days[d.getDay()] + '요일' : days[d.getDay()];
   return {
     full:  `${yyyy}.${mm}.${dd}`,
     short: `${mm}/${dd}`,
-    day:   DAY_KO[d.getDay()] + '요일',
-    dayEn: DAY_EN[d.getDay()],
+    day:   dayStr,
     isToday,
-    label: isToday ? '오늘' : `${mm}/${dd}`,
+    label: isToday ? T('today') : `${mm}/${dd}`,
   };
 }
 
@@ -1331,10 +1342,10 @@ function renderWellnessBanner(savedAt) {
   dayEl.textContent  = info.day;
   if (savedAt) {
     const t = savedAt.slice(11,16);
-    timeEl.textContent = `✅ ${t} 저장 완료`;
+    timeEl.textContent = `✅ ${t} ${T('savedAt')}`;
     timeEl.style.color = 'var(--green)';
   } else {
-    timeEl.textContent = `현재 ${hh}:${min}`;
+    timeEl.textContent = `${T('currentTime')} ${hh}:${min}`;
     timeEl.style.color = 'var(--text3)';
   }
 }
@@ -1355,10 +1366,10 @@ function renderRpeBanner(lastRecord) {
   if (lastRecord) {
     const t    = (lastRecord.created_at || '').slice(11,16);
     const type = lastRecord.session_type || '';
-    savedEl.textContent = `✅ ${type} RPE ${lastRecord.rpe} · ${t} 저장`;
+    savedEl.textContent = `✅ ${type} RPE ${lastRecord.rpe} · ${t} ${T('savedAt')}`;
     savedEl.style.color = 'var(--green)';
   } else {
-    savedEl.textContent = `현재 ${hh}:${min} · 미입력`;
+    savedEl.textContent = `${T('currentTime')} ${hh}:${min} · ${T('notEntered2')}`;
     savedEl.style.color = 'var(--text3)';
   }
 }
@@ -1395,6 +1406,188 @@ const LANG_STRINGS = {
     errNotFound: '등록된 선수를 찾을 수 없습니다.',
     errPin:      'PIN이 올바르지 않습니다.',
     errGeneral:  '오류: ',
+    // Push
+    pushTitle:   '알림 설정 필요',
+    pushSub:     '코치 메시지를 실시간으로 받으려면 허용해주세요',
+    pushAllow:   '허용',
+    pushSetup:   '설정 중...',
+    // 홈 카드
+    homeSchedTitle: '이번 주 일정',
+    homeSchedSub:   '코치 등록 · 읽기 전용',
+    homeRiskTitle:  '부상 위험도',
+    homeCondTitle:  '오늘 컨디션',
+    homeGpsTitle:   '전날 세션',
+    homeRxTitle:    '오늘 처방',
+    // 공통 상태
+    loading:     '불러오는 중...',
+    notEntered:  '미입력',
+    entered:     '입력 완료',
+    saving:      '저장 중...',
+    today:       '오늘',
+    noData:      '데이터 없음',
+    // 컨디션 라벨
+    condFatigue:  '피로도',
+    condSleep:    '수면',
+    condSoreness: '근육통',
+    condStress:   '스트레스',
+    morningWeightLabel: '아침 체중',
+    // 웰니스
+    wellnessDateLabel: '입력 날짜',
+    wellnessTitle:     '아침 웰니스',
+    bodyComp:     '체성분 추가',
+    bodyCompSub:  '인바디 측정 시 선택 입력 (근육량 · 체지방률)',
+    muscleMass:   '근육량',
+    bodyFat:      '체지방률',
+    optional:     '선택사항',
+    entering:     '입력중',
+    bcTrendTitle: '체성분 트렌드',
+    bcWeightLine: '— 체중',
+    bcMuscleLine: '— 근육량',
+    bcFatLine:    '— 체지방%',
+    bcPrevWeight: '직전 체중',
+    memoPlaceholder: '메모 (선택사항)...',
+    saveMorning:  '💾 아침 저장',
+    trend7days:   '최근 7일 컨디션',
+    prevPostWeight: '전날 운동후 체중',
+    // W_ITEMS
+    wFatigue:      '피로도',
+    wSleep:        '수면',
+    wSoreness:     '근육통',
+    wStress:       '스트레스',
+    dirFatigueSleep: '나쁨←→좋음',
+    dirSoreness:   '심함←→없음',
+    dirStress:     '높음←→낮음',
+    // RPE
+    rpeSessionDate: '세션 날짜',
+    rpeSessionType: '세션 타입',
+    rpeAM:          'AM 오전',
+    rpePM:          'PM 오후',
+    rpeExtra:       '추가 세션',
+    rpeCardTitle:   '세션 RPE',
+    rpeSelectPrompt:'— 선택하세요',
+    rpeEasy:        '쉬움 1–3',
+    rpeMod:         '보통 4–6',
+    rpeHard:        '힘듦 7–8',
+    rpeMax:         '한계 9–10',
+    rpeTap:         '탭하여 선택',
+    rpeRange:       '1 = 매우 쉬움 · 10 = 절대 최대',
+    postWeightTitle:'운동후 체중',
+    hydroLoss:      '체중 감소',
+    hydroRec:       '수분 보충 권장',
+    hydroMorning:   '아침 체중 대비',
+    hydroFormula:   '체중 감소 × 1.5',
+    saveSession:    '💾 세션 저장',
+    rpeHistoryTitle:'최근 RPE 히스토리',
+    noSessionRecord:'세션 기록 없음',
+    cancelRpe:      '취소',
+    // RPE desc
+    rpeDesc1:  '거의 느껴지지 않음',
+    rpeDesc2:  '편하게 유지 가능',
+    rpeDesc3:  '약간 노력 필요 · 대화 가능',
+    rpeDesc4:  '노력 필요 · 지속 가능',
+    rpeDesc5:  '힘듦 · 대화 짧게 가능',
+    rpeDesc6:  '매우 힘듦 · 대화 거의 불가',
+    rpeDesc7:  '한계에 가까움 · 대화 불가',
+    rpeDesc8:  '극도로 힘듦',
+    rpeDesc9:  '거의 최대 노력',
+    rpeDesc10: '절대 최대 · 지속 불가',
+    // GPS
+    gpsWeek:        '이번 주',
+    gps2week:       '최근 2주',
+    gpsMonth:       '이번 달',
+    gpsColDate:     '날짜',
+    gpsColCycle:    '주기',
+    gpsColStatus:   '상태',
+    gpsScrollHint:  '↕ 스크롤하여 더 보기',
+    gpsSelectSession: '세션을 선택하세요',
+    gpsTapHint:     '위 표에서 행을 탭하면 상세가 표시됩니다',
+    gpsNoData:      'GPS 데이터 없음',
+    gpsMatch:       '경기',
+    gpsDone:        '완료',
+    gpsPlan:        '예정',
+    gpsNoSession:   '세션 데이터 없음',
+    gpsTapDone:     '위 표에서 완료된 세션을 탭하세요',
+    gpsNoDetailMsg: '세션을 탭하면 데이터가 표시됩니다',
+    gpsThDate:      '날짜',
+    gpsThCycle:     '주기',
+    gpsThTD:        'TD',
+    gpsThHSR:       'HSR',
+    gpsThSprint:    'Sprint',
+    gpsThRpe:       'sRPE',
+    gpsThStatus:    '상태',
+    accel:          '가속',
+    // 탭바
+    tabHome:    '홈',
+    tabWellness:'웰니스',
+    tabRpe:     'RPE',
+    tabGps:     'GPS',
+    tabRx:      '처방',
+    tabNotif:   '알림',
+    // 알림
+    notifTitle: '알림',
+    // 헤더 배지
+    wellnessDoneBadge: '💚 웰니스 ✓',
+    wellnessPending:   '💚 웰니스 미입력',
+    rpeDoneBadge:      '💪 RPE ✓',
+    rpePending:        '💪 RPE 미입력',
+    // 위험도
+    riskSleep:     '수면',
+    riskFatigue:   '피로',
+    riskSoreness:  '근육통',
+    riskWellnessNone: '웰니스 미입력',
+    riskRpeOk:     '정상',
+    riskHsrHigh:   'HSR 과부하',
+    riskHsrOk:     'HSR 적정',
+    riskLow:       '저위험',
+    riskCaution:   '주의',
+    riskHigh:      '고위험',
+    recovCaution:  '회복 주의',
+    recovOk:       '회복 양호',
+    // GPS 홈카드
+    gpsNoDataHome: 'GPS 데이터 없음',
+    rxNoData:      '처방 없음',
+    rxSeeTab:      '처방 탭에서 확인',
+    // 처방
+    rxNotDone:      '미완료',
+    rxConfirmBtn:   '오늘 처방 확정하기',
+    rxConfirmed:    '✅ 처방 확정 완료',
+    rxGymTypeLabel: 'GYM 타입 선택',
+    rxAerTypeLabel: '유산소 타입 선택',
+    rxAutoLabel:    '기반 자동 추천 · 코치 처방 없음',
+    rxExerciseCount:'가지',
+    rxRecommended:  '추천',
+    rxStrengthLabel:'근력',
+    rxAerLabel:     '유산소',
+    rxBlockDefault: '블록',
+    rxCoachLabel:   '코치 처방',
+    rxAerLabel2:    '유산소 처방',
+    rxCoachPoint:   '코칭 포인트',
+    // Pull-to-refresh
+    pullRefresh:    '당겨서 새로고침',
+    pullRelease:    '놓으면 새로고침',
+    pullRefreshing: '새로고침 중...',
+    // 저장/오류
+    saveFailMsg:    '저장 실패: ',
+    saveOkWellness: '✅ 저장 완료! 오늘 컨디션: ',
+    rpeRequired:    'RPE를 선택해주세요.',
+    saveOkRpe:      '✅ 저장 완료! RPE ',
+    deleteConfirmMsg: '이 세션 기록을 삭제하시겠습니까?\n삭제 후 다시 입력할 수 있습니다.',
+    deleteOkMsg:    '✅ 세션 기록이 삭제되었습니다. 다시 입력해주세요.',
+    deleteFailMsg:  '삭제 실패: ',
+    chatEmpty:      '메시지가 없습니다.',
+    noWeekData:     '최근 7일 데이터 없음',
+    dataLoading:    '데이터 로딩 중...',
+    // 날짜
+    savedAt:        '저장 완료',
+    currentTime:    '현재',
+    notEntered2:    '미입력',
+    // 홈
+    homeEnterWellness: '💚 오늘 컨디션 입력하기',
+    // 채팅
+    chatTitle:       '💬 코치 채팅',
+    chatPlaceholder: '메시지 입력...',
+    // 요일
+    scheduleDayNames: ['일','월','화','수','목','금','토'],
   },
   en: {
     sub:         'Busan IPark — Players Only',
@@ -1407,6 +1600,188 @@ const LANG_STRINGS = {
     errNotFound: 'No registered player found.',
     errPin:      'Incorrect PIN.',
     errGeneral:  'Error: ',
+    // Push
+    pushTitle:   'Notification Setup',
+    pushSub:     'Allow to receive coach messages in real time',
+    pushAllow:   'Allow',
+    pushSetup:   'Setting up...',
+    // 홈 카드
+    homeSchedTitle: 'This Week',
+    homeSchedSub:   'Coach entry · Read only',
+    homeRiskTitle:  'Injury Risk',
+    homeCondTitle:  "Today's Condition",
+    homeGpsTitle:   'Previous Session',
+    homeRxTitle:    "Today's Program",
+    // 공통 상태
+    loading:     'Loading...',
+    notEntered:  'Pending',
+    entered:     'Recorded',
+    saving:      'Saving...',
+    today:       'Today',
+    noData:      'No data',
+    // 컨디션 라벨
+    condFatigue:  'Fatigue',
+    condSleep:    'Sleep',
+    condSoreness: 'Soreness',
+    condStress:   'Stress',
+    morningWeightLabel: 'Morning Weight',
+    // 웰니스
+    wellnessDateLabel: 'Entry Date',
+    wellnessTitle:     'Morning Wellness',
+    bodyComp:     'Body Composition',
+    bodyCompSub:  'Optional after InBody scan (muscle · fat%)',
+    muscleMass:   'Muscle Mass',
+    bodyFat:      'Body Fat %',
+    optional:     'Optional',
+    entering:     'Entering',
+    bcTrendTitle: 'Body Comp Trend',
+    bcWeightLine: '— Weight',
+    bcMuscleLine: '— Muscle',
+    bcFatLine:    '— Fat%',
+    bcPrevWeight: 'Prev. Weight',
+    memoPlaceholder: 'Notes (optional)...',
+    saveMorning:  '💾 Save Morning',
+    trend7days:   'Last 7 Days Condition',
+    prevPostWeight: 'Prev. Post-Exercise Weight',
+    // W_ITEMS
+    wFatigue:      'Fatigue',
+    wSleep:        'Sleep',
+    wSoreness:     'Soreness',
+    wStress:       'Stress',
+    dirFatigueSleep: 'Bad←→Good',
+    dirSoreness:   'Severe←→None',
+    dirStress:     'High←→Low',
+    // RPE
+    rpeSessionDate: 'Session Date',
+    rpeSessionType: 'Session Type',
+    rpeAM:          'AM Morning',
+    rpePM:          'PM Afternoon',
+    rpeExtra:       'Extra Session',
+    rpeCardTitle:   'Session RPE',
+    rpeSelectPrompt:'— Select',
+    rpeEasy:        'Easy 1–3',
+    rpeMod:         'Moderate 4–6',
+    rpeHard:        'Hard 7–8',
+    rpeMax:         'Max 9–10',
+    rpeTap:         'Tap to select',
+    rpeRange:       '1 = Very Light · 10 = Max Effort',
+    postWeightTitle:'Post-Exercise Weight',
+    hydroLoss:      'Weight Loss',
+    hydroRec:       'Hydration Rec.',
+    hydroMorning:   'vs. morning weight',
+    hydroFormula:   'Weight loss × 1.5',
+    saveSession:    '💾 Save Session',
+    rpeHistoryTitle:'RPE History',
+    noSessionRecord:'No session records',
+    cancelRpe:      'Cancel',
+    // RPE desc
+    rpeDesc1:  'Almost no exertion',
+    rpeDesc2:  'Comfortable pace',
+    rpeDesc3:  'Some effort · Can talk',
+    rpeDesc4:  'Effort needed · Sustainable',
+    rpeDesc5:  'Hard · Short sentences only',
+    rpeDesc6:  'Very hard · Hard to talk',
+    rpeDesc7:  'Near limit · Cannot talk',
+    rpeDesc8:  'Extremely hard',
+    rpeDesc9:  'Near maximum effort',
+    rpeDesc10: 'Absolute max · Cannot sustain',
+    // GPS
+    gpsWeek:        'This Week',
+    gps2week:       'Last 2 Weeks',
+    gpsMonth:       'This Month',
+    gpsColDate:     'Date',
+    gpsColCycle:    'Cycle',
+    gpsColStatus:   'Status',
+    gpsScrollHint:  '↕ Scroll for more',
+    gpsSelectSession: 'Select a session',
+    gpsTapHint:     'Tap a row above to view details',
+    gpsNoData:      'No GPS data',
+    gpsMatch:       'Match',
+    gpsDone:        'Done',
+    gpsPlan:        'Planned',
+    gpsNoSession:   'No session data',
+    gpsTapDone:     'Tap a completed session above',
+    gpsNoDetailMsg: 'Tap a session to view data',
+    gpsThDate:      'Date',
+    gpsThCycle:     'Cycle',
+    gpsThTD:        'TD',
+    gpsThHSR:       'HSR',
+    gpsThSprint:    'Sprint',
+    gpsThRpe:       'sRPE',
+    gpsThStatus:    'Status',
+    accel:          'Accel',
+    // 탭바
+    tabHome:    'Home',
+    tabWellness:'Wellness',
+    tabRpe:     'RPE',
+    tabGps:     'GPS',
+    tabRx:      'Program',
+    tabNotif:   'Alerts',
+    // 알림
+    notifTitle: 'Notifications',
+    // 헤더 배지
+    wellnessDoneBadge: '💚 Wellness ✓',
+    wellnessPending:   '💚 Wellness pending',
+    rpeDoneBadge:      '💪 RPE ✓',
+    rpePending:        '💪 RPE pending',
+    // 위험도
+    riskSleep:     'Sleep',
+    riskFatigue:   'Fatigue',
+    riskSoreness:  'Soreness',
+    riskWellnessNone: 'Wellness missing',
+    riskRpeOk:     'normal',
+    riskHsrHigh:   'HSR overload',
+    riskHsrOk:     'HSR normal',
+    riskLow:       'Low Risk',
+    riskCaution:   'Caution',
+    riskHigh:      'High Risk',
+    recovCaution:  'Recovery concern',
+    recovOk:       'Recovery good',
+    // GPS 홈카드
+    gpsNoDataHome: 'No GPS data',
+    rxNoData:      'No program',
+    rxSeeTab:      'See Program tab',
+    // 처방
+    rxNotDone:      'Not done',
+    rxConfirmBtn:   "Confirm Today's Program",
+    rxConfirmed:    '✅ Program confirmed',
+    rxGymTypeLabel: 'Select GYM type',
+    rxAerTypeLabel: 'Select Cardio type',
+    rxAutoLabel:    'Auto recommendation · No coach program',
+    rxExerciseCount:'exercises',
+    rxRecommended:  'Recommended',
+    rxStrengthLabel:'Strength',
+    rxAerLabel:     'Cardio',
+    rxBlockDefault: 'Block',
+    rxCoachLabel:   'Coach Program',
+    rxAerLabel2:    'Cardio Program',
+    rxCoachPoint:   'Coaching Points',
+    // Pull-to-refresh
+    pullRefresh:    'Pull to refresh',
+    pullRelease:    'Release to refresh',
+    pullRefreshing: 'Refreshing...',
+    // 저장/오류
+    saveFailMsg:    'Save failed: ',
+    saveOkWellness: '✅ Saved! Today score: ',
+    rpeRequired:    'Please select RPE.',
+    saveOkRpe:      '✅ Saved! RPE ',
+    deleteConfirmMsg: 'Delete this session record?\nYou can re-enter it afterwards.',
+    deleteOkMsg:    '✅ Session deleted. Please re-enter.',
+    deleteFailMsg:  'Delete failed: ',
+    chatEmpty:      'No messages.',
+    noWeekData:     'No data for last 7 days',
+    dataLoading:    'Loading data...',
+    // 날짜
+    savedAt:        'Saved',
+    currentTime:    'Current',
+    notEntered2:    'Not entered',
+    // 홈
+    homeEnterWellness: "💚 Enter Today's Condition",
+    // 채팅
+    chatTitle:       '💬 Coach Chat',
+    chatPlaceholder: 'Type a message...',
+    // 요일
+    scheduleDayNames: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
   },
   pt: {
     sub:         'Busan IPark — Apenas Jogadores',
@@ -1419,23 +1794,254 @@ const LANG_STRINGS = {
     errNotFound: 'Nenhum jogador cadastrado encontrado.',
     errPin:      'PIN incorreto.',
     errGeneral:  'Erro: ',
+    // Push
+    pushTitle:   'Configurar Notificações',
+    pushSub:     'Permita para receber mensagens do técnico em tempo real',
+    pushAllow:   'Permitir',
+    pushSetup:   'Configurando...',
+    // 홈 카드
+    homeSchedTitle: 'Esta Semana',
+    homeSchedSub:   'Entrada do técnico · Somente leitura',
+    homeRiskTitle:  'Risco de Lesão',
+    homeCondTitle:  'Condição de Hoje',
+    homeGpsTitle:   'Sessão Anterior',
+    homeRxTitle:    'Programa de Hoje',
+    // 공통 상태
+    loading:     'Carregando...',
+    notEntered:  'Pendente',
+    entered:     'Registrado',
+    saving:      'Salvando...',
+    today:       'Hoje',
+    noData:      'Sem dados',
+    // 컨디션 라벨
+    condFatigue:  'Fadiga',
+    condSleep:    'Sono',
+    condSoreness: 'Dor Muscular',
+    condStress:   'Estresse',
+    morningWeightLabel: 'Peso Matinal',
+    // 웰니스
+    wellnessDateLabel: 'Data do Registro',
+    wellnessTitle:     'Bem-Estar Matinal',
+    bodyComp:     'Composição Corporal',
+    bodyCompSub:  'Opcional após escaneamento InBody (músculo · gordura%)',
+    muscleMass:   'Massa Muscular',
+    bodyFat:      'Gordura Corporal %',
+    optional:     'Opcional',
+    entering:     'Inserindo',
+    bcTrendTitle: 'Tendência de Composição',
+    bcWeightLine: '— Peso',
+    bcMuscleLine: '— Músculo',
+    bcFatLine:    '— Gordura%',
+    bcPrevWeight: 'Peso Anterior',
+    memoPlaceholder: 'Notas (opcional)...',
+    saveMorning:  '💾 Salvar Manhã',
+    trend7days:   'Condição dos Últimos 7 Dias',
+    prevPostWeight: 'Peso Pós-Exercício Anterior',
+    // W_ITEMS
+    wFatigue:      'Fadiga',
+    wSleep:        'Sono',
+    wSoreness:     'Dor Muscular',
+    wStress:       'Estresse',
+    dirFatigueSleep: 'Ruim←→Bom',
+    dirSoreness:   'Grave←→Nenhuma',
+    dirStress:     'Alto←→Baixo',
+    // RPE
+    rpeSessionDate: 'Data da Sessão',
+    rpeSessionType: 'Tipo de Sessão',
+    rpeAM:          'AM Manhã',
+    rpePM:          'PM Tarde',
+    rpeExtra:       'Sessão Extra',
+    rpeCardTitle:   'RPE da Sessão',
+    rpeSelectPrompt:'— Selecionar',
+    rpeEasy:        'Fácil 1–3',
+    rpeMod:         'Moderado 4–6',
+    rpeHard:        'Difícil 7–8',
+    rpeMax:         'Máximo 9–10',
+    rpeTap:         'Toque para selecionar',
+    rpeRange:       '1 = Muito Leve · 10 = Esforço Máximo',
+    postWeightTitle:'Peso Pós-Exercício',
+    hydroLoss:      'Perda de Peso',
+    hydroRec:       'Recomendação de Hidratação',
+    hydroMorning:   'vs. peso matinal',
+    hydroFormula:   'Perda de peso × 1,5',
+    saveSession:    '💾 Salvar Sessão',
+    rpeHistoryTitle:'Histórico de RPE',
+    noSessionRecord:'Sem registros de sessão',
+    cancelRpe:      'Cancelar',
+    // RPE desc
+    rpeDesc1:  'Quase sem esforço',
+    rpeDesc2:  'Ritmo confortável',
+    rpeDesc3:  'Algum esforço · Pode conversar',
+    rpeDesc4:  'Esforço necessário · Sustentável',
+    rpeDesc5:  'Difícil · Frases curtas apenas',
+    rpeDesc6:  'Muito difícil · Difícil falar',
+    rpeDesc7:  'Perto do limite · Não consegue falar',
+    rpeDesc8:  'Extremamente difícil',
+    rpeDesc9:  'Próximo do esforço máximo',
+    rpeDesc10: 'Máximo absoluto · Insustentável',
+    // GPS
+    gpsWeek:        'Esta Semana',
+    gps2week:       'Últimas 2 Semanas',
+    gpsMonth:       'Este Mês',
+    gpsColDate:     'Data',
+    gpsColCycle:    'Ciclo',
+    gpsColStatus:   'Status',
+    gpsScrollHint:  '↕ Role para mais',
+    gpsSelectSession: 'Selecione uma sessão',
+    gpsTapHint:     'Toque em uma linha acima para ver os detalhes',
+    gpsNoData:      'Sem dados GPS',
+    gpsMatch:       'Jogo',
+    gpsDone:        'Concluído',
+    gpsPlan:        'Planejado',
+    gpsNoSession:   'Sem dados da sessão',
+    gpsTapDone:     'Toque em uma sessão concluída acima',
+    gpsNoDetailMsg: 'Toque em uma sessão para ver os dados',
+    gpsThDate:      'Data',
+    gpsThCycle:     'Ciclo',
+    gpsThTD:        'TD',
+    gpsThHSR:       'HSR',
+    gpsThSprint:    'Sprint',
+    gpsThRpe:       'sRPE',
+    gpsThStatus:    'Status',
+    accel:          'Acel',
+    // 탭바
+    tabHome:    'Início',
+    tabWellness:'Bem-Estar',
+    tabRpe:     'RPE',
+    tabGps:     'GPS',
+    tabRx:      'Programa',
+    tabNotif:   'Alertas',
+    // 알림
+    notifTitle: 'Notificações',
+    // 헤더 배지
+    wellnessDoneBadge: '💚 Bem-Estar ✓',
+    wellnessPending:   '💚 Bem-Estar pendente',
+    rpeDoneBadge:      '💪 RPE ✓',
+    rpePending:        '💪 RPE pendente',
+    // 위험도
+    riskSleep:     'Sono',
+    riskFatigue:   'Fadiga',
+    riskSoreness:  'Dor Musc.',
+    riskWellnessNone: 'Bem-Estar pendente',
+    riskRpeOk:     'normal',
+    riskHsrHigh:   'HSR sobrecarregado',
+    riskHsrOk:     'HSR normal',
+    riskLow:       'Baixo Risco',
+    riskCaution:   'Atenção',
+    riskHigh:      'Alto Risco',
+    recovCaution:  'Atenção na recuperação',
+    recovOk:       'Recuperação boa',
+    // GPS 홈카드
+    gpsNoDataHome: 'Sem dados GPS',
+    rxNoData:      'Sem programa',
+    rxSeeTab:      'Ver aba Programa',
+    // 처방
+    rxNotDone:      'Não concluído',
+    rxConfirmBtn:   'Confirmar Programa de Hoje',
+    rxConfirmed:    '✅ Programa confirmado',
+    rxGymTypeLabel: 'Selecionar tipo de Academia',
+    rxAerTypeLabel: 'Selecionar tipo de Cardio',
+    rxAutoLabel:    'Recomendação automática · Sem programa do técnico',
+    rxExerciseCount:'exercícios',
+    rxRecommended:  'Recomendado',
+    rxStrengthLabel:'Força',
+    rxAerLabel:     'Cardio',
+    rxBlockDefault: 'Bloco',
+    rxCoachLabel:   'Programa do Técnico',
+    rxAerLabel2:    'Programa Cardio',
+    rxCoachPoint:   'Pontos de Treinamento',
+    // Pull-to-refresh
+    pullRefresh:    'Puxe para atualizar',
+    pullRelease:    'Solte para atualizar',
+    pullRefreshing: 'Atualizando...',
+    // 저장/오류
+    saveFailMsg:    'Falha ao salvar: ',
+    saveOkWellness: '✅ Salvo! Pontuação de hoje: ',
+    rpeRequired:    'Por favor, selecione o RPE.',
+    saveOkRpe:      '✅ Salvo! RPE ',
+    deleteConfirmMsg: 'Excluir este registro de sessão?\nVocê pode inserir novamente depois.',
+    deleteOkMsg:    '✅ Registro excluído. Por favor, insira novamente.',
+    deleteFailMsg:  'Falha ao excluir: ',
+    chatEmpty:      'Sem mensagens.',
+    noWeekData:     'Sem dados dos últimos 7 dias',
+    dataLoading:    'Carregando dados...',
+    // 날짜
+    savedAt:        'Salvo',
+    currentTime:    'Atual',
+    notEntered2:    'Não inserido',
+    // 홈
+    homeEnterWellness: '💚 Inserir Condição de Hoje',
+    // 채팅
+    chatTitle:       '💬 Chat com Técnico',
+    chatPlaceholder: 'Digite uma mensagem...',
+    // 요일
+    scheduleDayNames: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
   }
 };
 
 let currentLang = localStorage.getItem('ip_lang') || 'ko';
 
+function T(key) {
+  return (LANG_STRINGS[currentLang] || LANG_STRINGS.ko)[key] || LANG_STRINGS.ko[key] || key;
+}
+
 function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('ip_lang', lang);
-  const s = LANG_STRINGS[lang];
-  document.getElementById('login-sub').textContent        = s.sub;
-  document.getElementById('login-name').placeholder       = s.namePh;
-  document.getElementById('login-pin').placeholder        = s.pinPh;
-  document.getElementById('login-btn-text').textContent   = s.loginBtn;
-  document.getElementById('login-err').textContent        = '';
+  const s = LANG_STRINGS[lang] || LANG_STRINGS.ko;
+  // 로그인 화면
+  const loginSub = document.getElementById('login-sub');
+  if (loginSub) loginSub.textContent = s.sub;
+  const loginName = document.getElementById('login-name');
+  if (loginName) loginName.placeholder = s.namePh;
+  const loginPin = document.getElementById('login-pin');
+  if (loginPin) loginPin.placeholder = s.pinPh;
+  const loginBtnText = document.getElementById('login-btn-text');
+  if (loginBtnText) loginBtnText.textContent = s.loginBtn;
+  const loginErr = document.getElementById('login-err');
+  if (loginErr) loginErr.textContent = '';
   ['ko','en','pt'].forEach(l => {
-    document.getElementById('langbtn-' + l).classList.toggle('active', l === lang);
+    const btn = document.getElementById('langbtn-' + l);
+    if (btn) btn.classList.toggle('active', l === lang);
   });
+  // data-i18n 요소 일괄 업데이트
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = T(key);
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = val;
+    } else {
+      el.textContent = val;
+    }
+  });
+  // data-i18n-placeholder 요소 처리
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    el.placeholder = T(key);
+  });
+  // Push 배너
+  const pb = document.getElementById('push-title');
+  if (pb) pb.textContent = T('pushTitle');
+  const ps = document.getElementById('push-sub');
+  if (ps) ps.textContent = T('pushSub');
+  const pa = document.getElementById('push-allow-btn');
+  if (pa) pa.textContent = T('pushAllow');
+  // 채팅
+  const ci = document.getElementById('chat-input');
+  if (ci) ci.placeholder = T('chatPlaceholder');
+  const ch = document.getElementById('chat-header-title');
+  if (ch) ch.textContent = T('chatTitle');
+  // 웰니스 메모
+  const wn = document.getElementById('wellness-note');
+  if (wn) wn.placeholder = T('memoPlaceholder');
+  // RPE disp (선택 전 상태)
+  const rpeDisp = document.getElementById('rpe-disp');
+  if (rpeDisp && !selectedRpe) rpeDisp.textContent = T('rpeSelectPrompt');
+  // Pull-to-refresh 초기 텍스트
+  const ptrText = document.getElementById('ptr-text');
+  if (ptrText) ptrText.textContent = T('pullRefresh');
+  // 로그인 후에만 탭 리로드
+  if (currentPlayer) { buildWellnessSegs(); buildRpeBar(); reloadCurrentTab(); }
 }
 
 /* ════════════════════════════════════════
@@ -1447,11 +2053,11 @@ async function doLogin() {
   const err  = document.getElementById('login-err');
   const btn  = document.querySelector('.login-btn');
 
-  const T = LANG_STRINGS[currentLang] || LANG_STRINGS.ko;
-  if (!supa) { err.textContent = T.errInit; return; }
-  if (!name) { err.textContent = T.errName; return; }
+  const LS = LANG_STRINGS[currentLang] || LANG_STRINGS.ko;
+  if (!supa) { err.textContent = LS.errInit; return; }
+  if (!name) { err.textContent = LS.errName; return; }
 
-  btn.disabled = true; btn.textContent = T.loggingIn;
+  btn.disabled = true; btn.textContent = LS.loggingIn;
   err.textContent = '';
 
   try {
@@ -1460,8 +2066,8 @@ async function doLogin() {
       .select('*').ilike('name', name);
 
     if (error || !data?.length) {
-      err.textContent = T.errNotFound;
-      btn.disabled = false; btn.textContent = T.loginBtn;
+      err.textContent = LS.errNotFound;
+      btn.disabled = false; btn.textContent = LS.loginBtn;
       return;
     }
 
@@ -1471,16 +2077,16 @@ async function doLogin() {
     // PIN 확인 — DB에 PIN 없으면 기본값 '0000'
     const expectedPin = player.pin || '0000';
     if (pin !== expectedPin) {
-      err.textContent = T.errPin;
-      btn.disabled = false; btn.textContent = T.loginBtn;
+      err.textContent = LS.errPin;
+      btn.disabled = false; btn.textContent = LS.loginBtn;
       return;
     }
 
     localStorage.setItem('ip_player', JSON.stringify({ id: player.id }));
     await loginSuccess(player);
   } catch (e) {
-    err.textContent = T.errGeneral + e.message;
-    btn.disabled = false; btn.textContent = T.loginBtn;
+    err.textContent = LS.errGeneral + e.message;
+    btn.disabled = false; btn.textContent = LS.loginBtn;
   }
 }
 
@@ -1541,7 +2147,7 @@ function _urlBase64ToUint8Array(b64) {
 
 async function userEnablePush() {
   const btn = document.querySelector('#push-banner button');
-  if (btn) { btn.textContent = '설정 중...'; btn.disabled = true; }
+  if (btn) { btn.textContent = T('pushSetup'); btn.disabled = true; }
   await enablePushNotifications();
   checkPushBanner();
 }
@@ -1621,12 +2227,12 @@ function updateHeaderBadges(wellness, sess, mdStage) {
   const rpeDone      = !!sess;
 
   const wellBadge = wellnessDone
-    ? `<span class="badge badge-green" style="font-size:9px;">💚 웰니스 ✓</span>`
-    : `<span class="badge badge-amber" style="font-size:9px;">💚 웰니스 미입력</span>`;
+    ? `<span class="badge badge-green" style="font-size:9px;">${T('wellnessDoneBadge')}</span>`
+    : `<span class="badge badge-amber" style="font-size:9px;">${T('wellnessPending')}</span>`;
 
   const rpeBadge = rpeDone
-    ? `<span class="badge badge-green" style="font-size:9px;">💪 RPE ✓</span>`
-    : `<span class="badge badge-amber" style="font-size:9px;">💪 RPE 미입력</span>`;
+    ? `<span class="badge badge-green" style="font-size:9px;">${T('rpeDoneBadge')}</span>`
+    : `<span class="badge badge-amber" style="font-size:9px;">${T('rpePending')}</span>`;
 
   document.getElementById('hdr-badges').innerHTML =
     `<span class="badge badge-md">${md}</span>${wellBadge}${rpeBadge}`;
@@ -1691,10 +2297,10 @@ function reloadCurrentTab() {
     ind.classList.add('pulling');
     if (dy >= THRESHOLD) {
       ind.classList.add('ready');
-      txt.textContent = '놓으면 새로고침';
+      txt.textContent = T('pullRelease');
     } else {
       ind.classList.remove('ready');
-      txt.textContent = '당겨서 새로고침';
+      txt.textContent = T('pullRefresh');
     }
   }, { passive: true });
 
@@ -1706,11 +2312,11 @@ function reloadCurrentTab() {
       ptrActive = true;
       ind.classList.remove('pulling', 'ready');
       ind.classList.add('refreshing');
-      txt.textContent = '새로고침 중...';
+      txt.textContent = T('pullRefreshing');
       reloadCurrentTab();
       setTimeout(() => {
         ind.classList.remove('refreshing');
-        txt.textContent = '당겨서 새로고침';
+        txt.textContent = T('pullRefresh');
         ptrActive = false;
       }, 1200);
     } else {
@@ -1796,35 +2402,35 @@ function renderRiskScore(w, sess, gps) {
   const tags = [];
 
   if (w) {
-    if (w.sleep_quality <= 2) { score += 20; tags.push({ txt: `수면 ${w.sleep_quality}/5`, cls: 'rtag-hi' }); }
-    else if (w.sleep_quality === 3) { score += 5; tags.push({ txt: `수면 ${w.sleep_quality}/5`, cls: 'rtag-md' }); }
-    else { tags.push({ txt: `수면 ${w.sleep_quality}/5`, cls: 'rtag-ok' }); }
+    if (w.sleep_quality <= 2) { score += 20; tags.push({ txt: `${T('riskSleep')} ${w.sleep_quality}/5`, cls: 'rtag-hi' }); }
+    else if (w.sleep_quality === 3) { score += 5; tags.push({ txt: `${T('riskSleep')} ${w.sleep_quality}/5`, cls: 'rtag-md' }); }
+    else { tags.push({ txt: `${T('riskSleep')} ${w.sleep_quality}/5`, cls: 'rtag-ok' }); }
 
-    if (w.fatigue <= 2) { score += 15; tags.push({ txt: `피로 ${w.fatigue}/5`, cls: 'rtag-hi' }); }
-    else if (w.fatigue === 3) { score += 5; tags.push({ txt: `피로 ${w.fatigue}/5`, cls: 'rtag-md' }); }
-    else { tags.push({ txt: `피로 ${w.fatigue}/5`, cls: 'rtag-ok' }); }
+    if (w.fatigue <= 2) { score += 15; tags.push({ txt: `${T('riskFatigue')} ${w.fatigue}/5`, cls: 'rtag-hi' }); }
+    else if (w.fatigue === 3) { score += 5; tags.push({ txt: `${T('riskFatigue')} ${w.fatigue}/5`, cls: 'rtag-md' }); }
+    else { tags.push({ txt: `${T('riskFatigue')} ${w.fatigue}/5`, cls: 'rtag-ok' }); }
 
-    if (w.muscle_soreness <= 2) { score += 10; tags.push({ txt: `근육통 ${w.muscle_soreness}/5`, cls: 'rtag-md' }); }
-    else { tags.push({ txt: `근육통 ${w.muscle_soreness}/5`, cls: 'rtag-ok' }); }
+    if (w.muscle_soreness <= 2) { score += 10; tags.push({ txt: `${T('riskSoreness')} ${w.muscle_soreness}/5`, cls: 'rtag-md' }); }
+    else { tags.push({ txt: `${T('riskSoreness')} ${w.muscle_soreness}/5`, cls: 'rtag-ok' }); }
   } else {
-    tags.push({ txt: '웰니스 미입력', cls: 'rtag-md' });
+    tags.push({ txt: T('riskWellnessNone'), cls: 'rtag-md' });
   }
 
   if (sess?.rpe >= 9) { score += 15; tags.push({ txt: `RPE ${sess.rpe} ↑`, cls: 'rtag-hi' }); }
   else if (sess?.rpe >= 7) { score += 5; tags.push({ txt: `RPE ${sess.rpe}`, cls: 'rtag-md' }); }
-  else if (sess?.rpe) { tags.push({ txt: `RPE ${sess.rpe} 정상`, cls: 'rtag-ok' }); }
+  else if (sess?.rpe) { tags.push({ txt: `RPE ${sess.rpe} ${T('riskRpeOk')}`, cls: 'rtag-ok' }); }
 
   if (gps) {
     const hsr = gps.running_high || 0;
-    if (hsr > MATCH_AVG.hsr * 1.2) { score += 10; tags.push({ txt: 'HSR 과부하', cls: 'rtag-hi' }); }
-    else { tags.push({ txt: 'HSR 적정', cls: 'rtag-ok' }); }
+    if (hsr > MATCH_AVG.hsr * 1.2) { score += 10; tags.push({ txt: T('riskHsrHigh'), cls: 'rtag-hi' }); }
+    else { tags.push({ txt: T('riskHsrOk'), cls: 'rtag-ok' }); }
   }
 
   score = Math.min(score, 100);
   let color, badgeCls, badgeTxt;
-  if (score < 40)      { color = '#3aaa6a'; badgeCls = 'badge-green';  badgeTxt = `저위험 ${score}`; }
-  else if (score < 65) { color = '#d09030'; badgeCls = 'badge-amber';  badgeTxt = `주의 ${score}`;   }
-  else                 { color = '#e04040'; badgeCls = 'badge-red';    badgeTxt = `고위험 ${score}`; }
+  if (score < 40)      { color = '#3aaa6a'; badgeCls = 'badge-green';  badgeTxt = `${T('riskLow')} ${score}`; }
+  else if (score < 65) { color = '#d09030'; badgeCls = 'badge-amber';  badgeTxt = `${T('riskCaution')} ${score}`; }
+  else                 { color = '#e04040'; badgeCls = 'badge-red';    badgeTxt = `${T('riskHigh')} ${score}`; }
 
   document.getElementById('risk-fill').style.width = score + '%';
   document.getElementById('risk-fill').style.background = color;
@@ -1839,7 +2445,7 @@ function renderRiskScore(w, sess, gps) {
 function renderHomeWellness(w, sess) {
   const COLORS = { 1:'#e04040',2:'#d07030',3:'#c0a030',4:'#3aaa6a',5:'#30cc80' };
   const KEYS   = ['fatigue','sleep_quality','muscle_soreness','stress'];
-  const LABELS = ['피로도','수면','근육통','스트레스'];
+  const LABELS = [T('condFatigue'), T('condSleep'), T('condSoreness'), T('condStress')];
   const ID_MAP = ['hc-fatigue','hc-sleep','hc-soreness','hc-stress'];
   const BAR_MAP= ['hcb-fatigue','hcb-sleep','hcb-soreness','hcb-stress'];
 
@@ -1847,7 +2453,7 @@ function renderHomeWellness(w, sess) {
   const emptyDiv = document.getElementById('home-wellness-empty');
 
   if (!w) {
-    badge.textContent = '미입력'; badge.className = 'badge badge-amber';
+    badge.textContent = T('notEntered'); badge.className = 'badge badge-amber';
     KEYS.forEach((k,i) => {
       document.getElementById(ID_MAP[i]).textContent = '—';
       document.getElementById(BAR_MAP[i]).style.width = '0%';
@@ -1856,7 +2462,7 @@ function renderHomeWellness(w, sess) {
     if (emptyDiv) emptyDiv.style.display = 'block';
     return;
   }
-  badge.textContent = '입력 완료'; badge.className = 'badge badge-green';
+  badge.textContent = T('entered'); badge.className = 'badge badge-green';
   if (emptyDiv) emptyDiv.style.display = 'none';
 
   KEYS.forEach((k,i) => {
@@ -1884,13 +2490,13 @@ function renderHomeWellness(w, sess) {
       if (diff > 0.5) {
         diffBadge.textContent = `▼ ${diff} kg`;
         diffBadge.className = 'badge badge-amber';
-        recov.textContent = '회복 주의'; recov.style.color = '#d09030';
+        recov.textContent = T('recovCaution'); recov.style.color = '#d09030';
       } else {
         diffBadge.textContent = `▼ ${diff} kg`;
         diffBadge.className = 'badge badge-green';
-        recov.textContent = '회복 양호'; recov.style.color = '#3aaa6a';
+        recov.textContent = T('recovOk'); recov.style.color = '#3aaa6a';
       }
-      document.getElementById('home-wt-sub').textContent = `운동후 ${sess.post_weight} → 오늘 아침`;
+      document.getElementById('home-wt-sub').textContent = `${sess.post_weight} → ${T('today')}`;
     }
   } else {
     wtRow.style.display = 'none';
@@ -1901,7 +2507,7 @@ function renderHomeGps(gps) {
   const body = document.getElementById('home-gps-body');
 
   if (!gps) {
-    body.innerHTML = '<div class="empty-state"><div class="empty-icon">📡</div>GPS 데이터 없음</div>';
+    body.innerHTML = `<div class="empty-state"><div class="empty-icon">📡</div>${T('gpsNoDataHome')}</div>`;
     return;
   }
 
@@ -1922,7 +2528,7 @@ function renderHomeGps(gps) {
     { l:'Sprint',    v: gps.sprint       > 0 ? Math.round(gps.sprint)+'m'               : '—', c:'#e05050' },
     { l:'Max Speed', v: gps.max_speed    > 0 ? gps.max_speed+' km/h'                   : '—', c:'#3aaa6a' },
     { l:'RHIE',      v: gps.rhie         > 0 ? gps.rhie+'회'                             : '—', c:'#9060d0' },
-    { l:'가속',       v: gps.accel        > 0 ? gps.accel+'회'                            : '—', c:'#d07830' },
+    { l:T('accel'),  v: gps.accel        > 0 ? gps.accel+'회'                            : '—', c:'#d07830' },
   ];
 
   body.innerHTML = `
@@ -1944,7 +2550,7 @@ function renderHomeRx(progs, mdStage) {
   const body  = document.getElementById('home-rx-body');
   badge.textContent = mdStage || getMdStage();
   if (!progs?.length) {
-    body.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>처방 없음</div>';
+    body.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>${T('rxNoData')}</div>`;
     return;
   }
   const p = progs[0];
@@ -1954,7 +2560,7 @@ function renderHomeRx(progs, mdStage) {
       <div class="rx-dot"></div>
       <div class="rx-text"><b>${b.label}</b> — ${b.name}</div>
     </div>`
-  ).join('') + (progs.length > 1 ? `<div class="rx-preview-item"><div class="rx-dot" style="background:#303450;"></div><div class="rx-text" style="color:var(--text3);">처방 ${progs.length}개 · 처방 탭에서 확인</div></div>` : '');
+  ).join('') + (progs.length > 1 ? `<div class="rx-preview-item"><div class="rx-dot" style="background:#303450;"></div><div class="rx-text" style="color:var(--text3);">${T('rxSeeTab')}</div></div>` : '');
 }
 
 /* ════════════════════════════════════════
@@ -1972,8 +2578,6 @@ const MD_CLR = {
   'MD-5':'#5a9de0','MD-4':'#5a9de0','MD-3':'#e04040',
   'MD-2':'#f97316','MD-1':'#4ade80','MD+1':'#14b8a6','MATCH':'#ef4444',
 };
-const DAY_KO = ['일','월','화','수','목','금','토'];
-
 function renderHomeSchedule(events, todayStr) {
   const el = document.getElementById('home-schedule-body');
 
@@ -2010,11 +2614,12 @@ function renderHomeSchedule(events, todayStr) {
     // 오늘 컬럼만 표시 + 나머지 없음 메시지
   }
 
+  const SCHED_DAYS = T('scheduleDayNames');
   const colHtml = cols.map(({ ds, dt, d }) => {
-    const dayKo  = DAY_KO[dt.getDay()];
+    const dayKo  = SCHED_DAYS[dt.getDay()];
     const mmdd   = `${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')}`;
     const isToday = ds === todayStr;
-    const dLabel  = isToday ? '오늘' : (d !== null ? `D+${d}` : '');
+    const dLabel  = isToday ? T('today') : (d !== null ? `D+${d}` : '');
     const evs     = grouped[ds] || [];
 
     const evHtml = evs.length
@@ -2051,7 +2656,7 @@ function renderHomeSchedule(events, todayStr) {
 ════════════════════════════════════════ */
 function buildWellnessSegs() {
   const container = document.getElementById('wellness-segs');
-  container.innerHTML = W_ITEMS.map(item => `
+  container.innerHTML = getWItems().map(item => `
     <div class="seg-item">
       <div class="seg-lbl"><span>${item.icon}</span>${item.label}</div>
       <div class="seg-bar" id="seg-bar-${item.key}">
@@ -2095,7 +2700,7 @@ async function loadWellness() {
   // 날짜 배너 렌더
   renderWellnessBanner(existing?.updated_at || existing?.created_at || null);
 
-  W_ITEMS.forEach(item => {
+  getWItems().forEach(item => {
     wellnessData[item.key] = existing ? (existing[item.key] || 3) : 3;
     selectSeg(item.key, wellnessData[item.key]);
   });
@@ -2107,7 +2712,7 @@ async function loadWellness() {
   }
 
   const badge = document.getElementById('wellness-badge');
-  badge.textContent = existing ? '입력 완료' : '미입력';
+  badge.textContent = existing ? T('entered') : T('notEntered');
   badge.className   = existing ? 'badge badge-green' : 'badge badge-amber';
 
   // 전날 운동후 체중 표시
@@ -2117,7 +2722,7 @@ async function loadWellness() {
     .gte('record_date', yesterday.toISOString().split('T')[0])
     .order('record_date', { ascending: false }).limit(1).single();
   if (prevSess?.post_weight) {
-    document.getElementById('wt-prev-info').textContent = `전날 운동후 체중: ${prevSess.post_weight} kg`;
+    document.getElementById('wt-prev-info').textContent = `${T('prevPostWeight')}: ${prevSess.post_weight} kg`;
   }
 
   // 체성분 최근 데이터
@@ -2203,7 +2808,7 @@ function renderBcTrendSvg(records) {
     ${ymu.map((y,i) => y!==null ? `<circle cx="${i*step}" cy="${y}" r="2.5" fill="#3aaa6a"/>` : '').join('')}
     ${yfat.map((y,i)=> y!==null ? `<circle cx="${i*step}" cy="${y}" r="2.5" fill="#d09030"/>` : '').join('')}
     <text x="4"   y="70" font-size="8" fill="#303450">${formatDate(records[0]?.record_date)}</text>
-    <text x="240" y="70" font-size="8" fill="#5a8de0">오늘</text>
+    <text x="240" y="70" font-size="8" fill="#5a8de0">${T('today')}</text>
   `;
 }
 
@@ -2214,7 +2819,7 @@ function toggleBC() {
   const open  = body.style.display !== 'none';
   body.style.display  = open ? 'none' : 'block';
   arrow.textContent   = open ? '▼' : '▲';
-  badge.textContent   = open ? '선택사항' : '입력중';
+  badge.textContent   = open ? T('optional') : T('entering');
   badge.className     = open ? 'bc-badge' : 'bc-badge on';
 
   if (!open) {
@@ -2226,7 +2831,7 @@ function toggleBC() {
 async function saveWellness() {
   if (!currentPlayer) return;
   const btn = document.getElementById('wellness-save-btn');
-  btn.disabled = true; btn.textContent = '저장 중...';
+  btn.disabled = true; btn.textContent = T('saving');
 
   const morningWt = parseFloat(document.getElementById('morning-weight').value) || null;
   morningWeightToday = morningWt;
@@ -2269,13 +2874,13 @@ async function saveWellness() {
     }
   }
 
-  btn.disabled = false; btn.textContent = '💾 아침 저장';
+  btn.disabled = false; btn.textContent = T('saveMorning');
   if (error) {
-    showMsg('wellness-msg', 'err', '저장 실패: ' + error.message);
+    showMsg('wellness-msg', 'err', T('saveFailMsg') + error.message);
   } else {
     const total = Object.values(wellnessData).reduce((s,v) => s+v, 0);
-    showMsg('wellness-msg', 'ok', `✅ 저장 완료! 오늘 컨디션: ${total}/20`);
-    document.getElementById('wellness-badge').textContent = '입력 완료';
+    showMsg('wellness-msg', 'ok', T('saveOkWellness') + total + '/20');
+    document.getElementById('wellness-badge').textContent = T('entered');
     document.getElementById('wellness-badge').className   = 'badge badge-green';
     renderWellnessBanner(new Date().toISOString());
     loadWellnessTrend();
@@ -2291,7 +2896,7 @@ async function loadWellnessTrend() {
     .order('record_date', { ascending: false });
 
   if (!data?.length) {
-    container.innerHTML = '<div class="empty-state">최근 7일 데이터 없음</div>'; return;
+    container.innerHTML = `<div class="empty-state">${T('noWeekData')}</div>`; return;
   }
 
   const COLORS = { 1:'#e04040',2:'#d07030',3:'#c0a030',4:'#3aaa6a',5:'#30cc80' };
@@ -2301,7 +2906,7 @@ async function loadWellnessTrend() {
     const color = pct >= .75 ? '#3aaa6a' : pct >= .55 ? '#d09030' : '#e04040';
     const isToday = r.record_date === today();
     return `<div class="trend-row">
-      <div class="trend-date" style="${isToday?'color:var(--blue);':''}">${isToday?'오늘':formatDate(r.record_date)}</div>
+      <div class="trend-date" style="${isToday?'color:var(--blue);':''}">${isToday?T('today'):formatDate(r.record_date)}</div>
       <div class="trend-bar"><div class="trend-fill" style="width:${pct*100}%;background:${color};"></div></div>
       <div class="trend-val" style="color:${color};">${total}</div>
     </div>`;
@@ -2338,7 +2943,7 @@ function buildRpeBar() {
 
 function selectRpe(v) {
   selectedRpe = v;
-  const d = RPE_DATA[v];
+  const d = getRpeData()[v];
 
   // 바 업데이트
   Array.from(document.getElementById('rpe-bar').children).forEach((seg, i) => {
@@ -2382,14 +2987,18 @@ function calcHydro() {
   document.getElementById('h-loss').innerHTML     = diff.toFixed(1) + ' <span class="hydro-unit">kg</span>';
   document.getElementById('h-loss-sub').textContent = `${morning} → ${post} kg`;
   document.getElementById('h-water').innerHTML    = water + ' <span class="hydro-unit">ml</span>';
-  document.getElementById('h-water-sub').textContent = `지금 ${now} + 이후 ${water - now}`;
+  document.getElementById('h-water-sub').textContent = currentLang === 'ko'
+    ? `지금 ${now} + 이후 ${water - now}`
+    : currentLang === 'pt'
+    ? `Agora ${now} + Depois ${water - now}`
+    : `Now ${now} + Later ${water - now}`;
 }
 
 async function saveRpe() {
   if (!currentPlayer) return;
-  if (!selectedRpe) { showMsg('rpe-msg', 'err', 'RPE를 선택해주세요.'); return; }
+  if (!selectedRpe) { showMsg('rpe-msg', 'err', T('rpeRequired')); return; }
   const btn = document.getElementById('rpe-save-btn');
-  btn.disabled = true; btn.textContent = '저장 중...';
+  btn.disabled = true; btn.textContent = T('saving');
 
   const postWt = parseFloat(document.getElementById('post-weight').value) || null;
   const t = today();
@@ -2401,32 +3010,32 @@ async function saveRpe() {
   };
 
   const { error } = await supa.from('session_records').insert(payload);
-  btn.disabled = false; btn.textContent = '💾 세션 저장';
+  btn.disabled = false; btn.textContent = T('saveSession');
   if (error) {
-    showMsg('rpe-msg', 'err', '저장 실패: ' + error.message);
+    showMsg('rpe-msg', 'err', T('saveFailMsg') + error.message);
   } else {
-    showMsg('rpe-msg', 'ok', `✅ 저장 완료! RPE ${selectedRpe} · ${selectedSessionType}`);
+    showMsg('rpe-msg', 'ok', T('saveOkRpe') + selectedRpe + ' · ' + selectedSessionType);
     loadRpeHistory();
     renderRpeBanner({ rpe: selectedRpe, session_type: selectedSessionType, created_at: new Date().toISOString() });
   }
 }
 
 async function deleteRpe(id) {
-  if (!confirm('이 세션 기록을 삭제하시겠습니까?\n삭제 후 다시 입력할 수 있습니다.')) return;
+  if (!confirm(T('deleteConfirmMsg'))) return;
   const { error } = await supa.from('session_records').delete().eq('id', id);
   if (error) {
-    showMsg('rpe-msg', 'err', '삭제 실패: ' + error.message);
+    showMsg('rpe-msg', 'err', T('deleteFailMsg') + error.message);
   } else {
-    showMsg('rpe-msg', 'ok', '✅ 세션 기록이 삭제되었습니다. 다시 입력해주세요.');
+    showMsg('rpe-msg', 'ok', T('deleteOkMsg'));
     selectedRpe = null;
     // RPE 선택 초기화
     document.querySelectorAll('.rpe-seg').forEach(s => s.classList.remove('sel'));
-    document.getElementById('rpe-disp').textContent = '— 선택하세요';
+    document.getElementById('rpe-disp').textContent = T('rpeSelectPrompt');
     document.getElementById('rpe-big-num').textContent = '—';
     document.getElementById('rpe-big-num').style.color = 'var(--text3)';
-    document.getElementById('rpe-label').textContent = '탭하여 선택';
+    document.getElementById('rpe-label').textContent = T('rpeTap');
     document.getElementById('rpe-label').style.color = 'var(--text3)';
-    document.getElementById('rpe-sub').textContent = '1 = 매우 쉬움 · 10 = 절대 최대';
+    document.getElementById('rpe-sub').textContent = T('rpeRange');
     document.getElementById('rpe-sub').style.color = 'var(--text3)';
     document.getElementById('post-weight').value = '';
     document.getElementById('hydro-grid').style.display = 'none';
@@ -2451,17 +3060,17 @@ async function loadRpeHistory() {
   renderRpeBanner(todaySess || null);
 
   if (!data?.length) {
-    el.innerHTML = '<div class="empty-state">세션 기록 없음</div>'; return;
+    el.innerHTML = `<div class="empty-state">${T('noSessionRecord')}</div>`; return;
   }
   el.innerHTML = data.map(r => {
-    const rpeData  = r.rpe ? RPE_DATA[r.rpe] : null;
+    const rpeData  = r.rpe ? getRpeData()[r.rpe] : null;
     const isToday  = r.record_date === today();
     const delBtn   = isToday
-      ? `<button class="rpe-del-btn" onclick="deleteRpe('${r.id}')">취소</button>`
+      ? `<button class="rpe-del-btn" onclick="deleteRpe('${r.id}')">${T('cancelRpe')}</button>`
       : '';
     return `<div class="rpe-hist-row">
       <div class="rpe-hist-date">${formatDate(r.record_date)}</div>
-      <div class="rpe-hist-type">${r.session_type || ''} · ${isToday ? '오늘' : '훈련'}</div>
+      <div class="rpe-hist-type">${r.session_type || ''} · ${isToday ? T('today') : T('gpsDone')}</div>
       <div class="rpe-hist-score" style="color:${rpeData?.c||'var(--text3)'};">${r.rpe || '—'}</div>
       <div class="rpe-hist-wt">${r.post_weight ? r.post_weight+' kg' : '—'}</div>
       ${delBtn}
@@ -2519,7 +3128,7 @@ function renderGpsTable() {
 
   const tbody = document.getElementById('gps-table-body');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3);">데이터 없음</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3);">${T('noData')}</td></tr>`;
     document.getElementById('gps-scroll-hint').style.display = 'none';
     return;
   }
@@ -2537,7 +3146,7 @@ function renderGpsTable() {
 
     const cycleColor = isMatch ? 'var(--purple)' : isToday ? '#5a6080' : 'var(--text3)';
     const st    = isMatch ? 'st-match' : isToday ? 'st-today' : r.td > 0 ? 'st-done' : 'st-plan';
-    const stTxt = isMatch ? '경기' : isToday ? '오늘' : r.td > 0 ? '완료' : '예정';
+    const stTxt = isMatch ? T('gpsMatch') : isToday ? T('today') : r.td > 0 ? T('gpsDone') : T('gpsPlan');
 
     // 0 또는 null 값은 — 표시
     const tdVal  = r.td           > 0 ? Math.round(r.td/1000*10)/10+'k' : '—';
@@ -2579,10 +3188,10 @@ function renderGpsDetail(r) {
   const body  = document.getElementById('gps-detail-body');
 
   if (!r || !r.td) {
-    title.textContent = '세션 데이터 없음';
+    title.textContent = T('gpsNoSession');
     title.style.color = 'var(--text3)';
-    meta.textContent  = '위 표에서 완료된 세션을 탭하세요';
-    body.innerHTML    = '<div style="text-align:center;padding:16px 0;font-size:11px;color:#252840;">세션을 탭하면 데이터가 표시됩니다</div>';
+    meta.textContent  = T('gpsTapDone');
+    body.innerHTML    = `<div style="text-align:center;padding:16px 0;font-size:11px;color:#252840;">${T('gpsNoDetailMsg')}</div>`;
     return;
   }
 
@@ -2609,7 +3218,7 @@ function renderGpsDetail(r) {
     { l:'Sprint',    n: r.sprint       > 0 ? Math.round(r.sprint)+'m'                : '—', c:'#e05050' },
     { l:'Max Speed', n: r.max_speed    > 0 ? r.max_speed+' km/h'                    : '—', c:'#3aaa6a' },
     { l:'RHIE',      n: r.rhie         > 0 ? r.rhie+'회'                              : '—', c:'#9060d0' },
-    { l:'가속',       n: r.accel        > 0 ? r.accel+'회'                             : '—', c:'#d07830' },
+    { l:T('accel'),  n: r.accel        > 0 ? r.accel+'회'                             : '—', c:'#d07830' },
   ];
 
   body.innerHTML = `<div class="stat-grid-gps">
@@ -2627,7 +3236,7 @@ function renderGpsDetail(r) {
 async function loadRx() {
   if (!currentPlayer) return;
   const el = document.getElementById('rx-content');
-  el.innerHTML = '<div class="loading"><div class="spinner"></div>불러오는 중...</div>';
+  el.innerHTML = `<div class="loading"><div class="spinner"></div>${T('loading')}</div>`;
 
   const [{ data: progs }, { data: aerRxList }] = await Promise.all([
     supa.from('custom_programs')
@@ -2663,7 +3272,7 @@ async function loadRx() {
           <circle cx="6" cy="4" r="2.2" stroke="#a78bfa" stroke-width="1.2"/>
           <path d="M2 10c0-2 2-3 4-3s4 1 4 3" stroke="#a78bfa" stroke-width="1.2" stroke-linecap="round"/>
         </svg>
-        🏃 유산소 처방 · ${dtStr}
+        🏃 ${T('rxAerLabel2')} · ${dtStr}
       </div>
       <div style="padding:14px">
         <div style="font-size:14px;font-weight:700;color:#a78bfa;margin-bottom:12px">${titleLabel}</div>
@@ -2693,7 +3302,7 @@ async function loadRx() {
           <circle cx="6" cy="6" r="5" stroke="#b060d0" stroke-width="1.2"/>
           <path d="M4 6l1.5 1.5L8 4" stroke="#b060d0" stroke-width="1.2" stroke-linecap="round"/>
         </svg>
-        코치 처방 · ${progs[0].created_at?.slice(0,10) || ''}
+        ${T('rxCoachLabel')} · ${progs[0].created_at?.slice(0,10) || ''}
       </div>
       ${renderCoachRxBlocks(progs[0])}
     </div>`;
@@ -2719,13 +3328,13 @@ function renderCoachRxBlocks(prog) {
 
   const sections = [
     { key:'pre', icon:'🔥', name:'Pre-activation', color:'var(--amber)', blocks: preBlocks, state:'s-yet' },
-    { key:'str', icon:'💪', name:`근력 · ${prog.variant||'GYM'}`, color:'var(--blue)',   blocks: finalStr,  state:'s-yet' },
-    { key:'aer', icon:'🏃', name:`유산소 · ${prog.name||''}`,    color:'var(--amber)', blocks: aerBlocks, state:'s-yet' },
+    { key:'str', icon:'💪', name:`${T('rxStrengthLabel')} · ${prog.variant||'GYM'}`, color:'var(--blue)',   blocks: finalStr,  state:'s-yet' },
+    { key:'aer', icon:'🏃', name:`${T('rxAerLabel')} · ${prog.name||''}`,           color:'var(--amber)', blocks: aerBlocks, state:'s-yet' },
   ].filter(s => s.blocks.length > 0);
 
   if (!sections.length) {
     return `<div class="rx-block">${(prog.blocks||[]).map(b => `
-      <div class="rx-block-title" style="color:var(--blue);">${b.l||'블록'}</div>
+      <div class="rx-block-title" style="color:var(--blue);">${b.l||T('rxBlockDefault')}</div>
       ${(b.ex||[]).map((ex,i) => `
         <div class="rx-ex">
           <div class="rx-ex-num">${i+1}</div>
@@ -2742,9 +3351,9 @@ function renderCoachRxBlocks(prog) {
       <div class="sec-icon" style="background:${s.color}18;">${s.icon}</div>
       <div class="sec-info">
         <div class="sec-name" style="color:${s.color};">${s.name}</div>
-        <div class="sec-meta">${s.blocks.reduce((cnt,b)=>cnt+(b.ex?.length||0),0)}가지</div>
+        <div class="sec-meta">${s.blocks.reduce((cnt,b)=>cnt+(b.ex?.length||0),0)} ${T('rxExerciseCount')}</div>
       </div>
-      <div class="sec-state ${s.state}" id="rxst-${s.key}">미완료</div>
+      <div class="sec-state ${s.state}" id="rxst-${s.key}">${T('rxNotDone')}</div>
       <div class="sec-arrow" id="rxarr-${s.key}">▼</div>
     </div>
     <div id="rxbody-${s.key}" style="display:none;">
@@ -2768,11 +3377,11 @@ function renderAutoRx() {
   return `
     <div style="background:#0a1620;border:0.5px solid #142838;border-radius:12px;padding:9px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px;font-size:11px;color:#4090a0;">
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="4.5" r="2.5" stroke="#4090a0" stroke-width="1.2"/><path d="M2 10c0-2 1.8-3 4-3s4 1 4 3" stroke="#4090a0" stroke-width="1.2" stroke-linecap="round"/></svg>
-      ${md} 기반 자동 추천 · 코치 처방 없음
+      ${md} ${T('rxAutoLabel')}
     </div>
     <div class="card">
       <div style="padding:10px 14px 6px;">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">GYM 타입 선택</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">${T('rxGymTypeLabel')}</div>
         <div class="pick-grid" id="gym-pick">
           <div class="pick-item sel" onclick="pickType(this,'gym','하체 B')">
             <div class="pick-chk on">✓</div>
@@ -2791,7 +3400,7 @@ function renderAutoRx() {
             <div><div class="pick-name">상체 A</div><div class="pick-sub">당기기 중심</div></div>
           </div>
         </div>
-        <div style="font-size:11px;color:var(--text3);margin:10px 0 8px;">유산소 타입 선택</div>
+        <div style="font-size:11px;color:var(--text3);margin:10px 0 8px;">${T('rxAerTypeLabel')}</div>
         <div class="pick-grid" id="aer-pick">
           <div class="pick-item sel" onclick="pickType(this,'aer','MAS 인터벌')">
             <div class="pick-chk on">✓</div>
@@ -2811,7 +3420,7 @@ function renderAutoRx() {
           </div>
         </div>
       </div>
-      <div class="confirm-btn" onclick="confirmAutoRx(this)">오늘 처방 확정하기</div>
+      <div class="confirm-btn" onclick="confirmAutoRx(this)">${T('rxConfirmBtn')}</div>
     </div>`;
 }
 
@@ -2832,7 +3441,7 @@ function pickType(el, group, name) {
 }
 
 function confirmAutoRx(btn) {
-  btn.textContent = '✅ 처방 확정 완료';
+  btn.textContent = T('rxConfirmed');
   btn.style.background = '#0e2818';
   btn.style.color      = 'var(--green)';
   btn.style.borderColor= '#1a5030';
@@ -2875,7 +3484,7 @@ function closeChat() {
 async function loadChat() {
   if (!currentPlayer) return;
   const wrap = document.getElementById('chat-messages');
-  wrap.innerHTML = '<div class="loading"><div class="spinner"></div>불러오는 중...</div>';
+  wrap.innerHTML = `<div class="loading"><div class="spinner"></div>${T('loading')}</div>`;
 
   const { data: msgs, error } = await supa.from('messages')
     .select('*')
@@ -2884,7 +3493,7 @@ async function loadChat() {
     .limit(200);
 
   if (error || !msgs?.length) {
-    wrap.innerHTML = '<div style="text-align:center;padding:32px 16px;font-size:13px;color:var(--text3);">메시지가 없습니다.</div>';
+    wrap.innerHTML = `<div style="text-align:center;padding:32px 16px;font-size:13px;color:var(--text3);">${T('chatEmpty')}</div>`;
     return;
   }
 
