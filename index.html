@@ -1046,6 +1046,31 @@ button { cursor: pointer; border: none; background: transparent; }
     </div>
   </div>
 
+  <!-- 운동 시간 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">운동 시간</span>
+      <span id="duration-disp" style="font-size:13px;font-weight:500;color:var(--blue);">— 선택</span>
+    </div>
+    <div style="padding:0 14px 11px;">
+      <div style="display:flex;gap:5px;flex-wrap:wrap;" id="duration-btns">
+        <button class="filter-btn" onclick="setDuration(30,this)">30분</button>
+        <button class="filter-btn" onclick="setDuration(45,this)">45분</button>
+        <button class="filter-btn" onclick="setDuration(60,this)">60분</button>
+        <button class="filter-btn" onclick="setDuration(75,this)">75분</button>
+        <button class="filter-btn" onclick="setDuration(90,this)">90분</button>
+        <button class="filter-btn" onclick="setDuration(105,this)">105분</button>
+        <button class="filter-btn" onclick="setDuration(120,this)">120분</button>
+      </div>
+      <div id="gps-duration-box" style="display:none;margin-top:9px;padding:8px 10px;background:#0e1a2e;border-radius:8px;border:0.5px solid #2a4060;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2);">
+          <input type="checkbox" id="use-gps-duration" onchange="useGpsDuration(this.checked)" style="width:16px;height:16px;accent-color:var(--blue);">
+          <span id="gps-duration-label">GPS 기록 사용</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
   <!-- RPE 입력 -->
   <div class="card">
     <div class="card-head">
@@ -1294,6 +1319,8 @@ let existingWellnessId = null;
 let existingFitnessId  = null;
 let selectedRpe        = null;
 let selectedSessionType= 'AM';
+let selectedDuration   = null;
+let gpsDurationToday   = null;
 let gpsFilter          = 'week';
 let gpsRows            = [];
 let gpsSelIdx          = -1;
@@ -2255,7 +2282,7 @@ function switchTab(tab) {
   });
   if (tab === 'home')     loadHome();
   if (tab === 'wellness') loadWellness();
-  if (tab === 'rpe')      loadRpeHistory();
+  if (tab === 'rpe')      { loadRpeHistory(); loadGpsDurationForToday(); }
   if (tab === 'gps')      loadGps();
   if (tab === 'rx')     { loadRx(); const b = document.getElementById('rx-new-badge'); if(b) b.classList.remove('show'); }
   if (tab === 'notif') {
@@ -2978,6 +3005,55 @@ function setSessionType(type, el) {
   el.classList.add('active');
 }
 
+function setDuration(min, el) {
+  selectedDuration = min;
+  document.querySelectorAll('#duration-btns .filter-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const disp = document.getElementById('duration-disp');
+  disp.textContent = min + '분';
+  disp.style.color = 'var(--blue)';
+}
+
+function useGpsDuration(checked) {
+  const btns = document.querySelectorAll('#duration-btns .filter-btn');
+  const disp = document.getElementById('duration-disp');
+  if (checked && gpsDurationToday) {
+    btns.forEach(b => { b.classList.remove('active'); b.disabled = true; b.style.opacity = '0.4'; });
+    selectedDuration = gpsDurationToday;
+    disp.textContent = gpsDurationToday + '분 (GPS)';
+    disp.style.color = 'var(--blue)';
+  } else {
+    btns.forEach(b => { b.disabled = false; b.style.opacity = ''; });
+    selectedDuration = null;
+    disp.textContent = '— 선택';
+    disp.style.color = 'var(--blue)';
+  }
+}
+
+async function loadGpsDurationForToday() {
+  if (!currentPlayer) return;
+  const t = today();
+  const { data } = await supa.from('gps_records')
+    .select('duration')
+    .eq('player_id', currentPlayer.id)
+    .eq('session_date', t)
+    .not('duration', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  const box = document.getElementById('gps-duration-box');
+  const lbl = document.getElementById('gps-duration-label');
+  if (data?.[0]?.duration) {
+    gpsDurationToday = data[0].duration;
+    lbl.textContent = 'GPS 기록 사용 (' + gpsDurationToday + '분)';
+    box.style.display = 'block';
+  } else {
+    gpsDurationToday = null;
+    box.style.display = 'none';
+    const cb = document.getElementById('use-gps-duration');
+    if (cb) cb.checked = false;
+  }
+}
+
 function calcHydro() {
   const post = parseFloat(document.getElementById('post-weight').value);
   if (isNaN(post)) { document.getElementById('hydro-grid').style.display = 'none'; return; }
@@ -3006,10 +3082,12 @@ async function saveRpe() {
   const postWt = parseFloat(document.getElementById('post-weight').value) || null;
   const t = today();
   const payload = {
-    player_id:   currentPlayer.id,
-    record_date: t,
-    rpe:         selectedRpe,
-    post_weight: postWt,
+    player_id:    currentPlayer.id,
+    record_date:  t,
+    rpe:          selectedRpe,
+    session_type: selectedSessionType,
+    duration:     selectedDuration,
+    post_weight:  postWt,
   };
 
   const { error } = await supa.from('session_records').insert(payload);
@@ -3042,6 +3120,12 @@ async function deleteRpe(id) {
     document.getElementById('rpe-sub').style.color = 'var(--text3)';
     document.getElementById('post-weight').value = '';
     document.getElementById('hydro-grid').style.display = 'none';
+    // 운동 시간 초기화
+    selectedDuration = null;
+    document.getElementById('duration-disp').textContent = '— 선택';
+    document.querySelectorAll('#duration-btns .filter-btn').forEach(b => { b.classList.remove('active'); b.disabled = false; b.style.opacity = ''; });
+    const cb = document.getElementById('use-gps-duration');
+    if (cb) cb.checked = false;
     loadRpeHistory();
   }
 }
@@ -3071,11 +3155,14 @@ async function loadRpeHistory() {
     const delBtn   = isToday
       ? `<button class="rpe-del-btn" onclick="deleteRpe('${r.id}')">${T('cancelRpe')}</button>`
       : '';
+    const srpe     = (r.duration && r.rpe) ? r.duration * r.rpe : null;
+    const typeParts = [r.session_type || '', r.duration ? r.duration+'min' : '', isToday ? T('today') : T('gpsDone')].filter(Boolean);
+    const wtStr    = srpe ? 'sRPE ' + srpe : (r.post_weight ? r.post_weight+' kg' : '—');
     return `<div class="rpe-hist-row">
       <div class="rpe-hist-date">${formatDate(r.record_date)}</div>
-      <div class="rpe-hist-type">${r.session_type || ''} · ${isToday ? T('today') : T('gpsDone')}</div>
+      <div class="rpe-hist-type">${typeParts.join(' · ')}</div>
       <div class="rpe-hist-score" style="color:${rpeData?.c||'var(--text3)'};">${r.rpe || '—'}</div>
-      <div class="rpe-hist-wt">${r.post_weight ? r.post_weight+' kg' : '—'}</div>
+      <div class="rpe-hist-wt" style="${srpe ? 'color:var(--purple);' : ''}">${wtStr}</div>
       ${delBtn}
     </div>`;
   }).join('');
