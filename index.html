@@ -1987,6 +1987,10 @@ function T(key) {
 function setLang(lang) {
   currentLang = lang;
   localStorage.setItem('ip_lang', lang);
+  // 로그인 상태이면 Supabase에도 저장
+  if (currentPlayer && supa) {
+    supa.from('player_profiles').update({ preferred_lang: lang }).eq('id', currentPlayer.id).then(() => {});
+  }
   const s = LANG_STRINGS[lang] || LANG_STRINGS.ko;
   // 로그인 화면
   const loginSub = document.getElementById('login-sub');
