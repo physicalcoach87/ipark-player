@@ -751,6 +751,16 @@ button { cursor: pointer; border: none; background: transparent; }
 .stat-lbl      { font-size: 11px; color: var(--text3); }
 .stat-val      { font-size: 16px; font-weight: 500; }
 .stat-val-dash { font-size: 13px; color: var(--text3); }
+/* 드럼 스크롤 피커 */
+.drum-picker-wrap { position:relative; height:150px; overflow:hidden; border-radius:10px; background:var(--surface2); }
+.drum-fade-top    { position:absolute; top:0; left:0; right:0; height:55px; background:linear-gradient(to bottom, var(--surface2) 30%, transparent); z-index:2; pointer-events:none; }
+.drum-fade-bot    { position:absolute; bottom:0; left:0; right:0; height:55px; background:linear-gradient(to top, var(--surface2) 30%, transparent); z-index:2; pointer-events:none; }
+.drum-select-line { position:absolute; top:50%; transform:translateY(-50%); left:14px; right:14px; height:40px; border-top:1.5px solid var(--blue); border-bottom:1.5px solid var(--blue); z-index:1; pointer-events:none; border-radius:6px; }
+.drum-scroll      { height:150px; overflow-y:scroll; scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.drum-scroll::-webkit-scrollbar { display:none; }
+.drum-pad         { height:55px; }
+.drum-item        { height:40px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:500; color:var(--text3); scroll-snap-align:center; cursor:pointer; transition:color .15s, font-size .15s; }
+.drum-item.sel    { color:var(--blue); font-size:22px; font-weight:700; }
 </style>
 </head>
 <body>
@@ -1039,34 +1049,26 @@ button { cursor: pointer; border: none; background: transparent; }
   <!-- 세션 타입 -->
   <div class="card">
     <div class="card-head"><span class="card-title" data-i18n="rpeSessionType">세션 타입</span></div>
-    <div style="display:flex;gap:5px;padding:0 14px 11px;" id="session-type-btns">
+    <div style="display:flex;gap:5px;padding:0 14px 11px;flex-wrap:wrap;" id="session-type-btns">
       <button class="filter-btn active" data-i18n="rpeAM" onclick="setSessionType('AM',this)">AM 오전</button>
       <button class="filter-btn" data-i18n="rpePM" onclick="setSessionType('PM',this)">PM 오후</button>
       <button class="filter-btn" data-i18n="rpeExtra" onclick="setSessionType('추가',this)">추가 세션</button>
+      <button class="filter-btn" onclick="setSessionType('개인훈련',this)">개인훈련</button>
     </div>
   </div>
 
-  <!-- 운동 시간 -->
-  <div class="card">
+  <!-- 운동 시간 (GK 또는 개인훈련 시에만 표시) -->
+  <div class="card" id="duration-card" style="display:none;">
     <div class="card-head">
       <span class="card-title">운동 시간</span>
-      <span id="duration-disp" style="font-size:13px;font-weight:500;color:var(--blue);">— 선택</span>
+      <span id="duration-disp" style="font-size:13px;font-weight:500;color:var(--blue);">90분</span>
     </div>
-    <div style="padding:0 14px 11px;">
-      <div style="display:flex;gap:5px;flex-wrap:wrap;" id="duration-btns">
-        <button class="filter-btn" onclick="setDuration(30,this)">30분</button>
-        <button class="filter-btn" onclick="setDuration(45,this)">45분</button>
-        <button class="filter-btn" onclick="setDuration(60,this)">60분</button>
-        <button class="filter-btn" onclick="setDuration(75,this)">75분</button>
-        <button class="filter-btn" onclick="setDuration(90,this)">90분</button>
-        <button class="filter-btn" onclick="setDuration(105,this)">105분</button>
-        <button class="filter-btn" onclick="setDuration(120,this)">120분</button>
-      </div>
-      <div id="gps-duration-box" style="display:none;margin-top:9px;padding:8px 10px;background:#0e1a2e;border-radius:8px;border:0.5px solid #2a4060;">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2);">
-          <input type="checkbox" id="use-gps-duration" onchange="useGpsDuration(this.checked)" style="width:16px;height:16px;accent-color:var(--blue);">
-          <span id="gps-duration-label">GPS 기록 사용</span>
-        </label>
+    <div style="padding:0 14px 14px;">
+      <div class="drum-picker-wrap">
+        <div class="drum-fade-top"></div>
+        <div class="drum-fade-bot"></div>
+        <div class="drum-select-line"></div>
+        <div class="drum-scroll" id="duration-drum-scroll"></div>
       </div>
     </div>
   </div>
@@ -2282,7 +2284,7 @@ function switchTab(tab) {
   });
   if (tab === 'home')     loadHome();
   if (tab === 'wellness') loadWellness();
-  if (tab === 'rpe')      { loadRpeHistory(); loadGpsDurationForToday(); }
+  if (tab === 'rpe')      { loadRpeHistory(); updateDurationCardVisibility(); }
   if (tab === 'gps')      loadGps();
   if (tab === 'rx')     { loadRx(); const b = document.getElementById('rx-new-badge'); if(b) b.classList.remove('show'); }
   if (tab === 'notif') {
@@ -3003,55 +3005,96 @@ function setSessionType(type, el) {
   selectedSessionType = type;
   document.querySelectorAll('#session-type-btns .filter-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
+  updateDurationCardVisibility();
 }
 
-function setDuration(min, el) {
-  selectedDuration = min;
-  document.querySelectorAll('#duration-btns .filter-btn').forEach(b => b.classList.remove('active'));
-  if (el) el.classList.add('active');
-  const disp = document.getElementById('duration-disp');
-  disp.textContent = min + '분';
-  disp.style.color = 'var(--blue)';
-}
-
-function useGpsDuration(checked) {
-  const btns = document.querySelectorAll('#duration-btns .filter-btn');
-  const disp = document.getElementById('duration-disp');
-  if (checked && gpsDurationToday) {
-    btns.forEach(b => { b.classList.remove('active'); b.disabled = true; b.style.opacity = '0.4'; });
-    selectedDuration = gpsDurationToday;
-    disp.textContent = gpsDurationToday + '분 (GPS)';
-    disp.style.color = 'var(--blue)';
+function updateDurationCardVisibility() {
+  const card = document.getElementById('duration-card');
+  if (!card) return;
+  const isGK = (currentPlayer?.position || '').trim().toUpperCase() === 'GK';
+  const isIndividual = selectedSessionType === '개인훈련';
+  if (isGK || isIndividual) {
+    card.style.display = 'block';
+    initDurationDrum();
   } else {
-    btns.forEach(b => { b.disabled = false; b.style.opacity = ''; });
+    card.style.display = 'none';
     selectedDuration = null;
-    disp.textContent = '— 선택';
-    disp.style.color = 'var(--blue)';
   }
+}
+
+let drumInited = false;
+let drumScrollTimer = null;
+
+function initDurationDrum() {
+  const scroll = document.getElementById('duration-drum-scroll');
+  if (!scroll) return;
+  if (drumInited) return;
+  drumInited = true;
+
+  // 패딩 + 아이템 생성 (10~180분, 5분 단위)
+  const padTop = document.createElement('div');
+  padTop.className = 'drum-pad';
+  scroll.appendChild(padTop);
+
+  for (let m = 10; m <= 180; m += 5) {
+    const item = document.createElement('div');
+    item.className = 'drum-item';
+    item.textContent = m + '분';
+    item.dataset.val = m;
+    item.addEventListener('click', () => drumScrollTo(m));
+    scroll.appendChild(item);
+  }
+
+  const padBot = document.createElement('div');
+  padBot.className = 'drum-pad';
+  scroll.appendChild(padBot);
+
+  // 기본값 90분
+  selectedDuration = 90;
+  setTimeout(() => drumScrollTo(90, false), 50);
+
+  scroll.addEventListener('scroll', () => {
+    clearTimeout(drumScrollTimer);
+    drumScrollTimer = setTimeout(() => snapDrum(), 120);
+  });
+}
+
+function drumScrollTo(minutes, animate = true) {
+  const scroll = document.getElementById('duration-drum-scroll');
+  if (!scroll) return;
+  const idx = Math.round((minutes - 10) / 5);
+  const targetTop = idx * 40;
+  if (animate) {
+    scroll.scrollTo({ top: targetTop, behavior: 'smooth' });
+  } else {
+    scroll.scrollTop = targetTop;
+  }
+  selectedDuration = minutes;
+  updateDrumHighlight(minutes);
+}
+
+function snapDrum() {
+  const scroll = document.getElementById('duration-drum-scroll');
+  if (!scroll) return;
+  const idx = Math.round(scroll.scrollTop / 40);
+  const minutes = Math.max(10, Math.min(180, 10 + idx * 5));
+  scroll.scrollTo({ top: idx * 40, behavior: 'smooth' });
+  selectedDuration = minutes;
+  updateDrumHighlight(minutes);
+}
+
+function updateDrumHighlight(minutes) {
+  document.querySelectorAll('.drum-item').forEach(item => {
+    const active = parseInt(item.dataset.val) === minutes;
+    item.classList.toggle('sel', active);
+  });
+  const disp = document.getElementById('duration-disp');
+  if (disp) disp.textContent = minutes + '분';
 }
 
 async function loadGpsDurationForToday() {
-  if (!currentPlayer) return;
-  const t = today();
-  const { data } = await supa.from('gps_records')
-    .select('duration')
-    .eq('player_id', currentPlayer.id)
-    .eq('session_date', t)
-    .not('duration', 'is', null)
-    .order('created_at', { ascending: false })
-    .limit(1);
-  const box = document.getElementById('gps-duration-box');
-  const lbl = document.getElementById('gps-duration-label');
-  if (data?.[0]?.duration) {
-    gpsDurationToday = data[0].duration;
-    lbl.textContent = 'GPS 기록 사용 (' + gpsDurationToday + '분)';
-    box.style.display = 'block';
-  } else {
-    gpsDurationToday = null;
-    box.style.display = 'none';
-    const cb = document.getElementById('use-gps-duration');
-    if (cb) cb.checked = false;
-  }
+  // GPS duration은 코치 앱 업로드 시 session_records.duration에 자동 반영됨
+  // 선수 앱에서는 별도 처리 불필요
 }
 
 function calcHydro() {
@@ -3120,12 +3163,13 @@ async function deleteRpe(id) {
     document.getElementById('rpe-sub').style.color = 'var(--text3)';
     document.getElementById('post-weight').value = '';
     document.getElementById('hydro-grid').style.display = 'none';
-    // 운동 시간 초기화
-    selectedDuration = null;
-    document.getElementById('duration-disp').textContent = '— 선택';
-    document.querySelectorAll('#duration-btns .filter-btn').forEach(b => { b.classList.remove('active'); b.disabled = false; b.style.opacity = ''; });
-    const cb = document.getElementById('use-gps-duration');
-    if (cb) cb.checked = false;
+    // 운동 시간 초기화 (GK/개인훈련이면 드럼 90분으로 리셋)
+    const isGK = (currentPlayer?.position || '').trim().toUpperCase() === 'GK';
+    if (isGK || selectedSessionType === '개인훈련') {
+      drumScrollTo(90);
+    } else {
+      selectedDuration = null;
+    }
     loadRpeHistory();
   }
 }
