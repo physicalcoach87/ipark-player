@@ -2877,7 +2877,7 @@ function renderHomeGps(gps) {
     { l:'TD',        v: gps.td           > 0 ? Math.round(gps.td).toLocaleString()+'m' : '—', c:'#5a9de0' },
     { l:'HSR',       v: gps.running_high > 0 ? Math.round(gps.running_high)+'m'         : '—', c:'#d0a030' },
     { l:'Sprint',    v: gps.sprint       > 0 ? Math.round(gps.sprint)+'m'               : '—', c:'#e05050' },
-    { l:'Max Speed', v: gps.max_speed    > 0 ? gps.max_speed+' km/h'                   : '—', c:'#3aaa6a' },
+    { l:'Max Speed', v: gps.max_speed    > 0 ? (+gps.max_speed).toFixed(1)+' km/h'      : '—', c:'#3aaa6a' },
     { l:'RHIE',      v: gps.rhie         > 0 ? gps.rhie+'회'                             : '—', c:'#9060d0' },
     { l:T('accel'),  v: gps.accel        > 0 ? gps.accel+'회'                            : '—', c:'#d07830' },
   ];
@@ -3902,7 +3902,7 @@ function renderGpsDetail(r) {
     { l:'TD',        n: r.td           > 0 ? Math.round(r.td).toLocaleString()+'m'  : '—', c:'#5a9de0' },
     { l:'HSR',       n: r.running_high > 0 ? Math.round(r.running_high)+'m'          : '—', c:'#d0a030' },
     { l:'Sprint',    n: r.sprint       > 0 ? Math.round(r.sprint)+'m'                : '—', c:'#e05050' },
-    { l:'Max Speed', n: r.max_speed    > 0 ? r.max_speed+' km/h'                    : '—', c:'#3aaa6a' },
+    { l:'Max Speed', n: r.max_speed    > 0 ? (+r.max_speed).toFixed(1)+' km/h'       : '—', c:'#3aaa6a' },
     { l:'RHIE',      n: r.rhie         > 0 ? r.rhie+'회'                              : '—', c:'#9060d0' },
     { l:T('accel'),  n: r.accel        > 0 ? r.accel+'회'                             : '—', c:'#d07830' },
   ];
