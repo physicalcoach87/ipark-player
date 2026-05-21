@@ -434,6 +434,58 @@ button { cursor: pointer; border: none; background: transparent; }
 }
 .rpe-del-btn:active { opacity: .7; }
 
+/* ── Wizard ── */
+.wiz-time-btn {
+  flex:1;height:80px;border-radius:14px;border:2px solid var(--border2);
+  background:var(--surface2);color:var(--text2);font-size:18px;font-weight:700;
+  cursor:pointer;transition:all .2s;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;
+}
+.wiz-time-btn span { font-size:11px;font-weight:400;color:var(--text3); }
+.wiz-time-btn.sel  { border-color:var(--blue);background:#0d1e3a;color:var(--blue); }
+.wiz-time-btn.sel span { color:var(--blue); }
+.wiz-combo-btn {
+  height:76px;border-radius:12px;border:2px solid var(--border2);
+  background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .2s;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;line-height:1.3;
+}
+.wiz-combo-btn.sel { border-color:var(--purple);background:#1a1040;color:var(--purple); }
+.wiz-back-btn {
+  flex:1;height:44px;border-radius:10px;border:1.5px solid var(--border2);
+  background:transparent;color:var(--text3);font-size:13px;font-weight:500;cursor:pointer;
+}
+.wiz-next-btn {
+  flex:2;height:44px;border-radius:10px;border:none;
+  background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;
+}
+.wiz-next-btn:disabled { opacity:.4;cursor:not-allowed; }
+.wiz-done-btn {
+  flex:2;height:44px;border-radius:10px;border:none;
+  background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer;
+}
+.wiz-dot {
+  width:8px;height:8px;border-radius:50%;background:var(--border2);
+  flex-shrink:0;transition:background .2s;
+}
+.wiz-dot.active { background:var(--purple);box-shadow:0 0 6px var(--purple); }
+.wiz-dot.done   { background:var(--blue); }
+.wiz-dot.skip   { opacity:.25; }
+.wiz-line { flex:1;height:2px;background:var(--border2);max-width:40px;transition:background .2s; }
+.wiz-line.done { background:var(--blue); }
+.wiz-today-row {
+  display:flex;align-items:center;gap:8px;padding:9px 14px;
+  border-bottom:0.5px solid var(--border2);
+}
+.wiz-today-row:last-child { border-bottom:none; }
+.wiz-today-type { font-size:11px;font-weight:600;color:var(--blue);min-width:40px; }
+.wiz-today-rpe  { font-size:17px;font-weight:700;min-width:22px;text-align:center; }
+.wiz-today-info { font-size:10px;color:var(--text3);flex:1; }
+.wiz-today-del  {
+  padding:4px 10px;border-radius:7px;border:1px solid #4a1a1a;
+  background:#2a0a0a;color:#c04040;font-size:10px;cursor:pointer;flex-shrink:0;
+}
+
 /* ════════════════════════════════════════
    홈 — 주간 일정 가로 슬라이더
 ════════════════════════════════════════ */
@@ -1037,7 +1089,7 @@ button { cursor: pointer; border: none; background: transparent; }
     padding:10px 14px;background:var(--surface2);border-radius:12px;
     margin-bottom:10px;border:0.5px solid var(--border);">
     <div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;" data-i18n="rpeSessionDate">세션 날짜</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">세션 날짜</div>
       <div style="font-size:16px;font-weight:500;color:var(--text);" id="rpe-date-display">—</div>
     </div>
     <div style="text-align:right;">
@@ -1046,81 +1098,187 @@ button { cursor: pointer; border: none; background: transparent; }
     </div>
   </div>
 
-  <!-- 세션 타입 -->
-  <div class="card">
-    <div class="card-head"><span class="card-title" data-i18n="rpeSessionType">세션 타입</span></div>
-    <div style="display:flex;gap:5px;padding:0 14px 11px;flex-wrap:wrap;" id="session-type-btns">
-      <button class="filter-btn active" data-i18n="rpeAM" onclick="setSessionType('AM',this)">AM 오전</button>
-      <button class="filter-btn" data-i18n="rpePM" onclick="setSessionType('PM',this)">PM 오후</button>
-      <button class="filter-btn" data-i18n="rpeExtra" onclick="setSessionType('추가',this)">추가 세션</button>
-      <button class="filter-btn" onclick="setSessionType('개인훈련',this)">개인훈련</button>
-    </div>
-  </div>
-
-  <!-- 운동 시간 (GK 또는 개인훈련 시에만 표시) -->
-  <div class="card" id="duration-card" style="display:none;">
-    <div class="card-head">
-      <span class="card-title">운동 시간</span>
-      <span id="duration-disp" style="font-size:13px;font-weight:500;color:var(--blue);">90분</span>
-    </div>
-    <div style="padding:0 14px 14px;">
-      <div class="drum-picker-wrap">
-        <div class="drum-fade-top"></div>
-        <div class="drum-fade-bot"></div>
-        <div class="drum-select-line"></div>
-        <div class="drum-scroll" id="duration-drum-scroll"></div>
+  <!-- 수분 배너 (오늘 체중 기록 시 하루 종일 표시) -->
+  <div id="wiz-hydro-banner" style="display:none;border-radius:12px;background:#0b1e12;border:1px solid var(--green);padding:12px 14px;margin-bottom:10px;">
+    <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:8px;">💧 오늘 수분 보충 가이드</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+      <div style="background:#0e2818;border-radius:8px;padding:8px 10px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">체중 감소</div>
+        <div style="font-size:14px;font-weight:600;color:var(--blue);" id="wiz-h-loss">—</div>
+      </div>
+      <div style="background:#0e2818;border-radius:8px;padding:8px 10px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">지금 섭취</div>
+        <div style="font-size:14px;font-weight:600;color:var(--green);" id="wiz-h-now">—</div>
+      </div>
+      <div style="background:#0e2818;border-radius:8px;padding:8px 10px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">이후 섭취</div>
+        <div style="font-size:14px;font-weight:600;color:var(--amber);" id="wiz-h-later">—</div>
       </div>
     </div>
   </div>
 
-  <!-- RPE 입력 -->
-  <div class="card">
+  <!-- 오늘 저장된 세션 -->
+  <div class="card" id="wiz-today-card">
     <div class="card-head">
-      <span class="card-title" data-i18n="rpeCardTitle">세션 RPE</span>
-      <span id="rpe-disp" style="font-size:13px;font-weight:500;color:var(--purple);">— 선택하세요</span>
+      <span class="card-title">오늘 세션</span>
+      <button class="filter-btn" style="padding:3px 10px;font-size:11px;" onclick="wizReset()">+ 세션 추가</button>
     </div>
-    <div style="padding:0 14px 10px;">
-      <div class="rpe-scale-bar" id="rpe-bar"></div>
-      <div class="rpe-nums" id="rpe-nums"></div>
-      <div class="rpe-zones">
-        <div class="rpe-zone" data-i18n="rpeEasy" style="flex:3;color:var(--green);background:#0e2015;">쉬움 1–3</div>
-        <div class="rpe-zone" data-i18n="rpeMod" style="flex:3;color:var(--amber);background:#261c08;">보통 4–6</div>
-        <div class="rpe-zone" data-i18n="rpeHard" style="flex:2;color:var(--purple);background:#1e1040;">힘듦 7–8</div>
-        <div class="rpe-zone" data-i18n="rpeMax" style="flex:2;color:var(--red);background:#300808;">한계 9–10</div>
+    <div id="wiz-today-list">
+      <div style="padding:14px;text-align:center;font-size:12px;color:var(--text3);">저장된 세션이 없습니다</div>
+    </div>
+  </div>
+
+  <!-- ═══ 마법사 ═══ -->
+  <div class="card" id="wiz-card">
+    <!-- 단계 표시 -->
+    <div style="display:flex;align-items:center;justify-content:center;padding:14px 14px 4px;" id="wiz-step-row"></div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);text-align:center;padding:6px 14px 12px;" id="wiz-title">훈련 시간 선택</div>
+
+    <!-- STEP 1: AM/PM -->
+    <div id="wiz-s1">
+      <div style="display:flex;gap:10px;padding:0 14px 14px;">
+        <button class="wiz-time-btn" id="wiz-am-btn" onclick="wizSelectTime('AM')">
+          AM<span>오전 훈련</span>
+        </button>
+        <button class="wiz-time-btn" id="wiz-pm-btn" onclick="wizSelectTime('PM')">
+          PM<span>오후 훈련</span>
+        </button>
       </div>
-      <div class="rpe-desc-box" id="rpe-desc-box" style="background:#1a1e30;border:0.5px solid #2a3050;margin-top:9px;">
-        <div class="rpe-big-num" id="rpe-big-num" style="color:var(--text3);">—</div>
-        <div>
-          <div class="rpe-label" id="rpe-label" style="color:var(--text3);" data-i18n="rpeTap">탭하여 선택</div>
-          <div class="rpe-sub"   id="rpe-sub"   style="color:var(--text3);" data-i18n="rpeRange">1 = 매우 쉬움 · 10 = 절대 최대</div>
+    </div>
+
+    <!-- STEP 2: 세션 구성 -->
+    <div id="wiz-s2" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 14px;">
+        <button class="wiz-combo-btn" id="wiz-c-field" onclick="wizSelectCombo('field')">
+          <span style="font-size:22px;">⚽</span>필드만
+        </button>
+        <button class="wiz-combo-btn" id="wiz-c-gym" onclick="wizSelectCombo('gym')">
+          <span style="font-size:22px;">🏋️</span>GYM만
+        </button>
+        <button class="wiz-combo-btn" id="wiz-c-gym_field" onclick="wizSelectCombo('gym_field')">
+          <span style="font-size:18px;">🏋️→⚽</span>GYM 후 필드
+        </button>
+        <button class="wiz-combo-btn" id="wiz-c-field_gym" onclick="wizSelectCombo('field_gym')">
+          <span style="font-size:18px;">⚽→🏋️</span>필드 후 GYM
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 3: RPE 입력 -->
+    <div id="wiz-s3" style="display:none;">
+      <!-- 필드 RPE (field / gym_field / field_gym) -->
+      <div id="wiz-field-block" style="padding:0 14px 14px;">
+        <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;margin-bottom:8px;">⚽ 필드 RPE</div>
+        <div id="wiz-field-rpe-disp" style="font-size:11px;font-weight:500;color:var(--purple);margin-bottom:6px;">— 선택하세요</div>
+        <div class="rpe-scale-bar" id="wiz-field-rpe-bar"></div>
+        <div class="rpe-nums" id="wiz-field-rpe-nums"></div>
+        <div class="rpe-zones" style="margin-top:5px;">
+          <div class="rpe-zone" style="flex:3;color:var(--green);background:#0e2015;">쉬움 1–3</div>
+          <div class="rpe-zone" style="flex:3;color:var(--amber);background:#261c08;">보통 4–6</div>
+          <div class="rpe-zone" style="flex:2;color:var(--purple);background:#1e1040;">힘듦 7–8</div>
+          <div class="rpe-zone" style="flex:2;color:var(--red);background:#300808;">한계 9–10</div>
+        </div>
+        <div class="rpe-desc-box" id="wiz-field-desc-box" style="background:#1a1e30;border:0.5px solid #2a3050;margin-top:8px;">
+          <div class="rpe-big-num" id="wiz-field-big-num" style="color:var(--text3);">—</div>
+          <div>
+            <div class="rpe-label" id="wiz-field-lbl" style="color:var(--text3);">탭하여 선택</div>
+            <div class="rpe-sub"   id="wiz-field-sub" style="color:var(--text3);">1 = 매우 쉬움 · 10 = 절대 최대</div>
+          </div>
+        </div>
+      </div>
+      <!-- GYM RPE (gym / gym_field / field_gym) -->
+      <div id="wiz-gym-block" style="padding:0 14px 14px;border-top:0.5px solid var(--border2);">
+        <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;margin:10px 0 8px;">🏋️ GYM RPE</div>
+        <div id="wiz-gym-rpe-disp" style="font-size:11px;font-weight:500;color:var(--purple);margin-bottom:6px;">— 선택하세요</div>
+        <div class="rpe-scale-bar" id="wiz-gym-rpe-bar"></div>
+        <div class="rpe-nums" id="wiz-gym-rpe-nums"></div>
+        <div class="rpe-zones" style="margin-top:5px;">
+          <div class="rpe-zone" style="flex:3;color:var(--green);background:#0e2015;">쉬움 1–3</div>
+          <div class="rpe-zone" style="flex:3;color:var(--amber);background:#261c08;">보통 4–6</div>
+          <div class="rpe-zone" style="flex:2;color:var(--purple);background:#1e1040;">힘듦 7–8</div>
+          <div class="rpe-zone" style="flex:2;color:var(--red);background:#300808;">한계 9–10</div>
+        </div>
+        <div class="rpe-desc-box" id="wiz-gym-desc-box" style="background:#1a1e30;border:0.5px solid #2a3050;margin-top:8px;">
+          <div class="rpe-big-num" id="wiz-gym-big-num" style="color:var(--text3);">—</div>
+          <div>
+            <div class="rpe-label" id="wiz-gym-lbl" style="color:var(--text3);">탭하여 선택</div>
+            <div class="rpe-sub"   id="wiz-gym-sub" style="color:var(--text3);">1 = 매우 쉬움 · 10 = 절대 최대</div>
+          </div>
+        </div>
+        <!-- GYM 운동 시간 -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;margin-bottom:6px;">
+          <span style="font-size:11px;color:var(--text3);">🕐 GYM 운동 시간</span>
+          <span id="wiz-gym-dur-disp" style="font-size:14px;font-weight:600;color:var(--blue);">60분</span>
+        </div>
+        <div class="drum-picker-wrap" style="height:120px;">
+          <div class="drum-fade-top"></div>
+          <div class="drum-fade-bot"></div>
+          <div class="drum-select-line"></div>
+          <div class="drum-scroll" id="wiz-gym-dur-drum"></div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- 운동후 체중 + 수분 보충 -->
-  <div class="card">
-    <div class="card-head"><span class="card-title" data-i18n="postWeightTitle">운동후 체중</span></div>
-    <div style="padding:0 14px 10px;display:flex;align-items:center;gap:10px;">
-      <input class="num-input" type="number" step="0.1" id="post-weight" placeholder="0.0" style="flex:1;" oninput="calcHydro()">
-      <span style="font-size:13px;color:var(--text3);">kg</span>
-    </div>
-    <div class="hydro-grid" id="hydro-grid" style="display:none;">
-      <div class="hydro-item">
-        <div class="hydro-lbl" data-i18n="hydroLoss">체중 감소</div>
-        <div class="hydro-val" id="h-loss" style="color:var(--blue);">— <span class="hydro-unit">kg</span></div>
-        <div class="hydro-sub" id="h-loss-sub" data-i18n="hydroMorning">아침 체중 대비</div>
+    <!-- STEP 4: 운동후 체중 -->
+    <div id="wiz-s4" style="display:none;">
+      <div style="padding:0 14px 14px;">
+        <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;margin-bottom:12px;">🏃 운동후 체중 측정</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <input class="num-input" type="number" step="0.1" id="wiz-post-weight" placeholder="0.0" style="flex:1;" oninput="wizCalcHydro()">
+          <span style="font-size:13px;color:var(--text3);">kg</span>
+        </div>
+        <div id="wiz-hydro-preview" style="display:none;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#0b1e12;border:1px solid #1a4028;border-radius:8px;padding:10px;">
+              <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">체중 감소</div>
+              <div style="font-size:16px;font-weight:600;color:var(--blue);" id="wiz-ph-loss">—</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:2px;" id="wiz-ph-loss-sub"></div>
+            </div>
+            <div style="background:#0b1e12;border:1px solid #1a4028;border-radius:8px;padding:10px;">
+              <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">수분 보충</div>
+              <div style="font-size:16px;font-weight:600;color:var(--green);" id="wiz-ph-water">—</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:2px;" id="wiz-ph-split"></div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:8px;">* 체중 미측정 시 건너뛸 수 있습니다</div>
       </div>
-      <div class="hydro-item">
-        <div class="hydro-lbl" data-i18n="hydroRec">수분 보충 권장</div>
-        <div class="hydro-val" id="h-water" style="color:var(--green);">— <span class="hydro-unit">ml</span></div>
-        <div class="hydro-sub" id="h-water-sub" data-i18n="hydroFormula">체중 감소 × 1.5</div>
-      </div>
     </div>
-  </div>
 
-  <button class="save-btn" id="rpe-save-btn" data-i18n="saveSession" onclick="saveRpe()">💾 세션 저장</button>
-  <div class="msg-box" id="rpe-msg"></div>
+    <!-- STEP 5: 완료 -->
+    <div id="wiz-s5" style="display:none;">
+      <div style="padding:8px 14px 16px;text-align:center;">
+        <div style="font-size:40px;margin-bottom:10px;">✅</div>
+        <div style="font-size:16px;font-weight:600;color:var(--green);margin-bottom:6px;">세션 저장 완료!</div>
+        <div id="wiz-done-summary" style="font-size:12px;color:var(--text3);margin-bottom:14px;"></div>
+        <!-- 수분 가이드 (step5) -->
+        <div id="wiz-s5-hydro" style="display:none;background:#0b1e12;border:1px solid var(--green);border-radius:10px;padding:12px;text-align:left;">
+          <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:8px;">💧 수분 보충 가이드</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+            <div style="text-align:center;">
+              <div style="font-size:10px;color:var(--text3);">체중 감소</div>
+              <div style="font-size:14px;font-weight:600;color:var(--blue);" id="wiz-s5-loss">—</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:10px;color:var(--text3);">지금</div>
+              <div style="font-size:14px;font-weight:600;color:var(--green);" id="wiz-s5-now">—</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:10px;color:var(--text3);">이후</div>
+              <div style="font-size:14px;font-weight:600;color:var(--amber);" id="wiz-s5-later">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 내비게이션 -->
+    <div style="display:flex;gap:8px;padding:4px 14px 14px;" id="wiz-nav">
+      <button class="wiz-back-btn" id="wiz-back" onclick="wizBack()">← 이전</button>
+      <button class="wiz-next-btn" id="wiz-next" onclick="wizNext()">다음 →</button>
+    </div>
+    <div class="msg-box" id="wiz-msg"></div>
+  </div>
 
   <!-- RPE 히스토리 -->
   <div class="card" style="margin-top:10px;">
@@ -1327,6 +1485,18 @@ let gpsFilter          = 'week';
 let gpsRows            = [];
 let gpsSelIdx          = -1;
 let morningWeightToday = null;
+// Wizard state
+let wizStep            = 1;
+let wizTime            = null;
+let wizCombo           = null;
+let wizFieldRpe        = null;
+let wizGymRpe          = null;
+let wizGymDur          = 60;
+let wizGymDrumInited   = false;
+let wizGymDrumTimer    = null;
+let wizTodayRecs       = [];
+let wizHydroData       = null;
+let wizRpeBarsBuilt    = false;
 
 /* ════════════════════════════════════════
    유틸
@@ -1391,7 +1561,12 @@ function renderRpeBanner(lastRecord) {
 
   dateEl.textContent = info.full;
   dayEl.textContent  = info.day;
-  if (lastRecord) {
+
+  const todayCount = wizTodayRecs?.length || 0;
+  if (todayCount > 0) {
+    savedEl.textContent = `✅ ${todayCount}세션 저장됨`;
+    savedEl.style.color = 'var(--green)';
+  } else if (lastRecord) {
     const t    = (lastRecord.created_at || '').slice(11,16);
     const type = lastRecord.session_type || '';
     savedEl.textContent = `✅ ${type} RPE ${lastRecord.rpe} · ${t} ${T('savedAt')}`;
@@ -2066,14 +2241,11 @@ function setLang(lang) {
   // 웰니스 메모
   const wn = document.getElementById('wellness-note');
   if (wn) wn.placeholder = T('memoPlaceholder');
-  // RPE disp (선택 전 상태)
-  const rpeDisp = document.getElementById('rpe-disp');
-  if (rpeDisp && !selectedRpe) rpeDisp.textContent = T('rpeSelectPrompt');
   // Pull-to-refresh 초기 텍스트
   const ptrText = document.getElementById('ptr-text');
   if (ptrText) ptrText.textContent = T('pullRefresh');
   // 로그인 후에만 탭 리로드
-  if (currentPlayer) { buildWellnessSegs(); buildRpeBar(); reloadCurrentTab(); }
+  if (currentPlayer) { buildWellnessSegs(); buildWizRpeBars(); reloadCurrentTab(); }
 }
 
 /* ════════════════════════════════════════
@@ -2128,6 +2300,15 @@ function doLogout() {
   existingFitnessId  = null;
   selectedRpe        = null;
   gpsRows            = [];
+  wizTodayRecs       = [];
+  wizHydroData       = null;
+  wizStep            = 1;
+  wizTime            = null;
+  wizCombo           = null;
+  wizFieldRpe        = null;
+  wizGymRpe          = null;
+  wizRpeBarsBuilt    = false;
+  wizGymDrumInited   = false;
   document.getElementById('app-header').style.display  = 'none';
   document.getElementById('tab-bar').style.display     = 'none';
   document.getElementById('screen-login').style.display = 'flex';
@@ -2145,7 +2326,7 @@ async function loginSuccess(player) {
   document.getElementById('hdr-player-name').textContent = player.name || '—';
   document.getElementById('hdr-player-pos').textContent  = player.position || '—';
   renderHeaderBadges();
-  buildRpeBar();
+  buildWizRpeBars();
   buildWellnessSegs();
   switchTab('home');
   checkNewRx();
@@ -2284,7 +2465,7 @@ function switchTab(tab) {
   });
   if (tab === 'home')     loadHome();
   if (tab === 'wellness') loadWellness();
-  if (tab === 'rpe')      { loadRpeHistory(); updateDurationCardVisibility(); }
+  if (tab === 'rpe')      { initWizard(); }
   if (tab === 'gps')      loadGps();
   if (tab === 'rx')     { loadRx(); const b = document.getElementById('rx-new-badge'); if(b) b.classList.remove('show'); }
   if (tab === 'notif') {
@@ -2299,7 +2480,7 @@ function reloadCurrentTab() {
   const tab = _currentTab;
   if (tab === 'home')     loadHome();
   if (tab === 'wellness') loadWellness();
-  if (tab === 'rpe')      loadRpeHistory();
+  if (tab === 'rpe')      initWizard();
   if (tab === 'gps')      loadGps();
   if (tab === 'rx')       loadRx();
   if (tab === 'notif')    loadNotif();
@@ -2946,232 +3127,414 @@ async function loadWellnessTrend() {
 }
 
 /* ════════════════════════════════════════
-   RPE
+   RPE 마법사
 ════════════════════════════════════════ */
-function buildRpeBar() {
-  const bar  = document.getElementById('rpe-bar');
-  const nums = document.getElementById('rpe-nums');
+function initWizard() {
+  buildWizRpeBars();
+  loadWizTodaySessions();
+  wizGoToStep(wizStep);
+}
+
+function wizReset() {
+  wizStep    = 1;
+  wizTime    = null;
+  wizCombo   = null;
+  wizFieldRpe = null;
+  wizGymRpe  = null;
+  wizGymDur  = 60;
+  wizHydroData = null;
+  wizClearRpeBar('wiz-field');
+  wizClearRpeBar('wiz-gym');
+  const pw = document.getElementById('wiz-post-weight');
+  if (pw) pw.value = '';
+  const hp = document.getElementById('wiz-hydro-preview');
+  if (hp) hp.style.display = 'none';
+  if (wizGymDrumInited) wizGymDrumScrollTo(60, false);
+  wizGoToStep(1);
+}
+
+function wizGoToStep(step) {
+  wizStep = step;
+  [1,2,3,4,5].forEach(n => {
+    const el = document.getElementById('wiz-s' + n);
+    if (el) el.style.display = 'none';
+  });
+  const cur = document.getElementById('wiz-s' + step);
+  if (cur) cur.style.display = 'block';
+
+  wizUpdateStepDots();
+
+  const titles = ['','훈련 시간 선택','세션 구성 선택','RPE 입력','운동후 체중','저장 완료'];
+  const titleEl = document.getElementById('wiz-title');
+  if (titleEl) titleEl.textContent = titles[step] || '';
+
+  const backBtn = document.getElementById('wiz-back');
+  const nextBtn = document.getElementById('wiz-next');
+  if (!backBtn || !nextBtn) return;
+
+  backBtn.style.display = (step === 1 || step === 5) ? 'none' : '';
+
+  if (step === 5) {
+    nextBtn.className   = 'wiz-done-btn';
+    nextBtn.textContent = '+ 세션 추가';
+    nextBtn.onclick     = wizReset;
+    nextBtn.disabled    = false;
+  } else {
+    nextBtn.className   = 'wiz-next-btn';
+    nextBtn.disabled    = false;
+    nextBtn.onclick     = wizNext;
+    if (step === 4) {
+      nextBtn.textContent = '저장 →';
+    } else if (step === 3 && wizCombo === 'gym') {
+      nextBtn.textContent = '저장 →';
+    } else {
+      nextBtn.textContent = '다음 →';
+    }
+  }
+
+  if (step === 3) {
+    const hasField = wizCombo !== 'gym';
+    const hasGym   = wizCombo !== 'field';
+    const fb = document.getElementById('wiz-field-block');
+    const gb = document.getElementById('wiz-gym-block');
+    if (fb) fb.style.display = hasField ? 'block' : 'none';
+    if (gb) gb.style.display = hasGym   ? 'block' : 'none';
+    if (hasGym && !wizGymDrumInited) setTimeout(() => wizInitGymDrum(), 50);
+  }
+}
+
+function wizUpdateStepDots() {
+  const row = document.getElementById('wiz-step-row');
+  if (!row) return;
+  row.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    if (i > 1) {
+      const line = document.createElement('div');
+      line.className = 'wiz-line' + (i <= wizStep ? ' done' : '');
+      row.appendChild(line);
+    }
+    const dot = document.createElement('div');
+    const skip = (i === 4 && wizCombo === 'gym');
+    dot.className = 'wiz-dot'
+      + (i < wizStep ? ' done' : '')
+      + (i === wizStep ? ' active' : '')
+      + (skip ? ' skip' : '');
+    row.appendChild(dot);
+  }
+}
+
+function wizSelectTime(time) {
+  wizTime = time;
+  document.getElementById('wiz-am-btn').classList.toggle('sel', time === 'AM');
+  document.getElementById('wiz-pm-btn').classList.toggle('sel', time === 'PM');
+}
+
+function wizSelectCombo(combo) {
+  wizCombo = combo;
+  ['field','gym','gym_field','field_gym'].forEach(c => {
+    const btn = document.getElementById('wiz-c-' + c);
+    if (btn) btn.classList.toggle('sel', c === combo);
+  });
+}
+
+function buildWizRpeBars() {
+  if (wizRpeBarsBuilt) return;
+  wizRpeBarsBuilt = true;
+  buildRpeBarIn('wiz-field-rpe-bar', 'wiz-field-rpe-nums', wizSelectFieldRpe);
+  buildRpeBarIn('wiz-gym-rpe-bar',   'wiz-gym-rpe-nums',   wizSelectGymRpe);
+}
+
+function buildRpeBarIn(barId, numsId, callback) {
+  const bar  = document.getElementById(barId);
+  const nums = document.getElementById(numsId);
   if (!bar) return;
-
   bar.innerHTML = '';
-  nums.innerHTML = '';
-
+  if (nums) nums.innerHTML = '';
   RPE_COLORS.forEach((c, i) => {
-    const v   = i + 1;
+    const v = i + 1;
     const seg = document.createElement('div');
     seg.className = 'rpe-seg';
-    seg.style.cssText = `background:${c}28;color:${c};
-      ${v===3 ? `border-top:2.5px solid ${c};border-bottom:2.5px solid ${c};` : ''}`;
+    seg.style.cssText = `background:${c}28;color:${c};`;
     seg.textContent = v;
-    seg.onclick = () => selectRpe(v);
+    seg.onclick = () => callback(v);
     bar.appendChild(seg);
-
-    const num = document.createElement('div');
-    num.className = 'rpe-num' + (v === 3 ? ' base' : '');
-    num.textContent = v;
-    nums.appendChild(num);
+    if (nums) {
+      const num = document.createElement('div');
+      num.className = 'rpe-num';
+      num.textContent = v;
+      nums.appendChild(num);
+    }
   });
 }
 
-function selectRpe(v) {
-  selectedRpe = v;
+function wizSelectFieldRpe(v) { wizFieldRpe = v; wizApplyRpeBar('wiz-field', v); }
+function wizSelectGymRpe(v)   { wizGymRpe   = v; wizApplyRpeBar('wiz-gym',   v); }
+
+function wizApplyRpeBar(prefix, v) {
   const d = getRpeData()[v];
-
-  // 바 업데이트
-  Array.from(document.getElementById('rpe-bar').children).forEach((seg, i) => {
-    const bv = i + 1;
+  const bar = document.getElementById(prefix + '-rpe-bar');
+  if (!bar) return;
+  Array.from(bar.children).forEach((seg, i) => {
     const bc = RPE_COLORS[i];
-    seg.style.background = bv === v ? bc + '70' : bc + '28';
-    seg.style.boxShadow  = bv === v ? `inset 0 0 0 2px ${bc}` : 'none';
-    seg.style.borderTop    = bv===3 ? `2.5px solid ${bc}` : '';
-    seg.style.borderBottom = bv===3 ? `2.5px solid ${bc}` : '';
+    seg.style.background = (i+1) === v ? bc+'70' : bc+'28';
+    seg.style.boxShadow  = (i+1) === v ? `inset 0 0 0 2px ${bc}` : 'none';
   });
-
-  // 설명 박스
-  const box = document.getElementById('rpe-desc-box');
-  box.style.background  = d.bg;
-  box.style.borderColor = d.c + '60';
-  document.getElementById('rpe-big-num').textContent = v;
-  document.getElementById('rpe-big-num').style.color = d.c;
-  document.getElementById('rpe-label').textContent   = d.lbl;
-  document.getElementById('rpe-label').style.color   = d.c;
-  document.getElementById('rpe-sub').textContent     = d.desc;
-  document.getElementById('rpe-sub').style.color     = d.c + '90';
-  document.getElementById('rpe-disp').textContent    = `${v} — ${d.lbl}`;
-  document.getElementById('rpe-disp').style.color    = d.c;
+  const disp = document.getElementById(prefix + '-rpe-disp');
+  if (disp) { disp.textContent = `${v} — ${d.lbl}`; disp.style.color = d.c; }
+  const box = document.getElementById(prefix + '-desc-box');
+  if (box)  { box.style.background = d.bg; box.style.borderColor = d.c+'60'; }
+  const bn = document.getElementById(prefix + '-big-num');
+  if (bn)   { bn.textContent = v; bn.style.color = d.c; }
+  const lbl = document.getElementById(prefix + '-lbl');
+  if (lbl)  { lbl.textContent = d.lbl; lbl.style.color = d.c; }
+  const sub = document.getElementById(prefix + '-sub');
+  if (sub)  { sub.textContent = d.desc; sub.style.color = d.c+'90'; }
 }
 
-function setSessionType(type, el) {
-  selectedSessionType = type;
-  document.querySelectorAll('#session-type-btns .filter-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  updateDurationCardVisibility();
+function wizClearRpeBar(prefix) {
+  const bar = document.getElementById(prefix + '-rpe-bar');
+  if (bar) Array.from(bar.children).forEach((seg,i) => {
+    seg.style.background = RPE_COLORS[i]+'28'; seg.style.boxShadow = 'none';
+  });
+  const disp = document.getElementById(prefix + '-rpe-disp');
+  if (disp) { disp.textContent = '— 선택하세요'; disp.style.color = 'var(--purple)'; }
+  const box = document.getElementById(prefix + '-desc-box');
+  if (box)  { box.style.background = '#1a1e30'; box.style.borderColor = '#2a3050'; }
+  const bn = document.getElementById(prefix + '-big-num');
+  if (bn)   { bn.textContent = '—'; bn.style.color = 'var(--text3)'; }
+  const lbl = document.getElementById(prefix + '-lbl');
+  if (lbl)  { lbl.textContent = '탭하여 선택'; lbl.style.color = 'var(--text3)'; }
+  const sub = document.getElementById(prefix + '-sub');
+  if (sub)  { sub.textContent = '1 = 매우 쉬움 · 10 = 절대 최대'; sub.style.color = 'var(--text3)'; }
 }
 
-function updateDurationCardVisibility() {
-  const card = document.getElementById('duration-card');
-  if (!card) return;
-  const isGK = (currentPlayer?.position || '').trim().toUpperCase() === 'GK';
-  const isIndividual = selectedSessionType === '개인훈련';
-  if (isGK || isIndividual) {
-    card.style.display = 'block';
-    initDurationDrum();
-  } else {
-    card.style.display = 'none';
-    selectedDuration = null;
-  }
-}
-
-let drumInited = false;
-let drumScrollTimer = null;
-
-function initDurationDrum() {
-  const scroll = document.getElementById('duration-drum-scroll');
-  if (!scroll) return;
-  if (drumInited) return;
-  drumInited = true;
-
-  // 패딩 + 아이템 생성 (10~180분, 5분 단위)
-  const padTop = document.createElement('div');
-  padTop.className = 'drum-pad';
-  scroll.appendChild(padTop);
-
+/* ── GYM 운동 시간 드럼 ── */
+function wizInitGymDrum() {
+  const scroll = document.getElementById('wiz-gym-dur-drum');
+  if (!scroll || wizGymDrumInited) return;
+  wizGymDrumInited = true;
+  const padT = document.createElement('div'); padT.className = 'drum-pad'; scroll.appendChild(padT);
   for (let m = 10; m <= 180; m += 5) {
     const item = document.createElement('div');
-    item.className = 'drum-item';
-    item.textContent = m + '분';
-    item.dataset.val = m;
-    item.addEventListener('click', () => drumScrollTo(m));
+    item.className = 'drum-item'; item.textContent = m + '분'; item.dataset.val = m;
+    item.addEventListener('click', () => wizGymDrumScrollTo(m));
     scroll.appendChild(item);
   }
-
-  const padBot = document.createElement('div');
-  padBot.className = 'drum-pad';
-  scroll.appendChild(padBot);
-
-  // 기본값 90분
-  selectedDuration = 90;
-  setTimeout(() => drumScrollTo(90, false), 50);
-
+  const padB = document.createElement('div'); padB.className = 'drum-pad'; scroll.appendChild(padB);
+  wizGymDur = 60;
+  setTimeout(() => wizGymDrumScrollTo(60, false), 50);
   scroll.addEventListener('scroll', () => {
-    clearTimeout(drumScrollTimer);
-    drumScrollTimer = setTimeout(() => snapDrum(), 120);
+    clearTimeout(wizGymDrumTimer);
+    wizGymDrumTimer = setTimeout(() => wizGymSnapDrum(), 120);
   });
 }
 
-function drumScrollTo(minutes, animate = true) {
-  const scroll = document.getElementById('duration-drum-scroll');
+function wizGymDrumScrollTo(minutes, animate = true) {
+  const scroll = document.getElementById('wiz-gym-dur-drum');
   if (!scroll) return;
   const idx = Math.round((minutes - 10) / 5);
-  const targetTop = idx * 40;
-  if (animate) {
-    scroll.scrollTo({ top: targetTop, behavior: 'smooth' });
-  } else {
-    scroll.scrollTop = targetTop;
-  }
-  selectedDuration = minutes;
-  updateDrumHighlight(minutes);
+  if (animate) scroll.scrollTo({ top: idx*40, behavior: 'smooth' });
+  else scroll.scrollTop = idx * 40;
+  wizGymDur = minutes;
+  wizGymUpdateHighlight(minutes);
 }
 
-function snapDrum() {
-  const scroll = document.getElementById('duration-drum-scroll');
+function wizGymSnapDrum() {
+  const scroll = document.getElementById('wiz-gym-dur-drum');
   if (!scroll) return;
   const idx = Math.round(scroll.scrollTop / 40);
   const minutes = Math.max(10, Math.min(180, 10 + idx * 5));
-  scroll.scrollTo({ top: idx * 40, behavior: 'smooth' });
-  selectedDuration = minutes;
-  updateDrumHighlight(minutes);
+  scroll.scrollTo({ top: idx*40, behavior: 'smooth' });
+  wizGymDur = minutes;
+  wizGymUpdateHighlight(minutes);
 }
 
-function updateDrumHighlight(minutes) {
-  document.querySelectorAll('.drum-item').forEach(item => {
-    const active = parseInt(item.dataset.val) === minutes;
-    item.classList.toggle('sel', active);
+function wizGymUpdateHighlight(minutes) {
+  const scroll = document.getElementById('wiz-gym-dur-drum');
+  if (scroll) scroll.querySelectorAll('.drum-item').forEach(it => {
+    it.classList.toggle('sel', parseInt(it.dataset.val) === minutes);
   });
-  const disp = document.getElementById('duration-disp');
+  const disp = document.getElementById('wiz-gym-dur-disp');
   if (disp) disp.textContent = minutes + '분';
 }
 
-async function loadGpsDurationForToday() {
-  // GPS duration은 코치 앱 업로드 시 session_records.duration에 자동 반영됨
-  // 선수 앱에서는 별도 처리 불필요
-}
-
-function calcHydro() {
-  const post = parseFloat(document.getElementById('post-weight').value);
-  if (isNaN(post)) { document.getElementById('hydro-grid').style.display = 'none'; return; }
+/* ── 수분 계산 (STEP 4) ── */
+function wizCalcHydro() {
+  const post = parseFloat(document.getElementById('wiz-post-weight')?.value);
+  const prev = document.getElementById('wiz-hydro-preview');
+  if (isNaN(post)) { if (prev) prev.style.display = 'none'; return; }
   const morning = morningWeightToday || post;
   const diff    = Math.max(morning - post, 0);
   const water   = Math.round(diff * 1500);
-  const now     = Math.round(water * 0.6 / 100) * 100;
-
-  document.getElementById('hydro-grid').style.display = 'grid';
-  document.getElementById('h-loss').innerHTML     = diff.toFixed(1) + ' <span class="hydro-unit">kg</span>';
-  document.getElementById('h-loss-sub').textContent = `${morning} → ${post} kg`;
-  document.getElementById('h-water').innerHTML    = water + ' <span class="hydro-unit">ml</span>';
-  document.getElementById('h-water-sub').textContent = currentLang === 'ko'
-    ? `지금 ${now} + 이후 ${water - now}`
-    : currentLang === 'pt'
-    ? `Agora ${now} + Depois ${water - now}`
-    : `Now ${now} + Later ${water - now}`;
+  const nowMl   = Math.round(water * 0.6 / 100) * 100;
+  if (prev) prev.style.display = 'block';
+  const el = id => document.getElementById(id);
+  el('wiz-ph-loss').textContent     = diff.toFixed(1) + ' kg';
+  el('wiz-ph-loss-sub').textContent = `${morning} → ${post} kg`;
+  el('wiz-ph-water').textContent    = water + ' ml';
+  el('wiz-ph-split').textContent    = `지금 ${nowMl}ml + 이후 ${water-nowMl}ml`;
 }
 
-async function saveRpe() {
-  if (!currentPlayer) return;
-  if (!selectedRpe) { showMsg('rpe-msg', 'err', T('rpeRequired')); return; }
-  const btn = document.getElementById('rpe-save-btn');
-  btn.disabled = true; btn.textContent = T('saving');
-
-  const postWt = parseFloat(document.getElementById('post-weight').value) || null;
-  const t = today();
-  const payload = {
-    player_id:    currentPlayer.id,
-    record_date:  t,
-    rpe:          selectedRpe,
-    session_type: selectedSessionType,
-    duration:     selectedDuration,
-    post_weight:  postWt,
-  };
-
-  const { error } = await supa.from('session_records').insert(payload);
-  btn.disabled = false; btn.textContent = T('saveSession');
-  if (error) {
-    showMsg('rpe-msg', 'err', T('saveFailMsg') + error.message);
-  } else {
-    showMsg('rpe-msg', 'ok', T('saveOkRpe') + selectedRpe + ' · ' + selectedSessionType);
-    loadRpeHistory();
-    renderRpeBanner({ rpe: selectedRpe, session_type: selectedSessionType, created_at: new Date().toISOString() });
-  }
-}
-
-async function deleteRpe(id) {
-  if (!confirm(T('deleteConfirmMsg'))) return;
-  const { error } = await supa.from('session_records').delete().eq('id', id);
-  if (error) {
-    showMsg('rpe-msg', 'err', T('deleteFailMsg') + error.message);
-  } else {
-    showMsg('rpe-msg', 'ok', T('deleteOkMsg'));
-    selectedRpe = null;
-    // RPE 선택 초기화
-    document.querySelectorAll('.rpe-seg').forEach(s => s.classList.remove('sel'));
-    document.getElementById('rpe-disp').textContent = T('rpeSelectPrompt');
-    document.getElementById('rpe-big-num').textContent = '—';
-    document.getElementById('rpe-big-num').style.color = 'var(--text3)';
-    document.getElementById('rpe-label').textContent = T('rpeTap');
-    document.getElementById('rpe-label').style.color = 'var(--text3)';
-    document.getElementById('rpe-sub').textContent = T('rpeRange');
-    document.getElementById('rpe-sub').style.color = 'var(--text3)';
-    document.getElementById('post-weight').value = '';
-    document.getElementById('hydro-grid').style.display = 'none';
-    // 운동 시간 초기화 (GK/개인훈련이면 드럼 90분으로 리셋)
-    const isGK = (currentPlayer?.position || '').trim().toUpperCase() === 'GK';
-    if (isGK || selectedSessionType === '개인훈련') {
-      drumScrollTo(90);
+/* ── 저장 ── */
+async function wizNext() {
+  const step = wizStep;
+  if (step === 1) {
+    if (!wizTime) { showMsg('wiz-msg','err','훈련 시간을 선택하세요'); return; }
+    wizGoToStep(2);
+  } else if (step === 2) {
+    if (!wizCombo) { showMsg('wiz-msg','err','세션 구성을 선택하세요'); return; }
+    wizGoToStep(3);
+  } else if (step === 3) {
+    if (wizCombo !== 'gym' && !wizFieldRpe) { showMsg('wiz-msg','err','필드 RPE를 선택하세요'); return; }
+    if (wizCombo !== 'field' && !wizGymRpe) { showMsg('wiz-msg','err','GYM RPE를 선택하세요'); return; }
+    if (wizCombo === 'gym') {
+      await wizSave();
     } else {
-      selectedDuration = null;
+      wizGoToStep(4);
     }
-    loadRpeHistory();
+  } else if (step === 4) {
+    await wizSave();
   }
+}
+
+function wizBack() {
+  const step = wizStep;
+  if (step <= 1) return;
+  let prev = step - 1;
+  if (step === 5 && wizCombo === 'gym') prev = 3;
+  wizGoToStep(prev);
+}
+
+async function wizSave() {
+  const nextBtn = document.getElementById('wiz-next');
+  if (nextBtn) nextBtn.disabled = true;
+
+  const t = today();
+  const records = [];
+
+  if (wizCombo === 'field') {
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizFieldRpe, session_type: wizTime, duration: null });
+  } else if (wizCombo === 'gym') {
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizGymRpe, session_type: 'GYM', duration: wizGymDur });
+  } else if (wizCombo === 'gym_field') {
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizGymRpe,   session_type: 'GYM', duration: wizGymDur });
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizFieldRpe, session_type: wizTime, duration: null });
+  } else if (wizCombo === 'field_gym') {
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizFieldRpe, session_type: wizTime, duration: null });
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizGymRpe,   session_type: 'GYM', duration: wizGymDur });
+  }
+
+  // 운동후 체중을 필드 레코드에 첨부
+  const postWt = parseFloat(document.getElementById('wiz-post-weight')?.value) || null;
+  if (postWt !== null) {
+    const fieldRec = records.find(r => r.session_type !== 'GYM');
+    if (fieldRec) fieldRec.post_weight = postWt;
+  }
+
+  const { error } = await supa.from('session_records').insert(records);
+  if (nextBtn) nextBtn.disabled = false;
+
+  if (error) {
+    showMsg('wiz-msg','err','저장 실패: ' + error.message);
+    return;
+  }
+
+  // 수분 데이터 계산
+  if (postWt !== null) {
+    const morning = morningWeightToday || postWt;
+    const diff    = Math.max(morning - postWt, 0);
+    const water   = Math.round(diff * 1500);
+    const nowMl   = Math.round(water * 0.6 / 100) * 100;
+    wizHydroData  = { loss: diff, water, nowMl, later: water - nowMl };
+    wizUpdateHydroBanner();
+  }
+
+  // STEP 5 완료 화면 업데이트
+  const comboNames = { field:'필드만', gym:'GYM만', gym_field:'GYM→필드', field_gym:'필드→GYM' };
+  const sumEl = document.getElementById('wiz-done-summary');
+  if (sumEl) sumEl.textContent = `${wizTime} · ${comboNames[wizCombo] || wizCombo}`;
+  const s5h = document.getElementById('wiz-s5-hydro');
+  if (s5h) {
+    if (wizHydroData) {
+      document.getElementById('wiz-s5-loss').textContent  = wizHydroData.loss.toFixed(1) + ' kg';
+      document.getElementById('wiz-s5-now').textContent   = wizHydroData.nowMl + ' ml';
+      document.getElementById('wiz-s5-later').textContent = wizHydroData.later + ' ml';
+      s5h.style.display = 'block';
+    } else {
+      s5h.style.display = 'none';
+    }
+  }
+
+  await loadWizTodaySessions();
+  wizGoToStep(5);
+}
+
+function wizUpdateHydroBanner() {
+  if (!wizHydroData) { document.getElementById('wiz-hydro-banner').style.display = 'none'; return; }
+  document.getElementById('wiz-hydro-banner').style.display = 'block';
+  document.getElementById('wiz-h-loss').textContent  = wizHydroData.loss.toFixed(1) + ' kg';
+  document.getElementById('wiz-h-now').textContent   = wizHydroData.nowMl + ' ml';
+  document.getElementById('wiz-h-later').textContent = wizHydroData.later + ' ml';
+}
+
+async function loadWizTodaySessions() {
+  if (!currentPlayer) return;
+  const t = today();
+  const [{ data: recs }, { data: wellData }] = await Promise.all([
+    supa.from('session_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).order('created_at'),
+    supa.from('wellness_records').select('morning_weight').eq('player_id', currentPlayer.id).eq('record_date', t).single()
+  ]);
+  if (wellData?.morning_weight) morningWeightToday = wellData.morning_weight;
+  wizTodayRecs = recs || [];
+
+  // 오늘 세션 목록 렌더링
+  const listEl = document.getElementById('wiz-today-list');
+  if (listEl) {
+    if (!wizTodayRecs.length) {
+      listEl.innerHTML = '<div style="padding:14px;text-align:center;font-size:12px;color:var(--text3);">저장된 세션이 없습니다</div>';
+    } else {
+      listEl.innerHTML = wizTodayRecs.map(r => {
+        const d    = r.rpe ? getRpeData()[r.rpe] : null;
+        const srpe = (r.duration && r.rpe) ? r.duration * r.rpe : null;
+        const info = [
+          r.duration ? r.duration + 'min' : 'GPS 자동',
+          srpe ? 'sRPE ' + srpe : null
+        ].filter(Boolean).join(' · ');
+        return `<div class="wiz-today-row">
+          <div class="wiz-today-type">${r.session_type||'—'}</div>
+          <div class="wiz-today-rpe" style="color:${d?.c||'var(--text)'};">${r.rpe||'—'}</div>
+          <div class="wiz-today-info">${info}</div>
+          <button class="wiz-today-del" onclick="wizDeleteSession('${r.id}')">삭제</button>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // 수분 배너: 오늘 post_weight 있는 필드 세션 확인
+  if (!wizHydroData) {
+    const fw = wizTodayRecs.find(r => r.post_weight && r.session_type !== 'GYM');
+    if (fw) {
+      const morning = morningWeightToday || fw.post_weight;
+      const diff    = Math.max(morning - fw.post_weight, 0);
+      const water   = Math.round(diff * 1500);
+      const nowMl   = Math.round(water * 0.6 / 100) * 100;
+      wizHydroData  = { loss: diff, water, nowMl, later: water - nowMl };
+      wizUpdateHydroBanner();
+    }
+  }
+
+  renderRpeBanner(wizTodayRecs[wizTodayRecs.length-1] || null);
+  loadRpeHistory();
+}
+
+async function wizDeleteSession(id) {
+  if (!confirm('이 세션을 삭제하시겠습니까?')) return;
+  const { error } = await supa.from('session_records').delete().eq('id', id);
+  if (error) { alert('삭제 실패: ' + error.message); return; }
+  wizHydroData = null;
+  await loadWizTodaySessions();
+  wizUpdateHydroBanner();
+  if (wizStep === 5) wizReset();
 }
 
 async function loadRpeHistory() {
@@ -3197,7 +3560,7 @@ async function loadRpeHistory() {
     const rpeData  = r.rpe ? getRpeData()[r.rpe] : null;
     const isToday  = r.record_date === today();
     const delBtn   = isToday
-      ? `<button class="rpe-del-btn" onclick="deleteRpe('${r.id}')">${T('cancelRpe')}</button>`
+      ? `<button class="rpe-del-btn" onclick="wizDeleteSession('${r.id}')">${T('cancelRpe')}</button>`
       : '';
     const srpe     = (r.duration && r.rpe) ? r.duration * r.rpe : null;
     const typeParts = [r.session_type || '', r.duration ? r.duration+'min' : '', isToday ? T('today') : T('gpsDone')].filter(Boolean);
