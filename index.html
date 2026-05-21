@@ -1708,6 +1708,8 @@ const LANG_STRINGS = {
     gpsMatch:       '경기',
     gpsDone:        '완료',
     gpsPlan:        '예정',
+    home:           '홈',
+    away:           '원정',
     gpsNoSession:   '세션 데이터 없음',
     gpsTapDone:     '위 표에서 완료된 세션을 탭하세요',
     gpsNoDetailMsg: '세션을 탭하면 데이터가 표시됩니다',
@@ -1946,6 +1948,8 @@ const LANG_STRINGS = {
     gpsMatch:       'Match',
     gpsDone:        'Done',
     gpsPlan:        'Planned',
+    home:           'Home',
+    away:           'Away',
     gpsNoSession:   'No session data',
     gpsTapDone:     'Tap a completed session above',
     gpsNoDetailMsg: 'Tap a session to view data',
@@ -2184,6 +2188,8 @@ const LANG_STRINGS = {
     gpsMatch:       'Jogo',
     gpsDone:        'Concluído',
     gpsPlan:        'Planejado',
+    home:           'Casa',
+    away:           'Fora',
     gpsNoSession:   'Sem dados da sessão',
     gpsTapDone:     'Toque em uma sessão concluída acima',
     gpsNoDetailMsg: 'Toque em uma sessão para ver os dados',
@@ -3727,6 +3733,7 @@ function setGpsFilter(filter, el) {
 async function loadGps() {
   if (!currentPlayer) return;
   const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
   let since;
   if (gpsFilter === 'week') {
     since = new Date(now); since.setDate(now.getDate() - 7);
@@ -3735,13 +3742,47 @@ async function loadGps() {
   } else {
     since = new Date(now.getFullYear(), now.getMonth(), 1);
   }
+  // 타임존 안전 날짜 문자열 (toISOString은 UTC 변환으로 하루 밀릴 수 있음)
+  const sinceStr = `${since.getFullYear()}-${pad(since.getMonth()+1)}-${pad(since.getDate())}`;
 
-  const { data } = await supa.from('gps_records')
-    .select('*').eq('player_id', currentPlayer.id)
-    .gte('session_date', since.toISOString().split('T')[0])
-    .order('session_date', { ascending: false });
+  const [{ data: trainData }, { data: matchData }] = await Promise.all([
+    supa.from('gps_records')
+      .select('*').eq('player_id', currentPlayer.id)
+      .gte('session_date', sinceStr)
+      .order('session_date', { ascending: false }),
+    supa.from('match_records')
+      .select('match_date,td,hir_sprint,band4_td,band5_td,max_speed,rhie,accel,duration,player_load,opponent,home_away,time_type,score,result')
+      .eq('player_id', currentPlayer.id)
+      .gte('match_date', sinceStr)
+      .eq('time_type', 'FT')  // 풀타임 기록만
+      .order('match_date', { ascending: false })
+  ]);
 
-  gpsRows = data || [];
+  // match_records → gps_records 형식으로 정규화
+  const matchRows = (matchData || []).map(r => ({
+    session_date: r.match_date,
+    cycle: 'MD',
+    _isMatchRecord: true,
+    td:           r.td,
+    running_high: r.band4_td || r.hir_sprint,  // HSR 대역
+    sprint:       r.band5_td,                   // Sprint 대역
+    srpe:         null,
+    max_speed:    r.max_speed,
+    rhie:         r.rhie,
+    accel:        r.accel,
+    duration:     r.duration,
+    player_load:  r.player_load,
+    opponent:     r.opponent,
+    home_away:    r.home_away,
+    score:        r.score,
+    result:       r.result,
+  }));
+
+  // 훈련 + 경기 합쳐서 날짜 내림차순 정렬
+  const combined = [...(trainData || []), ...matchRows]
+    .sort((a, b) => (b.session_date > a.session_date ? 1 : -1));
+
+  gpsRows = combined;
   renderGpsTable();
 }
 
@@ -3833,7 +3874,8 @@ function renderGpsDetail(r) {
   // cycle = MD 단계, periodization = 라운드+상대 (R1 김해FC)
   const isMatch     = r.cycle === 'MD';
   const cycleLabel  = r.cycle || '';
-  const opponent    = r.periodization || '';  // R1 김해FC 등
+  // match_records는 opponent 필드, gps_records는 periodization 필드 사용
+  const opponent    = r._isMatchRecord ? (r.opponent || '') : (r.periodization || '');
 
   // 타이틀: 날짜 · MD단계 · 상대팀
   const titleParts = [formatDate(r.session_date)];
@@ -3842,8 +3884,17 @@ function renderGpsDetail(r) {
   title.textContent = titleParts.join(' · ');
   title.style.color = isMatch ? 'var(--purple)' : 'var(--blue)';
 
-  // 메타: 훈련형태 · 훈련주제 · 시간
-  const metaParts = [r.training_form, r.session_topic, r.duration ? r.duration+'min' : null].filter(Boolean);
+  // 메타: match_records는 경기결과, gps_records는 훈련형태·주제·시간
+  let metaParts;
+  if (r._isMatchRecord) {
+    const ha     = r.home_away === 'H' ? T('home') : r.home_away === 'A' ? T('away') : '';
+    const score  = r.score  || '';
+    const result = r.result || '';
+    const dur    = r.duration ? r.duration+'min' : '';
+    metaParts = [ha, score, result, dur].filter(Boolean);
+  } else {
+    metaParts = [r.training_form, r.session_topic, r.duration ? r.duration+'min' : null].filter(Boolean);
+  }
   meta.textContent = metaParts.join(' · ');
 
   // GPS 수치 (% 없이 수치만)
