@@ -1100,18 +1100,18 @@ button { cursor: pointer; border: none; background: transparent; }
 
   <!-- 수분 배너 (오늘 체중 기록 시 하루 종일 표시) -->
   <div id="wiz-hydro-banner" style="display:none;border-radius:12px;background:#0b1e12;border:1px solid var(--green);padding:12px 14px;margin-bottom:10px;">
-    <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:8px;">💧 오늘 수분 보충 가이드</div>
+    <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:8px;" data-i18n="wizHydroTitleDay">💧 오늘 수분 보충 가이드</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
       <div style="background:#0e2818;border-radius:8px;padding:8px 10px;text-align:center;">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">체중 감소</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;" data-i18n="wizHydroLoss">체중 감소</div>
         <div style="font-size:14px;font-weight:600;color:var(--blue);" id="wiz-h-loss">—</div>
       </div>
       <div style="background:#0e2818;border-radius:8px;padding:8px 10px;text-align:center;">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">지금 섭취</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;" data-i18n="wizHydroNow">지금 섭취</div>
         <div style="font-size:14px;font-weight:600;color:var(--green);" id="wiz-h-now">—</div>
       </div>
       <div style="background:#0e2818;border-radius:8px;padding:8px 10px;text-align:center;">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">이후 섭취</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;" data-i18n="wizHydroLater">이후 섭취</div>
         <div style="font-size:14px;font-weight:600;color:var(--amber);" id="wiz-h-later">—</div>
       </div>
     </div>
@@ -1120,11 +1120,11 @@ button { cursor: pointer; border: none; background: transparent; }
   <!-- 오늘 저장된 세션 -->
   <div class="card" id="wiz-today-card">
     <div class="card-head">
-      <span class="card-title">오늘 세션</span>
-      <button class="filter-btn" style="padding:3px 10px;font-size:11px;" onclick="wizReset()">+ 세션 추가</button>
+      <span class="card-title" data-i18n="wizTodayTitle">오늘 세션</span>
+      <button class="filter-btn" style="padding:3px 10px;font-size:11px;" onclick="wizReset()" data-i18n="wizAddSession">+ 세션 추가</button>
     </div>
     <div id="wiz-today-list">
-      <div style="padding:14px;text-align:center;font-size:12px;color:var(--text3);">저장된 세션이 없습니다</div>
+      <div style="padding:14px;text-align:center;font-size:12px;color:var(--text3);" data-i18n="wizNoSession">저장된 세션이 없습니다</div>
     </div>
   </div>
 
@@ -1138,10 +1138,10 @@ button { cursor: pointer; border: none; background: transparent; }
     <div id="wiz-s1">
       <div style="display:flex;gap:10px;padding:0 14px 14px;">
         <button class="wiz-time-btn" id="wiz-am-btn" onclick="wizSelectTime('AM')">
-          AM<span>오전 훈련</span>
+          AM<span data-i18n="wizAmLabel">오전 훈련</span>
         </button>
         <button class="wiz-time-btn" id="wiz-pm-btn" onclick="wizSelectTime('PM')">
-          PM<span>오후 훈련</span>
+          PM<span data-i18n="wizPmLabel">오후 훈련</span>
         </button>
       </div>
     </div>
@@ -1150,16 +1150,16 @@ button { cursor: pointer; border: none; background: transparent; }
     <div id="wiz-s2" style="display:none;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 14px;">
         <button class="wiz-combo-btn" id="wiz-c-field" onclick="wizSelectCombo('field')">
-          <span style="font-size:22px;">⚽</span>필드만
+          <span style="font-size:22px;">⚽</span><span data-i18n="wizFieldOnly">필드만</span>
         </button>
         <button class="wiz-combo-btn" id="wiz-c-gym" onclick="wizSelectCombo('gym')">
-          <span style="font-size:22px;">🏋️</span>GYM만
+          <span style="font-size:22px;">🏋️</span><span data-i18n="wizGymOnly">GYM만</span>
         </button>
         <button class="wiz-combo-btn" id="wiz-c-gym_field" onclick="wizSelectCombo('gym_field')">
-          <span style="font-size:18px;">🏋️→⚽</span>GYM 후 필드
+          <span style="font-size:18px;">🏋️→⚽</span><span data-i18n="wizGymField">GYM 후 필드</span>
         </button>
         <button class="wiz-combo-btn" id="wiz-c-field_gym" onclick="wizSelectCombo('field_gym')">
-          <span style="font-size:18px;">⚽→🏋️</span>필드 후 GYM
+          <span style="font-size:18px;">⚽→🏋️</span><span data-i18n="wizFieldGym">필드 후 GYM</span>
         </button>
       </div>
     </div>
@@ -1168,46 +1168,46 @@ button { cursor: pointer; border: none; background: transparent; }
     <div id="wiz-s3" style="display:none;">
       <!-- 필드 RPE (field / gym_field / field_gym) -->
       <div id="wiz-field-block" style="padding:0 14px 14px;">
-        <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;margin-bottom:8px;">⚽ 필드 RPE</div>
-        <div id="wiz-field-rpe-disp" style="font-size:11px;font-weight:500;color:var(--purple);margin-bottom:6px;">— 선택하세요</div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;margin-bottom:8px;" data-i18n="wizFieldRpeLabel">⚽ 필드 RPE</div>
+        <div id="wiz-field-rpe-disp" style="font-size:11px;font-weight:500;color:var(--purple);margin-bottom:6px;" data-i18n="rpeSelectPrompt">— 선택하세요</div>
         <div class="rpe-scale-bar" id="wiz-field-rpe-bar"></div>
         <div class="rpe-nums" id="wiz-field-rpe-nums"></div>
         <div class="rpe-zones" style="margin-top:5px;">
-          <div class="rpe-zone" style="flex:3;color:var(--green);background:#0e2015;">쉬움 1–3</div>
-          <div class="rpe-zone" style="flex:3;color:var(--amber);background:#261c08;">보통 4–6</div>
-          <div class="rpe-zone" style="flex:2;color:var(--purple);background:#1e1040;">힘듦 7–8</div>
-          <div class="rpe-zone" style="flex:2;color:var(--red);background:#300808;">한계 9–10</div>
+          <div class="rpe-zone" style="flex:3;color:var(--green);background:#0e2015;" data-i18n="rpeEasy">쉬움 1–3</div>
+          <div class="rpe-zone" style="flex:3;color:var(--amber);background:#261c08;" data-i18n="rpeMod">보통 4–6</div>
+          <div class="rpe-zone" style="flex:2;color:var(--purple);background:#1e1040;" data-i18n="rpeHard">힘듦 7–8</div>
+          <div class="rpe-zone" style="flex:2;color:var(--red);background:#300808;" data-i18n="rpeMax">한계 9–10</div>
         </div>
         <div class="rpe-desc-box" id="wiz-field-desc-box" style="background:#1a1e30;border:0.5px solid #2a3050;margin-top:8px;">
           <div class="rpe-big-num" id="wiz-field-big-num" style="color:var(--text3);">—</div>
           <div>
-            <div class="rpe-label" id="wiz-field-lbl" style="color:var(--text3);">탭하여 선택</div>
-            <div class="rpe-sub"   id="wiz-field-sub" style="color:var(--text3);">1 = 매우 쉬움 · 10 = 절대 최대</div>
+            <div class="rpe-label" id="wiz-field-lbl" style="color:var(--text3);" data-i18n="rpeTap">탭하여 선택</div>
+            <div class="rpe-sub"   id="wiz-field-sub" style="color:var(--text3);" data-i18n="rpeRange">1 = 매우 쉬움 · 10 = 절대 최대</div>
           </div>
         </div>
       </div>
       <!-- GYM RPE (gym / gym_field / field_gym) -->
       <div id="wiz-gym-block" style="padding:0 14px 14px;border-top:0.5px solid var(--border2);">
-        <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;margin:10px 0 8px;">🏋️ GYM RPE</div>
-        <div id="wiz-gym-rpe-disp" style="font-size:11px;font-weight:500;color:var(--purple);margin-bottom:6px;">— 선택하세요</div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;margin:10px 0 8px;" data-i18n="wizGymRpeLabel">🏋️ GYM RPE</div>
+        <div id="wiz-gym-rpe-disp" style="font-size:11px;font-weight:500;color:var(--purple);margin-bottom:6px;" data-i18n="rpeSelectPrompt">— 선택하세요</div>
         <div class="rpe-scale-bar" id="wiz-gym-rpe-bar"></div>
         <div class="rpe-nums" id="wiz-gym-rpe-nums"></div>
         <div class="rpe-zones" style="margin-top:5px;">
-          <div class="rpe-zone" style="flex:3;color:var(--green);background:#0e2015;">쉬움 1–3</div>
-          <div class="rpe-zone" style="flex:3;color:var(--amber);background:#261c08;">보통 4–6</div>
-          <div class="rpe-zone" style="flex:2;color:var(--purple);background:#1e1040;">힘듦 7–8</div>
-          <div class="rpe-zone" style="flex:2;color:var(--red);background:#300808;">한계 9–10</div>
+          <div class="rpe-zone" style="flex:3;color:var(--green);background:#0e2015;" data-i18n="rpeEasy">쉬움 1–3</div>
+          <div class="rpe-zone" style="flex:3;color:var(--amber);background:#261c08;" data-i18n="rpeMod">보통 4–6</div>
+          <div class="rpe-zone" style="flex:2;color:var(--purple);background:#1e1040;" data-i18n="rpeHard">힘듦 7–8</div>
+          <div class="rpe-zone" style="flex:2;color:var(--red);background:#300808;" data-i18n="rpeMax">한계 9–10</div>
         </div>
         <div class="rpe-desc-box" id="wiz-gym-desc-box" style="background:#1a1e30;border:0.5px solid #2a3050;margin-top:8px;">
           <div class="rpe-big-num" id="wiz-gym-big-num" style="color:var(--text3);">—</div>
           <div>
-            <div class="rpe-label" id="wiz-gym-lbl" style="color:var(--text3);">탭하여 선택</div>
-            <div class="rpe-sub"   id="wiz-gym-sub" style="color:var(--text3);">1 = 매우 쉬움 · 10 = 절대 최대</div>
+            <div class="rpe-label" id="wiz-gym-lbl" style="color:var(--text3);" data-i18n="rpeTap">탭하여 선택</div>
+            <div class="rpe-sub"   id="wiz-gym-sub" style="color:var(--text3);" data-i18n="rpeRange">1 = 매우 쉬움 · 10 = 절대 최대</div>
           </div>
         </div>
         <!-- GYM 운동 시간 -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;margin-bottom:6px;">
-          <span style="font-size:11px;color:var(--text3);">🕐 GYM 운동 시간</span>
+          <span style="font-size:11px;color:var(--text3);" data-i18n="wizGymDurLabel">🕐 GYM 운동 시간</span>
           <span id="wiz-gym-dur-disp" style="font-size:14px;font-weight:600;color:var(--blue);">60분</span>
         </div>
         <div class="drum-picker-wrap" style="height:120px;">
@@ -1222,7 +1222,7 @@ button { cursor: pointer; border: none; background: transparent; }
     <!-- STEP 4: 운동후 체중 -->
     <div id="wiz-s4" style="display:none;">
       <div style="padding:0 14px 14px;">
-        <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;margin-bottom:12px;">🏃 운동후 체중 측정</div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;margin-bottom:12px;" data-i18n="wizPostWtLabel">🏃 운동후 체중 측정</div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
           <input class="num-input" type="number" step="0.1" id="wiz-post-weight" placeholder="0.0" style="flex:1;" oninput="wizCalcHydro()">
           <span style="font-size:13px;color:var(--text3);">kg</span>
@@ -1230,18 +1230,18 @@ button { cursor: pointer; border: none; background: transparent; }
         <div id="wiz-hydro-preview" style="display:none;">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
             <div style="background:#0b1e12;border:1px solid #1a4028;border-radius:8px;padding:10px;">
-              <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">체중 감소</div>
+              <div style="font-size:10px;color:var(--text3);margin-bottom:3px;" data-i18n="wizHydroLoss">체중 감소</div>
               <div style="font-size:16px;font-weight:600;color:var(--blue);" id="wiz-ph-loss">—</div>
               <div style="font-size:10px;color:var(--text3);margin-top:2px;" id="wiz-ph-loss-sub"></div>
             </div>
             <div style="background:#0b1e12;border:1px solid #1a4028;border-radius:8px;padding:10px;">
-              <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">수분 보충</div>
+              <div style="font-size:10px;color:var(--text3);margin-bottom:3px;" data-i18n="wizHydroRec">수분 보충</div>
               <div style="font-size:16px;font-weight:600;color:var(--green);" id="wiz-ph-water">—</div>
               <div style="font-size:10px;color:var(--text3);margin-top:2px;" id="wiz-ph-split"></div>
             </div>
           </div>
         </div>
-        <div style="font-size:10px;color:var(--text3);margin-top:8px;">* 체중 미측정 시 건너뛸 수 있습니다</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:8px;" data-i18n="wizWeightSkip">* 체중 미측정 시 건너뛸 수 있습니다</div>
       </div>
     </div>
 
@@ -1249,22 +1249,22 @@ button { cursor: pointer; border: none; background: transparent; }
     <div id="wiz-s5" style="display:none;">
       <div style="padding:8px 14px 16px;text-align:center;">
         <div style="font-size:40px;margin-bottom:10px;">✅</div>
-        <div style="font-size:16px;font-weight:600;color:var(--green);margin-bottom:6px;">세션 저장 완료!</div>
+        <div style="font-size:16px;font-weight:600;color:var(--green);margin-bottom:6px;" data-i18n="wizSaveOk">세션 저장 완료!</div>
         <div id="wiz-done-summary" style="font-size:12px;color:var(--text3);margin-bottom:14px;"></div>
         <!-- 수분 가이드 (step5) -->
         <div id="wiz-s5-hydro" style="display:none;background:#0b1e12;border:1px solid var(--green);border-radius:10px;padding:12px;text-align:left;">
-          <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:8px;">💧 수분 보충 가이드</div>
+          <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:8px;" data-i18n="wizHydroTitle">💧 수분 보충 가이드</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
             <div style="text-align:center;">
-              <div style="font-size:10px;color:var(--text3);">체중 감소</div>
+              <div style="font-size:10px;color:var(--text3);" data-i18n="wizHydroLoss">체중 감소</div>
               <div style="font-size:14px;font-weight:600;color:var(--blue);" id="wiz-s5-loss">—</div>
             </div>
             <div style="text-align:center;">
-              <div style="font-size:10px;color:var(--text3);">지금</div>
+              <div style="font-size:10px;color:var(--text3);" data-i18n="wizHydroNow">지금</div>
               <div style="font-size:14px;font-weight:600;color:var(--green);" id="wiz-s5-now">—</div>
             </div>
             <div style="text-align:center;">
-              <div style="font-size:10px;color:var(--text3);">이후</div>
+              <div style="font-size:10px;color:var(--text3);" data-i18n="wizHydroLater">이후</div>
               <div style="font-size:14px;font-weight:600;color:var(--amber);" id="wiz-s5-later">—</div>
             </div>
           </div>
@@ -1274,8 +1274,8 @@ button { cursor: pointer; border: none; background: transparent; }
 
     <!-- 내비게이션 -->
     <div style="display:flex;gap:8px;padding:4px 14px 14px;" id="wiz-nav">
-      <button class="wiz-back-btn" id="wiz-back" onclick="wizBack()">← 이전</button>
-      <button class="wiz-next-btn" id="wiz-next" onclick="wizNext()">다음 →</button>
+      <button class="wiz-back-btn" id="wiz-back" onclick="wizBack()" data-i18n="wizBtnPrev">← 이전</button>
+      <button class="wiz-next-btn" id="wiz-next" onclick="wizNext()" data-i18n="wizBtnNext">다음 →</button>
     </div>
     <div class="msg-box" id="wiz-msg"></div>
   </div>
@@ -1765,6 +1765,50 @@ const LANG_STRINGS = {
     rxCoachLabel:   '코치 처방',
     rxAerLabel2:    '유산소 처방',
     rxCoachPoint:   '코칭 포인트',
+    // RPE 마법사
+    wizTodayTitle:   '오늘 세션',
+    wizAddSession:   '+ 세션 추가',
+    wizNoSession:    '저장된 세션이 없습니다',
+    wizStepTime:     '훈련 시간 선택',
+    wizStepCombo:    '세션 구성 선택',
+    wizStepRpe:      'RPE 입력',
+    wizStepWeight:   '운동후 체중',
+    wizStepDone:     '저장 완료',
+    wizAmLabel:      '오전 훈련',
+    wizPmLabel:      '오후 훈련',
+    wizFieldOnly:    '필드만',
+    wizGymOnly:      'GYM만',
+    wizGymField:     'GYM 후 필드',
+    wizFieldGym:     '필드 후 GYM',
+    wizFieldRpeLabel:'⚽ 필드 RPE',
+    wizGymRpeLabel:  '🏋️ GYM RPE',
+    wizGymDurLabel:  '🕐 GYM 운동 시간',
+    wizPostWtLabel:  '🏃 운동후 체중 측정',
+    wizWeightSkip:   '* 체중 미측정 시 건너뛸 수 있습니다',
+    wizHydroTitleDay:'💧 오늘 수분 보충 가이드',
+    wizHydroTitle:   '💧 수분 보충 가이드',
+    wizHydroLoss:    '체중 감소',
+    wizHydroNow:     '지금 섭취',
+    wizHydroLater:   '이후 섭취',
+    wizHydroRec:     '수분 보충',
+    wizSaveOk:       '세션 저장 완료!',
+    wizBtnPrev:      '← 이전',
+    wizBtnNext:      '다음 →',
+    wizBtnSave:      '저장 →',
+    wizBtnAddMore:   '+ 세션 추가',
+    wizErrTime:      '훈련 시간을 선택하세요',
+    wizErrCombo:     '세션 구성을 선택하세요',
+    wizErrFieldRpe:  '필드 RPE를 선택하세요',
+    wizErrGymRpe:    'GYM RPE를 선택하세요',
+    wizDelConfirm:   '이 세션을 삭제하시겠습니까?',
+    wizDelFail:      '삭제 실패: ',
+    wizSaveFail:     '저장 실패: ',
+    wizGpsAuto:      'GPS 자동',
+    wizDel:          '삭제',
+    wizComboField:   '필드만',
+    wizComboGym:     'GYM만',
+    wizComboGymField:'GYM→필드',
+    wizComboFieldGym:'필드→GYM',
     // Pull-to-refresh
     pullRefresh:    '당겨서 새로고침',
     pullRelease:    '놓으면 새로고침',
@@ -1959,6 +2003,50 @@ const LANG_STRINGS = {
     rxCoachLabel:   'Coach Program',
     rxAerLabel2:    'Cardio Program',
     rxCoachPoint:   'Coaching Points',
+    // RPE 마법사
+    wizTodayTitle:   "Today's Sessions",
+    wizAddSession:   '+ Add Session',
+    wizNoSession:    'No sessions saved',
+    wizStepTime:     'Select Training Time',
+    wizStepCombo:    'Select Session Type',
+    wizStepRpe:      'Enter RPE',
+    wizStepWeight:   'Post-Exercise Weight',
+    wizStepDone:     'Session Saved',
+    wizAmLabel:      'Morning Training',
+    wizPmLabel:      'Afternoon Training',
+    wizFieldOnly:    'Field Only',
+    wizGymOnly:      'GYM Only',
+    wizGymField:     'GYM then Field',
+    wizFieldGym:     'Field then GYM',
+    wizFieldRpeLabel:'⚽ Field RPE',
+    wizGymRpeLabel:  '🏋️ GYM RPE',
+    wizGymDurLabel:  '🕐 GYM Duration',
+    wizPostWtLabel:  '🏃 Post-Exercise Weight',
+    wizWeightSkip:   '* You can skip if weight not measured',
+    wizHydroTitleDay:"💧 Today's Hydration Guide",
+    wizHydroTitle:   '💧 Hydration Guide',
+    wizHydroLoss:    'Weight Loss',
+    wizHydroNow:     'Drink Now',
+    wizHydroLater:   'Drink Later',
+    wizHydroRec:     'Hydration',
+    wizSaveOk:       'Session Saved!',
+    wizBtnPrev:      '← Back',
+    wizBtnNext:      'Next →',
+    wizBtnSave:      'Save →',
+    wizBtnAddMore:   '+ Add Session',
+    wizErrTime:      'Select training time',
+    wizErrCombo:     'Select session type',
+    wizErrFieldRpe:  'Select Field RPE',
+    wizErrGymRpe:    'Select GYM RPE',
+    wizDelConfirm:   'Delete this session?',
+    wizDelFail:      'Delete failed: ',
+    wizSaveFail:     'Save failed: ',
+    wizGpsAuto:      'GPS Auto',
+    wizDel:          'Delete',
+    wizComboField:   'Field Only',
+    wizComboGym:     'GYM Only',
+    wizComboGymField:'GYM→Field',
+    wizComboFieldGym:'Field→GYM',
     // Pull-to-refresh
     pullRefresh:    'Pull to refresh',
     pullRelease:    'Release to refresh',
@@ -2153,6 +2241,50 @@ const LANG_STRINGS = {
     rxCoachLabel:   'Programa do Técnico',
     rxAerLabel2:    'Programa Cardio',
     rxCoachPoint:   'Pontos de Treinamento',
+    // RPE 마법사
+    wizTodayTitle:   'Sessões de Hoje',
+    wizAddSession:   '+ Adicionar Sessão',
+    wizNoSession:    'Nenhuma sessão salva',
+    wizStepTime:     'Selecionar Horário',
+    wizStepCombo:    'Tipo de Sessão',
+    wizStepRpe:      'Inserir RPE',
+    wizStepWeight:   'Peso Pós-Exercício',
+    wizStepDone:     'Sessão Salva',
+    wizAmLabel:      'Treino Manhã',
+    wizPmLabel:      'Treino Tarde',
+    wizFieldOnly:    'Somente Campo',
+    wizGymOnly:      'Somente Academia',
+    wizGymField:     'Academia → Campo',
+    wizFieldGym:     'Campo → Academia',
+    wizFieldRpeLabel:'⚽ RPE Campo',
+    wizGymRpeLabel:  '🏋️ RPE Academia',
+    wizGymDurLabel:  '🕐 Duração Academia',
+    wizPostWtLabel:  '🏃 Peso Pós-Exercício',
+    wizWeightSkip:   '* Pode pular se não mediu o peso',
+    wizHydroTitleDay:'💧 Guia de Hidratação de Hoje',
+    wizHydroTitle:   '💧 Guia de Hidratação',
+    wizHydroLoss:    'Perda de Peso',
+    wizHydroNow:     'Beber Agora',
+    wizHydroLater:   'Beber Depois',
+    wizHydroRec:     'Hidratação',
+    wizSaveOk:       'Sessão Salva!',
+    wizBtnPrev:      '← Voltar',
+    wizBtnNext:      'Próximo →',
+    wizBtnSave:      'Salvar →',
+    wizBtnAddMore:   '+ Adicionar Sessão',
+    wizErrTime:      'Selecione o horário de treino',
+    wizErrCombo:     'Selecione o tipo de sessão',
+    wizErrFieldRpe:  'Selecione o RPE de Campo',
+    wizErrGymRpe:    'Selecione o RPE de Academia',
+    wizDelConfirm:   'Excluir esta sessão?',
+    wizDelFail:      'Falha ao excluir: ',
+    wizSaveFail:     'Falha ao salvar: ',
+    wizGpsAuto:      'GPS Auto',
+    wizDel:          'Excluir',
+    wizComboField:   'Somente Campo',
+    wizComboGym:     'Somente Academia',
+    wizComboGymField:'Academia→Campo',
+    wizComboFieldGym:'Campo→Academia',
     // Pull-to-refresh
     pullRefresh:    'Puxe para atualizar',
     pullRelease:    'Solte para atualizar',
@@ -3164,7 +3296,7 @@ function wizGoToStep(step) {
 
   wizUpdateStepDots();
 
-  const titles = ['','훈련 시간 선택','세션 구성 선택','RPE 입력','운동후 체중','저장 완료'];
+  const titles = ['', T('wizStepTime'), T('wizStepCombo'), T('wizStepRpe'), T('wizStepWeight'), T('wizStepDone')];
   const titleEl = document.getElementById('wiz-title');
   if (titleEl) titleEl.textContent = titles[step] || '';
 
@@ -3176,7 +3308,7 @@ function wizGoToStep(step) {
 
   if (step === 5) {
     nextBtn.className   = 'wiz-done-btn';
-    nextBtn.textContent = '+ 세션 추가';
+    nextBtn.textContent = T('wizBtnAddMore');
     nextBtn.onclick     = wizReset;
     nextBtn.disabled    = false;
   } else {
@@ -3184,11 +3316,11 @@ function wizGoToStep(step) {
     nextBtn.disabled    = false;
     nextBtn.onclick     = wizNext;
     if (step === 4) {
-      nextBtn.textContent = '저장 →';
+      nextBtn.textContent = T('wizBtnSave');
     } else if (step === 3 && wizCombo === 'gym') {
-      nextBtn.textContent = '저장 →';
+      nextBtn.textContent = T('wizBtnSave');
     } else {
-      nextBtn.textContent = '다음 →';
+      nextBtn.textContent = T('wizBtnNext');
     }
   }
 
@@ -3297,15 +3429,15 @@ function wizClearRpeBar(prefix) {
     seg.style.background = RPE_COLORS[i]+'28'; seg.style.boxShadow = 'none';
   });
   const disp = document.getElementById(prefix + '-rpe-disp');
-  if (disp) { disp.textContent = '— 선택하세요'; disp.style.color = 'var(--purple)'; }
+  if (disp) { disp.textContent = T('rpeSelectPrompt'); disp.style.color = 'var(--purple)'; }
   const box = document.getElementById(prefix + '-desc-box');
   if (box)  { box.style.background = '#1a1e30'; box.style.borderColor = '#2a3050'; }
   const bn = document.getElementById(prefix + '-big-num');
   if (bn)   { bn.textContent = '—'; bn.style.color = 'var(--text3)'; }
   const lbl = document.getElementById(prefix + '-lbl');
-  if (lbl)  { lbl.textContent = '탭하여 선택'; lbl.style.color = 'var(--text3)'; }
+  if (lbl)  { lbl.textContent = T('rpeTap'); lbl.style.color = 'var(--text3)'; }
   const sub = document.getElementById(prefix + '-sub');
-  if (sub)  { sub.textContent = '1 = 매우 쉬움 · 10 = 절대 최대'; sub.style.color = 'var(--text3)'; }
+  if (sub)  { sub.textContent = T('rpeRange'); sub.style.color = 'var(--text3)'; }
 }
 
 /* ── GYM 운동 시간 드럼 ── */
@@ -3379,14 +3511,14 @@ function wizCalcHydro() {
 async function wizNext() {
   const step = wizStep;
   if (step === 1) {
-    if (!wizTime) { showMsg('wiz-msg','err','훈련 시간을 선택하세요'); return; }
+    if (!wizTime) { showMsg('wiz-msg','err', T('wizErrTime')); return; }
     wizGoToStep(2);
   } else if (step === 2) {
-    if (!wizCombo) { showMsg('wiz-msg','err','세션 구성을 선택하세요'); return; }
+    if (!wizCombo) { showMsg('wiz-msg','err', T('wizErrCombo')); return; }
     wizGoToStep(3);
   } else if (step === 3) {
-    if (wizCombo !== 'gym' && !wizFieldRpe) { showMsg('wiz-msg','err','필드 RPE를 선택하세요'); return; }
-    if (wizCombo !== 'field' && !wizGymRpe) { showMsg('wiz-msg','err','GYM RPE를 선택하세요'); return; }
+    if (wizCombo !== 'gym' && !wizFieldRpe) { showMsg('wiz-msg','err', T('wizErrFieldRpe')); return; }
+    if (wizCombo !== 'field' && !wizGymRpe) { showMsg('wiz-msg','err', T('wizErrGymRpe')); return; }
     if (wizCombo === 'gym') {
       await wizSave();
     } else {
@@ -3441,7 +3573,7 @@ async function wizSave() {
   if (nextBtn) nextBtn.disabled = false;
 
   if (error) {
-    showMsg('wiz-msg','err','저장 실패: ' + error.message);
+    showMsg('wiz-msg','err', T('wizSaveFail') + error.message);
     return;
   }
 
@@ -3456,7 +3588,7 @@ async function wizSave() {
   }
 
   // STEP 5 완료 화면 업데이트
-  const comboNames = { field:'필드만', gym:'GYM만', gym_field:'GYM→필드', field_gym:'필드→GYM' };
+  const comboNames = { field: T('wizComboField'), gym: T('wizComboGym'), gym_field: T('wizComboGymField'), field_gym: T('wizComboFieldGym') };
   const sumEl = document.getElementById('wiz-done-summary');
   if (sumEl) sumEl.textContent = `${wizTime} · ${comboNames[wizCombo] || wizCombo}`;
   const s5h = document.getElementById('wiz-s5-hydro');
@@ -3497,20 +3629,20 @@ async function loadWizTodaySessions() {
   const listEl = document.getElementById('wiz-today-list');
   if (listEl) {
     if (!wizTodayRecs.length) {
-      listEl.innerHTML = '<div style="padding:14px;text-align:center;font-size:12px;color:var(--text3);">저장된 세션이 없습니다</div>';
+      listEl.innerHTML = `<div style="padding:14px;text-align:center;font-size:12px;color:var(--text3);">${T('wizNoSession')}</div>`;
     } else {
       listEl.innerHTML = wizTodayRecs.map(r => {
         const d    = r.rpe ? getRpeData()[r.rpe] : null;
         const srpe = (r.duration && r.rpe) ? r.duration * r.rpe : null;
         const info = [
-          r.duration ? r.duration + 'min' : 'GPS 자동',
+          r.duration ? r.duration + 'min' : T('wizGpsAuto'),
           srpe ? 'sRPE ' + srpe : null
         ].filter(Boolean).join(' · ');
         return `<div class="wiz-today-row">
           <div class="wiz-today-type">${r.session_type||'—'}</div>
           <div class="wiz-today-rpe" style="color:${d?.c||'var(--text)'};">${r.rpe||'—'}</div>
           <div class="wiz-today-info">${info}</div>
-          <button class="wiz-today-del" onclick="wizDeleteSession('${r.id}')">삭제</button>
+          <button class="wiz-today-del" onclick="wizDeleteSession('${r.id}')">${T('wizDel')}</button>
         </div>`;
       }).join('');
     }
@@ -3534,9 +3666,9 @@ async function loadWizTodaySessions() {
 }
 
 async function wizDeleteSession(id) {
-  if (!confirm('이 세션을 삭제하시겠습니까?')) return;
+  if (!confirm(T('wizDelConfirm'))) return;
   const { error } = await supa.from('session_records').delete().eq('id', id);
-  if (error) { alert('삭제 실패: ' + error.message); return; }
+  if (error) { alert(T('wizDelFail') + error.message); return; }
   wizHydroData = null;
   await loadWizTodaySessions();
   wizUpdateHydroBanner();
