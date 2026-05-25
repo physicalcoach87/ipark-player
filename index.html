@@ -871,6 +871,7 @@ button { cursor: pointer; border: none; background: transparent; }
         <div class="hdr-player-name" id="hdr-player-name">—</div>
         <div class="hdr-player-pos"  id="hdr-player-pos">—</div>
       </div>
+      <button onclick="showPinChange()" title="PIN 변경" style="background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);border-radius:8px;color:var(--text3);font-size:11px;padding:5px 9px;cursor:pointer;font-family:inherit;white-space:nowrap">🔑 PIN</button>
       <button onclick="doLogout()" title="로그아웃" style="background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);border-radius:8px;color:var(--text3);font-size:11px;padding:5px 9px;cursor:pointer;font-family:inherit;white-space:nowrap">로그아웃</button>
     </div>
   </div>
@@ -2430,6 +2431,34 @@ async function doLogin() {
     err.textContent = LS.errGeneral + e.message;
     btn.disabled = false; btn.textContent = LS.loginBtn;
   }
+}
+
+function showPinChange() {
+  document.getElementById('pin-change-modal').style.display = 'flex';
+  document.getElementById('pin-old').value = '';
+  document.getElementById('pin-new').value = '';
+  document.getElementById('pin-confirm').value = '';
+  document.getElementById('pin-change-err').textContent = '';
+}
+function hidePinChange() {
+  document.getElementById('pin-change-modal').style.display = 'none';
+}
+async function submitPinChange() {
+  const oldPin    = document.getElementById('pin-old').value.trim();
+  const newPin    = document.getElementById('pin-new').value.trim();
+  const confirmPin= document.getElementById('pin-confirm').value.trim();
+  const errEl     = document.getElementById('pin-change-err');
+  errEl.textContent = '';
+  if(!oldPin || !newPin || !confirmPin){ errEl.textContent = '모든 칸을 입력해주세요.'; return; }
+  if(newPin.length !== 4 || !/^\d{4}$/.test(newPin)){ errEl.textContent = '새 PIN은 숫자 4자리여야 합니다.'; return; }
+  if(newPin !== confirmPin){ errEl.textContent = '새 PIN이 일치하지 않습니다.'; return; }
+  const expectedPin = currentPlayer.pin || '0000';
+  if(oldPin !== expectedPin){ errEl.textContent = '현재 PIN이 올바르지 않습니다.'; return; }
+  const {error} = await supa.from('player_profiles').update({pin: newPin}).eq('id', currentPlayer.id);
+  if(error){ errEl.textContent = '저장 실패: ' + error.message; return; }
+  currentPlayer.pin = newPin;
+  hidePinChange();
+  alert('PIN이 변경되었습니다.');
 }
 
 function doLogout() {
@@ -4448,5 +4477,25 @@ async function init() {
 
 window.onload = init;
 </script>
+
+<!-- PIN 변경 모달 -->
+<div id="pin-change-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:1.5rem;width:90%;max-width:320px">
+    <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:1.2rem;text-align:center">🔑 PIN 변경</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <input id="pin-old" type="password" inputmode="numeric" maxlength="4" placeholder="현재 PIN"
+        style="width:100%;font-size:14px;padding:11px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+      <input id="pin-new" type="password" inputmode="numeric" maxlength="4" placeholder="새 PIN (숫자 4자리)"
+        style="width:100%;font-size:14px;padding:11px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+      <input id="pin-confirm" type="password" inputmode="numeric" maxlength="4" placeholder="새 PIN 확인"
+        style="width:100%;font-size:14px;padding:11px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+    </div>
+    <div id="pin-change-err" style="font-size:12px;color:#ef4444;margin-top:8px;min-height:16px"></div>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button onclick="hidePinChange()" style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text3);font-size:14px;cursor:pointer;font-family:inherit">취소</button>
+      <button onclick="submitPinChange()" style="flex:1;padding:11px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">변경</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
