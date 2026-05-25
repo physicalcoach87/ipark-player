@@ -831,7 +831,7 @@ button { cursor: pointer; border: none; background: transparent; }
   <div class="login-logo">IP</div>
   <div class="login-title">IPARK</div>
   <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--text3);margin-bottom:4px;">PLAYER APP</div>
-  <div class="login-sub" id="login-sub">부산아이파크 선수 전용</div>
+  <div class="login-sub" id="login-sub">선수 전용 앱</div>
 
   <!-- 언어 선택 -->
   <div class="lang-selector">
@@ -860,9 +860,9 @@ button { cursor: pointer; border: none; background: transparent; }
 <div id="app-header">
   <div class="hdr-top">
     <div class="hdr-brand">
-      <div class="hdr-logo">IP</div>
+      <div class="hdr-logo" id="hdr-logo">IP</div>
       <div>
-        <div class="hdr-name">IPARK</div>
+        <div class="hdr-name" id="hdr-club-name">IPARK</div>
         <div class="hdr-sub">PLAYER APP</div>
       </div>
     </div>
@@ -1430,7 +1430,7 @@ button { cursor: pointer; border: none; background: transparent; }
    Supabase 설정
 ════════════════════════════════════════ */
 const SUPA_URL = 'https://gmrhkbddhzpfqzkhuvgf.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcmhrYmRkaHpwZnF6a2h1dmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MzM4ODIsImV4cCI6MjA5MjQwOTg4Mn0.HMn3UIXqV2YJA5f067VpjNmgNU-yzusbDTOh3SC54cI';
+const SUPA_KEY = 'sb_publishable_sj1Pro0Pwv3i-RzQdHsEPw_WLJUsa9V';
 // ⚡ Web Push VAPID 공개키 (Supabase Edge Function의 VAPID_PRIVATE_KEY와 쌍)
 const VAPID_PUBLIC_KEY = 'BPD8_ri5bNPkOgrKfmwARUBWC_wTV5W3Hw4csHihSoqYLy4yG92T9BzPTWXH9qaGfB5d5PCqu5qFb-YQuiC9_FE';
 let supa, currentPlayer = null, lang = 'ko';
@@ -2463,6 +2463,18 @@ async function loginSuccess(player) {
   document.getElementById('tab-bar').style.display = 'block';
   document.getElementById('hdr-player-name').textContent = player.name || '—';
   document.getElementById('hdr-player-pos').textContent  = player.position || '—';
+  // 클럽명 동적 표시
+  if(player.club_id){
+    supa.from('clubs').select('name').eq('id', player.club_id).single().then(({data:club})=>{
+      if(club?.name){
+        const initials = club.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,3);
+        const logoEl = document.getElementById('hdr-logo');
+        const nameEl = document.getElementById('hdr-club-name');
+        if(logoEl) logoEl.textContent = initials;
+        if(nameEl) nameEl.textContent = club.name.toUpperCase();
+      }
+    });
+  }
   renderHeaderBadges();
   buildWizRpeBars();
   buildWellnessSegs();
