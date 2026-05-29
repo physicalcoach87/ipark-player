@@ -1085,18 +1085,26 @@ button { cursor: pointer; border: none; background: transparent; }
 <!-- RPE -->
 <div class="screen" id="screen-rpe">
 
-  <!-- 날짜 배너 -->
-  <div style="display:flex;align-items:center;justify-content:space-between;
+  <!-- 날짜 배너 (탭하면 날짜 선택) -->
+  <div id="rpe-date-banner" onclick="wizOpenDatePicker()" style="display:flex;align-items:center;justify-content:space-between;
     padding:10px 14px;background:var(--surface2);border-radius:12px;
-    margin-bottom:10px;border:0.5px solid var(--border);">
+    margin-bottom:10px;border:0.5px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;">
     <div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">세션 날짜</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;display:flex;align-items:center;gap:5px;">
+        <span data-i18n="rpeSessionDate">세션 날짜</span>
+        <span style="font-size:9px;padding:1px 6px;border-radius:4px;background:var(--blue-bg,rgba(74,158,255,0.15));color:var(--blue);" data-i18n="rpeChangeDate">변경 ▾</span>
+      </div>
       <div style="font-size:16px;font-weight:500;color:var(--text);" id="rpe-date-display">—</div>
     </div>
     <div style="text-align:right;">
       <div style="font-size:10px;color:var(--text3);margin-bottom:3px;" id="rpe-day-display">—</div>
       <div id="rpe-saved-info" style="font-size:10px;color:var(--text3);">—</div>
     </div>
+  </div>
+
+  <!-- 오늘이 아닌 날짜 선택 시 경고 배너 -->
+  <div id="rpe-pastdate-warn" style="display:none;padding:9px 14px;background:#2a1c08;border:1px solid var(--amber);border-radius:10px;margin-bottom:10px;font-size:12px;color:var(--amber);font-weight:500;">
+    ⚠️ <span data-i18n="rpePastDateWarn">지난 날짜의 훈련을 입력 중입니다</span> — <span id="rpe-pastdate-label"></span>
   </div>
 
   <!-- 수분 배너 (오늘 체중 기록 시 하루 종일 표시) -->
@@ -1290,6 +1298,18 @@ button { cursor: pointer; border: none; background: transparent; }
   </div>
 
 </div><!-- /screen-rpe -->
+
+<!-- 세션 날짜 선택 시트 -->
+<div id="wiz-date-sheet" onclick="if(event.target===this)wizCloseDatePicker()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--surface);border-radius:18px 18px 0 0;width:100%;max-width:480px;padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--border2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div style="font-size:15px;font-weight:700;color:var(--text);" data-i18n="rpeDatePickTitle">언제 한 훈련인가요?</div>
+      <button onclick="wizCloseDatePicker()" style="background:none;border:none;color:var(--text3);font-size:24px;line-height:1;cursor:pointer;">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px;" data-i18n="rpeDatePickSub">훈련한 날짜를 정확히 선택하세요</div>
+    <div id="wiz-date-chips" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
 
 <!-- GPS -->
 <div class="screen" id="screen-gps">
@@ -1499,6 +1519,7 @@ let wizGymDrumTimer    = null;
 let wizTodayRecs       = [];
 let wizHydroData       = null;
 let wizRpeBarsBuilt    = false;
+let wizSelectedDate    = null;  // 세션(훈련) 날짜 — null이면 오늘. 선수가 명시 선택 가능
 
 /* ════════════════════════════════════════
    유틸
@@ -1506,6 +1527,11 @@ let wizRpeBarsBuilt    = false;
 function today() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// 선택된 세션 날짜 (선수가 명시 선택 안 했으면 오늘)
+function wizDate() {
+  return wizSelectedDate || today();
 }
 
 function getDateInfo(dateStr) {
@@ -1551,7 +1577,7 @@ function renderWellnessBanner(savedAt) {
 }
 
 function renderRpeBanner(lastRecord) {
-  const info = getDateInfo();
+  const info = getDateInfo(wizSelectedDate);
   const now  = new Date();
   const hh   = String(now.getHours()).padStart(2,'0');
   const min  = String(now.getMinutes()).padStart(2,'0');
@@ -1576,6 +1602,18 @@ function renderRpeBanner(lastRecord) {
   } else {
     savedEl.textContent = `${T('currentTime')} ${hh}:${min} · ${T('notEntered2')}`;
     savedEl.style.color = 'var(--text3)';
+  }
+
+  // 오늘이 아닌 날짜 선택 시 경고 배너
+  const warnEl  = document.getElementById('rpe-pastdate-warn');
+  const labelEl = document.getElementById('rpe-pastdate-label');
+  if (warnEl) {
+    if (wizSelectedDate && wizSelectedDate !== today()) {
+      warnEl.style.display = 'block';
+      if (labelEl) labelEl.textContent = `${info.full} (${info.day})`;
+    } else {
+      warnEl.style.display = 'none';
+    }
   }
 }
 
@@ -1832,6 +1870,12 @@ const LANG_STRINGS = {
     savedAt:        '저장 완료',
     currentTime:    '현재',
     notEntered2:    '미입력',
+    yesterday:      '어제',
+    rpeSessionDate: '세션 날짜',
+    rpeChangeDate:  '변경 ▾',
+    rpePastDateWarn:'지난 날짜의 훈련을 입력 중입니다',
+    rpeDatePickTitle:'언제 한 훈련인가요?',
+    rpeDatePickSub: '훈련한 날짜를 정확히 선택하세요',
     // 홈
     homeEnterWellness: '💚 오늘 컨디션 입력하기',
     // 채팅
@@ -2072,6 +2116,12 @@ const LANG_STRINGS = {
     savedAt:        'Saved',
     currentTime:    'Current',
     notEntered2:    'Not entered',
+    yesterday:      'Yesterday',
+    rpeSessionDate: 'Session date',
+    rpeChangeDate:  'Change ▾',
+    rpePastDateWarn:'Entering a past training session',
+    rpeDatePickTitle:'When was this session?',
+    rpeDatePickSub: 'Select the exact training date',
     // 홈
     homeEnterWellness: "💚 Enter Today's Condition",
     // 채팅
@@ -2312,6 +2362,12 @@ const LANG_STRINGS = {
     savedAt:        'Salvo',
     currentTime:    'Atual',
     notEntered2:    'Não inserido',
+    yesterday:      'Ontem',
+    rpeSessionDate: 'Data da sessão',
+    rpeChangeDate:  'Alterar ▾',
+    rpePastDateWarn:'Inserindo uma sessão de treino passada',
+    rpeDatePickTitle:'Quando foi este treino?',
+    rpeDatePickSub: 'Selecione a data exata do treino',
     // 홈
     homeEnterWellness: '💚 Inserir Condição de Hoje',
     // 채팅
@@ -3315,6 +3371,7 @@ async function loadWellnessTrend() {
    RPE 마법사
 ════════════════════════════════════════ */
 function initWizard() {
+  wizSelectedDate = null;  // 탭 진입 시 항상 오늘로 시작
   buildWizRpeBars();
   loadWizTodaySessions();
   wizGoToStep(wizStep);
@@ -3336,6 +3393,50 @@ function wizReset() {
   if (hp) hp.style.display = 'none';
   if (wizGymDrumInited) wizGymDrumScrollTo(60, false);
   wizGoToStep(1);
+}
+
+/* ── 세션 날짜 선택 ───────────────────────────── */
+function wizOpenDatePicker() {
+  const sheet = document.getElementById('wiz-date-sheet');
+  const wrap  = document.getElementById('wiz-date-chips');
+  if (!sheet || !wrap) return;
+
+  const sel  = wizDate();
+  const days = Array.isArray(T('scheduleDayNames')) ? T('scheduleDayNames') : ['일','월','화','수','목','금','토'];
+
+  // 최근 7일 (오늘 → 6일 전)
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const ymd  = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const mm   = String(d.getMonth()+1).padStart(2,'0');
+    const dd   = String(d.getDate()).padStart(2,'0');
+    const dow  = currentLang === 'ko' ? days[d.getDay()] + '요일' : days[d.getDay()];
+    const label = i === 0 ? T('today') : i === 1 ? (T('yesterday')||'어제') : `${mm}/${dd}`;
+    const isSel = ymd === sel;
+    html += `<button onclick="wizPickDate('${ymd}')" style="
+      display:flex;align-items:center;justify-content:space-between;width:100%;
+      padding:13px 15px;border-radius:11px;cursor:pointer;font-family:inherit;
+      border:1.5px solid ${isSel ? 'var(--blue)' : 'var(--border2)'};
+      background:${isSel ? 'var(--blue-bg,rgba(74,158,255,0.13))' : 'var(--surface2)'};">
+      <span style="font-size:15px;font-weight:600;color:${isSel ? 'var(--blue)' : 'var(--text)'};">${label}</span>
+      <span style="font-size:12px;color:var(--text3);">${mm}/${dd} ${dow}${isSel ? ' ✓' : ''}</span>
+    </button>`;
+  }
+  wrap.innerHTML = html;
+  sheet.style.display = 'flex';
+}
+
+function wizCloseDatePicker() {
+  const sheet = document.getElementById('wiz-date-sheet');
+  if (sheet) sheet.style.display = 'none';
+}
+
+function wizPickDate(ymd) {
+  wizSelectedDate = (ymd === today()) ? null : ymd;
+  wizCloseDatePicker();
+  loadWizTodaySessions();
 }
 
 function wizGoToStep(step) {
@@ -3594,9 +3695,9 @@ async function wizSave() {
   const nextBtn = document.getElementById('wiz-next');
   if (nextBtn) nextBtn.disabled = true;
 
-  const t = today();
+  const t = wizDate();
 
-  // 오늘 이미 저장된 세션 수 조회 → session_order 중복 방지
+  // 해당 날짜 이미 저장된 세션 수 조회 → session_order 중복 방지
   const { data: existingSess } = await supa.from('session_records')
     .select('id').eq('player_id', currentPlayer.id).eq('record_date', t);
   let nextOrder = (existingSess?.length || 0) + 1;
@@ -3670,7 +3771,7 @@ function wizUpdateHydroBanner() {
 
 async function loadWizTodaySessions() {
   if (!currentPlayer) return;
-  const t = today();
+  const t = wizDate();
   const [{ data: recs }, { data: wellData }] = await Promise.all([
     supa.from('session_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).order('created_at'),
     supa.from('wellness_records').select('morning_weight').eq('player_id', currentPlayer.id).eq('record_date', t).single()
