@@ -3220,31 +3220,107 @@ async function openBreakPlanDetail(planId, dateStr) {
 
   function cardioDetail(prog) {
     if (!prog) return '';
-    const wu = prog.warmup;
-    const cd = prog.cooldown;
+    const wu = prog.warmup; const cd = prog.cooldown;
     let html = '';
     if (wu?.duration_min > 0) html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:10px">
       <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px">웜업</div>
       <div style="font-size:14px;font-weight:600;color:#fff">${wu.duration_min}분</div>
       ${wu.notes?`<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">${wu.notes}</div>`:''}
     </div>`;
-    (prog.intervals||[]).forEach((iv,i) => {
-      const spd = mas > 0 ? (mas * iv.intensity_pct / 100).toFixed(1) : null;
-      const dist = mas > 0 ? Math.round(mas * iv.intensity_pct / 100 * iv.duration_min / 60 * 1000) : null;
-      const isLast = i === (prog.intervals.length - 1);
-      html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:6px">
-        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">${i+1} / ${prog.intervals.length} 구간</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
-          <div><div style="font-size:10px;color:rgba(255,255,255,.4)">강도</div><div style="font-size:16px;font-weight:700;color:#f59e0b">${iv.intensity_pct}%</div></div>
-          ${spd?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">내 속도</div><div style="font-size:16px;font-weight:700;color:#4ade80">${spd} km/h</div></div>`:'<div></div>'}
-          ${dist?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">거리</div><div style="font-size:16px;font-weight:700;color:#60a5fa">${dist.toLocaleString()} m</div></div>`:'<div></div>'}
-        </div>
-        <div style="display:flex;justify-content:center;gap:12px;margin-top:8px;font-size:12px;color:rgba(255,255,255,.5)">
-          <span>⏱ ${iv.duration_min}분</span>
-          ${!isLast&&iv.rest_min>0?`<span>💤 휴식 ${iv.rest_min}분</span>`:''}
-        </div>
+
+    const pType = prog.param_type;
+    const int = prog.intensity || 90;
+    const useVmax = prog.intensity_unit?.includes('Vmax')||prog.intensity_unit?.includes('MSS');
+    const base = useVmax ? mss : mas;
+    const spd = base > 0 ? (base * int / 100).toFixed(1) : null;
+    const label = prog.category_name ? `🏃 ${prog.category_name}` : '🏃 유산소';
+
+    if (pType && pType !== 'time_only') {
+      // 새 형식 (exercise_id 기반)
+      html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:10px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:700;color:#f59e0b;margin-bottom:4px">${label}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">${prog.intensity_unit||'% MAS'}</div>
       </div>`;
-    });
+      if (pType === 'set_time_rest_perset') {
+        const pcts = prog.per_set_intensities?.length ? prog.per_set_intensities : Array(prog.sets||4).fill(int);
+        pcts.forEach((pct, i) => {
+          const s = base > 0 ? (base*pct/100).toFixed(1) : null;
+          const d = base > 0 ? Math.round(base*pct/100*(prog.work_min||4)/60*1000) : null;
+          const isLast = i === pcts.length - 1;
+          html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:6px">
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">${i+1} / ${pcts.length}세트 · ${prog.work_min||4}분</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+              <div><div style="font-size:10px;color:rgba(255,255,255,.4)">강도</div><div style="font-size:16px;font-weight:700;color:#f59e0b">${pct}%</div></div>
+              ${s?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">내 속도</div><div style="font-size:16px;font-weight:700;color:#4ade80">${s} km/h</div></div>`:'<div></div>'}
+              ${d?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">거리</div><div style="font-size:16px;font-weight:700;color:#60a5fa">${d.toLocaleString()} m</div></div>`:'<div></div>'}
+            </div>
+            ${!isLast&&prog.rest_min>0?`<div style="text-align:center;margin-top:8px;font-size:12px;color:rgba(255,255,255,.4)">💤 세트 휴식 ${prog.rest_min}분</div>`:''}
+          </div>`;
+        });
+      } else if (pType === 'set_time_rest') {
+        const d = base > 0 ? Math.round(base*int/100*(prog.work_min||8)/60*1000) : null;
+        html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:6px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+            <div><div style="font-size:10px;color:rgba(255,255,255,.4)">강도</div><div style="font-size:16px;font-weight:700;color:#f59e0b">${int}%</div></div>
+            ${spd?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">내 속도</div><div style="font-size:16px;font-weight:700;color:#4ade80">${spd} km/h</div></div>`:'<div></div>'}
+            ${d?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">세트 거리</div><div style="font-size:16px;font-weight:700;color:#60a5fa">${d.toLocaleString()} m</div></div>`:'<div></div>'}
+          </div>
+          <div style="text-align:center;margin-top:8px;font-size:12px;color:rgba(255,255,255,.4)">${prog.sets}세트 × ${prog.work_min}분 · 세트휴식 ${prog.rest_min}분</div>
+        </div>`;
+      } else if (pType === 'time_only') {
+        const d = base > 0 ? Math.round(base*int/100*(prog.duration_min||20)/60*1000) : null;
+        html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:6px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+            <div><div style="font-size:10px;color:rgba(255,255,255,.4)">강도</div><div style="font-size:16px;font-weight:700;color:#f59e0b">${int}%</div></div>
+            ${spd?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">내 속도</div><div style="font-size:16px;font-weight:700;color:#4ade80">${spd} km/h</div></div>`:'<div></div>'}
+            ${d?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">거리</div><div style="font-size:16px;font-weight:700;color:#60a5fa">${d.toLocaleString()} m</div></div>`:'<div></div>'}
+          </div>
+          <div style="text-align:center;margin-top:8px;font-size:12px;color:rgba(255,255,255,.4)">지속 달리기 ${prog.duration_min}분</div>
+        </div>`;
+      } else if (pType === 'set_rep_rest') {
+        const ws = prog.work_sec || 30;
+        const d = base > 0 ? Math.round(base*int/100*ws/3600*1000) : null;
+        html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:6px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+            <div><div style="font-size:10px;color:rgba(255,255,255,.4)">강도</div><div style="font-size:16px;font-weight:700;color:#f59e0b">${int}%</div></div>
+            ${spd?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">내 속도</div><div style="font-size:16px;font-weight:700;color:#4ade80">${spd} km/h</div></div>`:'<div></div>'}
+            ${d?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">1rep 거리</div><div style="font-size:16px;font-weight:700;color:#60a5fa">${d} m</div></div>`:'<div></div>'}
+          </div>
+          <div style="text-align:center;margin-top:8px;font-size:12px;color:rgba(255,255,255,.4)">${prog.sets}세트 × ${prog.reps}rep · ${ws}s:${ws}s · 세트휴식 ${prog.set_rest_min}분</div>
+        </div>`;
+      } else if (pType === 'dist_rep_rest') {
+        html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:6px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#60a5fa">${prog.sets}세트 × ${prog.distance}m</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">강도 ${int}% · 회복 ${prog.rep_rest_min}분</div>
+        </div>`;
+      } else if (pType === 'rhie_sprint') {
+        const ws = prog.work_sec || 5;
+        html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:6px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#f87171">${prog.sets}세트 × ${prog.reps}rep · ${ws}초</div>
+          ${spd?`<div style="font-size:16px;font-weight:700;color:#4ade80;margin-top:4px">내 속도 ${spd} km/h</div>`:''}
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">완전 회복 후 반복</div>
+        </div>`;
+      }
+    } else {
+      // 구버전 intervals 포맷
+      (prog.intervals||[]).forEach((iv,i) => {
+        const s = mas > 0 ? (mas * iv.intensity_pct / 100).toFixed(1) : null;
+        const d = mas > 0 ? Math.round(mas * iv.intensity_pct / 100 * iv.duration_min / 60 * 1000) : null;
+        const isLast = i === (prog.intervals.length - 1);
+        html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:6px">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">${i+1} / ${prog.intervals.length} 구간</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+            <div><div style="font-size:10px;color:rgba(255,255,255,.4)">강도</div><div style="font-size:16px;font-weight:700;color:#f59e0b">${iv.intensity_pct}%</div></div>
+            ${s?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">내 속도</div><div style="font-size:16px;font-weight:700;color:#4ade80">${s} km/h</div></div>`:'<div></div>'}
+            ${d?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">거리</div><div style="font-size:16px;font-weight:700;color:#60a5fa">${d.toLocaleString()} m</div></div>`:'<div></div>'}
+          </div>
+          <div style="display:flex;justify-content:center;gap:12px;margin-top:8px;font-size:12px;color:rgba(255,255,255,.5)">
+            <span>⏱ ${iv.duration_min}분</span>
+            ${!isLast&&iv.rest_min>0?`<span>💤 휴식 ${iv.rest_min}분</span>`:''}
+          </div>
+        </div>`;
+      });
+    }
     if (cd?.duration_min > 0) html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:10px">
       <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px">쿨다운</div>
       <div style="font-size:14px;font-weight:600;color:#fff">${cd.duration_min}분</div>
