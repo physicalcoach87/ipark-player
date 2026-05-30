@@ -2814,13 +2814,21 @@ async function loadHome() {
   const wEndStr   = ldsFmt(wEnd);
 
   // 병렬로 데이터 로드
-  const [wellRes, sessRes, gpsRes, rxRes, schedRes, weekRes] = await Promise.all([
+  const [wellRes, sessRes, gpsRes, rxRes, schedRes, weekRes, bpRes] = await Promise.all([
     supa.from('wellness_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).single(),
     supa.from('session_records').select('*').eq('player_id', currentPlayer.id).eq('record_date', t).order('created_at', { ascending: false }).limit(1),
     supa.from('gps_records').select('*').eq('player_id', currentPlayer.id).order('session_date', { ascending: false }).limit(1),
     supa.from('custom_programs').select('*').eq('position', currentPlayer.position).order('created_at', { ascending: false }).limit(3),
     supa.from('weekly_schedule').select('md_stage').eq('event_date', t).not('md_stage', 'is', null).order('md_stage').limit(1),
     supa.from('weekly_schedule').select('*').gte('event_date', wStartStr).lte('event_date', wEndStr).order('event_date').order('start_time'),
+    // 오늘 활성 휴식기 플랜 세션 조회
+    supa.from('break_plans')
+      .select('*, break_plan_sessions!inner(*)')
+      .eq('status','published')
+      .lte('start_date', t).gte('end_date', t)
+      .or(`target_type.eq.all,target_player_id.eq.${currentPlayer.id}`)
+      .eq('break_plan_sessions.session_date', t)
+      .limit(1).maybeSingle(),
   ]);
 
   const wellness = wellRes.data;
@@ -2848,6 +2856,9 @@ async function loadHome() {
 
   // 주간 일정
   renderHomeSchedule(weekRes.data || [], t);
+
+  // 휴식기 플랜 카드
+  await renderBreakPlanCard(bpRes.data, t);
 }
 
 function renderRiskScore(w, sess, gps) {
@@ -3103,6 +3114,211 @@ function renderHomeSchedule(events, todayStr) {
   }).join('');
 
   el.innerHTML = `<div class="sched-scroll">${colHtml}</div>`;
+}
+
+/* ════════════════════════════════════════
+   휴식기 플랜 카드
+════════════════════════════════════════ */
+async function renderBreakPlanCard(planData, todayStr) {
+  // 기존 카드 제거
+  const old = document.getElementById('bp-home-card');
+  if (old) old.remove();
+  if (!planData) return;
+
+  const sess = planData.break_plan_sessions?.[0];
+  if (!sess) return;
+
+  const start = planData.start_date;
+  const end   = planData.end_date;
+  const totalDays = Math.round((new Date(end) - new Date(start)) / 86400000) + 1;
+  const dayNum    = Math.round((new Date(todayStr) - new Date(start)) / 86400000) + 1;
+
+  const typeLabel = {rest:'🛌 휴식', cardio:'🏃 유산소', gym:'💪 근력', mixed:'🔄 복합'}[sess.session_type] || sess.session_type;
+  const typeColor = {rest:'#64748b', cardio:'#f59e0b', gym:'#a78bfa', mixed:'#4ade80'}[sess.session_type] || '#60a5fa';
+
+  // 완료 여부 확인
+  const {data: comp} = await supa.from('break_plan_completions')
+    .select('id').eq('plan_id', planData.id).eq('session_date', todayStr).eq('player_id', currentPlayer.id).maybeSingle();
+  const done = !!comp;
+
+  // 예상 시간 계산
+  let duration = '';
+  if (sess.session_type === 'cardio' && sess.am_program) {
+    const p = sess.am_program;
+    const ivTotal = (p.intervals||[]).reduce((a,iv)=>a+iv.duration_min+iv.rest_min,0);
+    const total = (p.warmup?.duration_min||0) + ivTotal + (p.cooldown?.duration_min||0);
+    if (total > 0) duration = `약 ${total}분`;
+  } else if (sess.session_type === 'gym' && sess.am_program?.duration_min) {
+    duration = `약 ${sess.am_program.duration_min}분`;
+  } else if (sess.session_type === 'mixed') {
+    duration = 'AM + PM';
+  }
+
+  const card = document.createElement('div');
+  card.id = 'bp-home-card';
+  card.style.cssText = 'margin:0 16px 16px;';
+  card.innerHTML = `
+    <div style="background:linear-gradient(135deg,#1a1a3e,#1e2a1e);border:1px solid ${typeColor}44;border-radius:16px;padding:16px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:${typeColor}11;border-radius:0 16px 0 80px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-size:11px;color:${typeColor};font-weight:700;letter-spacing:.05em;margin-bottom:2px">🏖️ 휴식기 플랜 D+${dayNum} / ${totalDays}일</div>
+          <div style="font-size:14px;font-weight:700;color:#fff">${planData.title}</div>
+        </div>
+        ${done ? '<span style="font-size:11px;padding:3px 9px;border-radius:10px;background:rgba(74,222,128,.2);color:#4ade80;border:1px solid rgba(74,222,128,.4)">✅ 완료</span>' : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span style="font-size:22px">${{rest:'🛌',cardio:'🏃',gym:'💪',mixed:'🔄'}[sess.session_type]||'📋'}</span>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:${typeColor}">${typeLabel}</div>
+          ${duration?`<div style="font-size:11px;color:rgba(255,255,255,.5)">${duration}</div>`:''}
+        </div>
+      </div>
+      ${sess.notes ? `<div style="font-size:12px;color:rgba(255,255,255,.6);margin-bottom:12px;padding:8px;background:rgba(255,255,255,.05);border-radius:8px">${sess.notes}</div>` : ''}
+      <div style="display:flex;gap:8px">
+        <button onclick="openBreakPlanDetail('${planData.id}','${todayStr}')"
+          style="flex:2;padding:10px;background:${typeColor};color:#000;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
+          📋 프로그램 보기
+        </button>
+        ${!done ? `<button onclick="markBreakComplete('${planData.id}','${todayStr}')"
+          style="flex:1;padding:10px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ade80;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">
+          ✅ 완료
+        </button>` : ''}
+      </div>
+    </div>`;
+  // 주간 일정 카드 앞에 삽입
+  const schedCard = document.querySelector('.home-schedule-card') || document.getElementById('home-schedule-body')?.closest('.card');
+  const homeEl = document.getElementById('tab-home');
+  if (schedCard) homeEl.insertBefore(card, schedCard);
+  else homeEl.appendChild(card);
+}
+
+async function markBreakComplete(planId, dateStr) {
+  const {error} = await supa.from('break_plan_completions').insert({
+    plan_id: planId, session_date: dateStr, player_id: currentPlayer.id
+  });
+  if (!error) {
+    showToast('✅ 완료 체크!');
+    await renderBreakPlanCard(await (async()=>{
+      const {data}=await supa.from('break_plans').select('*,break_plan_sessions!inner(*)').eq('id',planId).eq('break_plan_sessions.session_date',dateStr).maybeSingle();
+      return data;
+    })(), dateStr);
+  }
+}
+
+async function openBreakPlanDetail(planId, dateStr) {
+  const {data: plan} = await supa.from('break_plans')
+    .select('*, break_plan_sessions!inner(*)')
+    .eq('id', planId).eq('break_plan_sessions.session_date', dateStr).maybeSingle();
+  if (!plan) return;
+
+  const sess = plan.break_plan_sessions?.[0];
+  if (!sess) return;
+
+  const mas = parseFloat(currentPlayer.mas) || 0;
+  const typeColor = {rest:'#64748b', cardio:'#f59e0b', gym:'#a78bfa', mixed:'#4ade80'}[sess.session_type] || '#60a5fa';
+
+  function cardioDetail(prog) {
+    if (!prog) return '';
+    const wu = prog.warmup;
+    const cd = prog.cooldown;
+    let html = '';
+    if (wu?.duration_min > 0) html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px">웜업</div>
+      <div style="font-size:14px;font-weight:600;color:#fff">${wu.duration_min}분</div>
+      ${wu.notes?`<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">${wu.notes}</div>`:''}
+    </div>`;
+    (prog.intervals||[]).forEach((iv,i) => {
+      const spd = mas > 0 ? (mas * iv.intensity_pct / 100).toFixed(1) : null;
+      const dist = mas > 0 ? Math.round(mas * iv.intensity_pct / 100 * iv.duration_min / 60 * 1000) : null;
+      const isLast = i === (prog.intervals.length - 1);
+      html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:6px">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">${i+1} / ${prog.intervals.length} 구간</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+          <div><div style="font-size:10px;color:rgba(255,255,255,.4)">강도</div><div style="font-size:16px;font-weight:700;color:#f59e0b">${iv.intensity_pct}%</div></div>
+          ${spd?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">내 속도</div><div style="font-size:16px;font-weight:700;color:#4ade80">${spd} km/h</div></div>`:'<div></div>'}
+          ${dist?`<div><div style="font-size:10px;color:rgba(255,255,255,.4)">거리</div><div style="font-size:16px;font-weight:700;color:#60a5fa">${dist.toLocaleString()} m</div></div>`:'<div></div>'}
+        </div>
+        <div style="display:flex;justify-content:center;gap:12px;margin-top:8px;font-size:12px;color:rgba(255,255,255,.5)">
+          <span>⏱ ${iv.duration_min}분</span>
+          ${!isLast&&iv.rest_min>0?`<span>💤 휴식 ${iv.rest_min}분</span>`:''}
+        </div>
+      </div>`;
+    });
+    if (cd?.duration_min > 0) html += `<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px">쿨다운</div>
+      <div style="font-size:14px;font-weight:600;color:#fff">${cd.duration_min}분</div>
+      ${cd.notes?`<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">${cd.notes}</div>`:''}
+    </div>`;
+    if (prog.notes) html += `<div style="font-size:12px;color:rgba(255,255,255,.6);padding:10px;background:rgba(255,255,255,.05);border-radius:10px;margin-bottom:6px">📝 ${prog.notes}</div>`;
+    return html;
+  }
+
+  function gymDetail(prog) {
+    if (!prog) return '';
+    let html = (prog.exercises||[]).map((ex,i) => `
+      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:2px">${i+1} / ${prog.exercises.length}</div>
+            <div style="font-size:15px;font-weight:700;color:#fff">${ex.name}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:16px;font-weight:700;color:#a78bfa">${ex.sets} × ${ex.reps}회</div>
+          </div>
+        </div>
+        ${ex.coaching?`<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08)">💬 ${ex.coaching}</div>`:''}
+      </div>`).join('');
+    if (prog.duration_min) html += `<div style="font-size:12px;color:rgba(255,255,255,.5);text-align:center;margin-top:4px">예상 시간: 약 ${prog.duration_min}분</div>`;
+    if (prog.notes) html += `<div style="font-size:12px;color:rgba(255,255,255,.6);padding:10px;background:rgba(255,255,255,.05);border-radius:10px;margin-top:8px">📝 ${prog.notes}</div>`;
+    return html;
+  }
+
+  let bodyHtml = '';
+  if (sess.session_type === 'rest') {
+    bodyHtml = `<div style="text-align:center;padding:2rem"><div style="font-size:48px;margin-bottom:12px">🛌</div><div style="font-size:16px;color:rgba(255,255,255,.7)">오늘은 완전 휴식일입니다</div>${sess.notes?`<div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:12px">${sess.notes}</div>`:''}</div>`;
+  } else if (sess.session_type === 'cardio') {
+    bodyHtml = cardioDetail(sess.am_program);
+  } else if (sess.session_type === 'gym') {
+    bodyHtml = gymDetail(sess.am_program);
+  } else if (sess.session_type === 'mixed') {
+    bodyHtml = `<div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.4);margin-bottom:10px;padding:4px 10px;background:rgba(255,255,255,.06);border-radius:6px">AM 세션</div>
+      ${sess.am_program?.type==='cardio'?cardioDetail(sess.am_program):gymDetail(sess.am_program)}
+      <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.4);margin:14px 0 10px;padding:4px 10px;background:rgba(255,255,255,.06);border-radius:6px">PM 세션</div>
+      ${sess.pm_program?.type==='cardio'?cardioDetail(sess.pm_program):gymDetail(sess.pm_program)}`;
+  }
+
+  const {data: comp} = await supa.from('break_plan_completions')
+    .select('id').eq('plan_id', planId).eq('session_date', dateStr).eq('player_id', currentPlayer.id).maybeSingle();
+  const done = !!comp;
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:flex-end;';
+  modal.innerHTML = `
+    <div style="background:#111;border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:92vh;overflow-y:auto">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div>
+          <div style="font-size:11px;color:${typeColor};font-weight:700;margin-bottom:2px">🏖️ ${plan.title}</div>
+          <div style="font-size:16px;font-weight:700;color:#fff">${{rest:'🛌 휴식',cardio:'🏃 유산소',gym:'💪 근력',mixed:'🔄 복합'}[sess.session_type]}</div>
+        </div>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;line-height:1">×</button>
+      </div>
+      ${bodyHtml}
+      ${!done ? `<button onclick="markBreakComplete('${planId}','${dateStr}');this.closest('[style*=fixed]').remove();"
+        style="width:100%;padding:14px;background:#4ade80;color:#052e16;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:16px">
+        ✅ 운동 완료
+      </button>` : '<div style="text-align:center;padding:12px;color:#4ade80;font-weight:600;margin-top:8px">✅ 오늘 운동 완료!</div>'}
+    </div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function showToast(msg) {
+  let t = document.getElementById('bp-toast');
+  if (!t) { t = document.createElement('div'); t.id='bp-toast'; t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,.95);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:99999;pointer-events:none;transition:opacity .3s'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity = '1';
+  setTimeout(() => { t.style.opacity = '0'; }, 2000);
 }
 
 /* ════════════════════════════════════════
