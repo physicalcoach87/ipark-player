@@ -1525,8 +1525,8 @@ let wizSelectedDate    = null;  // 세션(훈련) 날짜 — null이면 오늘. 
    유틸
 ════════════════════════════════════════ */
 function today() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const d = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
+  return d.toISOString().split('T')[0];
 }
 
 // 선택된 세션 날짜 (선수가 명시 선택 안 했으면 오늘)
