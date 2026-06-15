@@ -1528,6 +1528,11 @@ function today() {
   const d = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
   return d.toISOString().split('T')[0];
 }
+function toKSTTime(utcStr) {
+  if (!utcStr) return '—';
+  const d = new Date(new Date(utcStr).getTime() + 9 * 60 * 60 * 1000);
+  return d.toISOString().slice(11, 16);
+}
 
 // 선택된 세션 날짜 (선수가 명시 선택 안 했으면 오늘)
 function wizDate() {
@@ -1567,7 +1572,7 @@ function renderWellnessBanner(savedAt) {
   dateEl.textContent = info.full;
   dayEl.textContent  = info.day;
   if (savedAt) {
-    const t = savedAt.slice(11,16);
+    const t = toKSTTime(savedAt);
     timeEl.textContent = `✅ ${t} ${T('savedAt')}`;
     timeEl.style.color = 'var(--green)';
   } else {
@@ -1595,7 +1600,7 @@ function renderRpeBanner(lastRecord) {
     savedEl.textContent = `✅ ${todayCount}세션 저장됨`;
     savedEl.style.color = 'var(--green)';
   } else if (lastRecord) {
-    const t    = (lastRecord.created_at || '').slice(11,16);
+    const t    = toKSTTime(lastRecord.created_at);
     const type = lastRecord.session_type || '';
     savedEl.textContent = `✅ ${type} RPE ${lastRecord.rpe} · ${t} ${T('savedAt')}`;
     savedEl.style.color = 'var(--green)';
