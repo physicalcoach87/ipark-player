@@ -3483,7 +3483,7 @@ async function loadWellness() {
 
 async function loadFitnessData() {
   if (!currentPlayer) return;
-  const { data } = await supa.from('fitness_records')
+  const { data } = await supa.from('body_comp_records')
     .select('*').eq('player_id', currentPlayer.id)
     .order('record_date', { ascending: false }).limit(6);
 
@@ -3491,7 +3491,7 @@ async function loadFitnessData() {
 
   const latest = data[0];
   existingFitnessId = null; // 오늘 데이터 여부 확인
-  const { data: todayFit } = await supa.from('fitness_records')
+  const { data: todayFit } = await supa.from('body_comp_records')
     .select('*').eq('player_id', currentPlayer.id).eq('record_date', today()).single();
   if (todayFit) {
     existingFitnessId = todayFit.id;
@@ -3618,9 +3618,9 @@ async function saveWellness() {
       body_fat_pct: bcFat,
     };
     if (existingFitnessId) {
-      await supa.from('fitness_records').update(fitPayload).eq('id', existingFitnessId);
+      await supa.from('body_comp_records').update(fitPayload).eq('id', existingFitnessId);
     } else {
-      const res = await supa.from('fitness_records').insert(fitPayload).select().single();
+      const res = await supa.from('body_comp_records').insert(fitPayload).select().single();
       if (res.data) existingFitnessId = res.data.id;
     }
   }
