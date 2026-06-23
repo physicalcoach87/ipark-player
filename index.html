@@ -4001,16 +4001,18 @@ async function wizSave() {
 
   const records = [];
 
+  const gymType = wizTime + '_GYM'; // 'AM_GYM' or 'PM_GYM'
+
   if (wizCombo === 'field') {
-    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizFieldRpe, session_type: wizTime, duration: null, session_order: nextOrder });
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizFieldRpe, session_type: wizTime,   duration: null,       session_order: nextOrder });
   } else if (wizCombo === 'gym') {
-    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizGymRpe, session_type: 'GYM', duration: wizGymDur, session_order: nextOrder });
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizGymRpe,   session_type: gymType,   duration: wizGymDur,  session_order: nextOrder });
   } else if (wizCombo === 'gym_field') {
-    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizGymRpe,   session_type: 'GYM', duration: wizGymDur, session_order: nextOrder });
-    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizFieldRpe, session_type: wizTime, duration: null,    session_order: nextOrder + 1 });
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizGymRpe,   session_type: gymType,   duration: wizGymDur,  session_order: nextOrder });
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizFieldRpe, session_type: wizTime,   duration: null,       session_order: nextOrder + 1 });
   } else if (wizCombo === 'field_gym') {
-    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizFieldRpe, session_type: wizTime, duration: null,    session_order: nextOrder });
-    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizGymRpe,   session_type: 'GYM', duration: wizGymDur, session_order: nextOrder + 1 });
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizFieldRpe, session_type: wizTime,   duration: null,       session_order: nextOrder });
+    records.push({ player_id: currentPlayer.id, record_date: t, rpe: wizGymRpe,   session_type: gymType,   duration: wizGymDur,  session_order: nextOrder + 1 });
   }
 
   // 운동후 체중을 필드 레코드에 첨부
