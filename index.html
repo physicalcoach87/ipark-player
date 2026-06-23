@@ -3782,6 +3782,18 @@ function wizGoToStep(step) {
     const gb = document.getElementById('wiz-gym-block');
     if (fb) fb.style.display = hasField ? 'block' : 'none';
     if (gb) gb.style.display = hasGym   ? 'block' : 'none';
+    // gym_field: GYM 먼저, field_gym/field: 필드 먼저
+    if (fb && gb && fb.parentNode) {
+      if (wizCombo === 'gym_field') {
+        fb.parentNode.insertBefore(gb, fb);
+        gb.style.borderTop = 'none'; gb.style.marginTop = '';
+        fb.style.borderTop = '0.5px solid var(--border2)'; fb.style.marginTop = '';
+      } else {
+        fb.parentNode.insertBefore(fb, gb);
+        fb.style.borderTop = 'none'; fb.style.marginTop = '';
+        gb.style.borderTop = '0.5px solid var(--border2)'; gb.style.marginTop = '';
+      }
+    }
     if (hasGym && !wizGymDrumInited) setTimeout(() => wizInitGymDrum(), 50);
   }
 }
