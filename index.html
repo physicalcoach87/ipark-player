@@ -2599,16 +2599,19 @@ async function loginSuccess(player) {
 
 async function checkInjuryAlertPopup(){
   if(!currentPlayer) return;
+  // 최근 2일 이내 알림만 (읽음 여부와 무관 — 알림탭 열면 읽음처리되므로 별도 추적)
+  const since = new Date(); since.setDate(since.getDate()-2);
   const { data } = await supa.from('notifications')
-    .select('*')
+    .select('id,meta,created_at')
     .eq('target_type','player').eq('target_value', currentPlayer.id)
-    .is('player_read_at', null)
+    .gte('created_at', since.toISOString())
     .order('created_at',{ascending:false})
-    .limit(30);
+    .limit(40);
   if(!data?.length) return;
-  // injury/wellness/rpe 타입별로 가장 최근 1개씩, 우선순위 순으로 큐 구성
+  // injury/wellness/rpe 타입별 가장 최근 1개씩, 우선순위 순으로 큐 구성
+  // 이미 이 기기에서 팝업으로 본 알림은 제외
   const queue = ['injury','wellness','rpe']
-    .map(t=>data.find(d=>d.meta?.type===t))
+    .map(t=>data.find(d=>d.meta?.type===t && !localStorage.getItem('popup_shown_'+d.id)))
     .filter(Boolean);
   if(!queue.length) return;
   window._alertQueue = queue;
@@ -2624,6 +2627,7 @@ function _showNextAlert(){
 
 function _showAlertPopup(n){
   document.getElementById('alert-popup')?.remove();
+  try{ localStorage.setItem('popup_shown_'+n.id, '1'); }catch(e){}
   const type = n.meta?.type;
   const closeAndMark = `document.getElementById('alert-popup').remove();supa.from('notifications').update({player_read_at:new Date().toISOString()}).eq('id','${n.id}').then(()=>{});_showNextAlert()`;
   let inner = '';
