@@ -2487,6 +2487,12 @@ async function doLogin() {
       return;
     }
 
+    if(player.status === 'transferred'){
+      err.textContent = '이적 처리된 선수입니다. 코치에게 문의하세요.';
+      btn.disabled = false; btn.textContent = LS.loginBtn;
+      return;
+    }
+
     localStorage.setItem('ip_player', JSON.stringify({ id: player.id }));
     await loginSuccess(player);
   } catch (e) {
