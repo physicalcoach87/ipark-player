@@ -2604,17 +2604,28 @@ async function checkInjuryAlertPopup(){
     .eq('target_type','player').eq('target_value', currentPlayer.id)
     .is('player_read_at', null)
     .order('created_at',{ascending:false})
-    .limit(20);
+    .limit(30);
   if(!data?.length) return;
-  // 우선순위: injury > wellness > rpe
-  const n = ['injury','wellness','rpe'].map(t=>data.find(d=>d.meta?.type===t)).find(Boolean);
+  // injury/wellness/rpe 타입별로 가장 최근 1개씩, 우선순위 순으로 큐 구성
+  const queue = ['injury','wellness','rpe']
+    .map(t=>data.find(d=>d.meta?.type===t))
+    .filter(Boolean);
+  if(!queue.length) return;
+  window._alertQueue = queue;
+  _showNextAlert();
+}
+
+function _showNextAlert(){
+  const q = window._alertQueue || [];
+  const n = q.shift();
+  window._alertQueue = q;
   if(n) _showAlertPopup(n);
 }
 
 function _showAlertPopup(n){
   document.getElementById('alert-popup')?.remove();
   const type = n.meta?.type;
-  const closeAndMark = `document.getElementById('alert-popup').remove();supa.from('notifications').update({player_read_at:new Date().toISOString()}).eq('id','${n.id}').then(()=>{})`;
+  const closeAndMark = `document.getElementById('alert-popup').remove();supa.from('notifications').update({player_read_at:new Date().toISOString()}).eq('id','${n.id}').then(()=>{});_showNextAlert()`;
   let inner = '';
 
   if(type === 'injury'){
