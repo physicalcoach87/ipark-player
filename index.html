@@ -2466,29 +2466,40 @@ async function doLogin() {
   err.textContent = '';
 
   try {
-    // 이름으로만 조회 (대소문자 무관)
-    const { data, error } = await supa.from('player_profiles')
-      .select('*').ilike('name', name);
+    // 서버 측 PIN 검증 (Edge Function) — PIN·프로필이 클라이언트로 노출되지 않음
+    const { data: fnData, error: fnErr } = await supa.functions.invoke('player-login', {
+      body: { name, pin }
+    });
 
-    if (error || !data?.length) {
-      err.textContent = LS.errNotFound;
+    if (fnErr || fnData?.error) {
+      let code = fnData?.error;
+      if (!code && fnErr?.context) {
+        try { code = (await fnErr.context.json())?.error; } catch (_) {}
+      }
+      if (code === 'not_found')        err.textContent = LS.errNotFound;
+      else if (code === 'wrong_pin')   err.textContent = LS.errPin;
+      else if (code === 'transferred') err.textContent = '이적 처리된 선수입니다. 코치에게 문의하세요.';
+      else if (code === 'locked')      err.textContent = 'PIN 오류가 반복되어 잠겼습니다. 5분 후 다시 시도하세요.';
+      else                             err.textContent = LS.errGeneral + (code || fnErr?.message || '');
       btn.disabled = false; btn.textContent = LS.loginBtn;
       return;
     }
 
-    // 이름 정확히 일치하는 선수 우선
-    const player = data.find(p => p.name.trim() === name.trim()) || data[0];
-
-    // PIN 확인 — DB에 PIN 없으면 기본값 '0000'
-    const expectedPin = player.pin || '0000';
-    if (pin !== expectedPin) {
-      err.textContent = LS.errPin;
+    // 발급받은 토큰으로 실제 인증 세션 생성
+    const { error: otpErr } = await supa.auth.verifyOtp({
+      type: 'magiclink', token_hash: fnData.token_hash
+    });
+    if (otpErr) {
+      err.textContent = LS.errGeneral + otpErr.message;
       btn.disabled = false; btn.textContent = LS.loginBtn;
       return;
     }
 
-    if(player.status === 'transferred'){
-      err.textContent = '이적 처리된 선수입니다. 코치에게 문의하세요.';
+    // 인증된 세션으로 본인 프로필 조회 (RLS: 본인 행만 허용)
+    const { data: player, error: pErr } = await supa.from('player_profiles')
+      .select('*').eq('id', fnData.player_id).single();
+    if (pErr || !player) {
+      err.textContent = LS.errGeneral + (pErr?.message || '');
       btn.disabled = false; btn.textContent = LS.loginBtn;
       return;
     }
@@ -2530,6 +2541,8 @@ async function submitPinChange() {
 }
 
 function doLogout() {
+  supa.auth.signOut();
+  localStorage.removeItem('ip_player');
   currentPlayer = null;
   existingWellnessId = null;
   existingFitnessId  = null;
@@ -2548,8 +2561,8 @@ function doLogout() {
   document.getElementById('tab-bar').style.display     = 'none';
   document.getElementById('screen-login').style.display = 'flex';
   TABS.forEach(t => document.getElementById('screen-' + t).classList.remove('active'));
-  document.getElementById('login-id').value = '';
-  document.getElementById('login-pw').value = '';
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-pin').value = '';
 }
 
 async function loginSuccess(player) {
@@ -2973,7 +2986,7 @@ async function loadHome() {
   renderHomeWellness(wellness, lastSess);
 
   // GPS 경기대비
-  renderHomeGps(lastGps);
+  renderHomeGps(lastGps, wellness, lastSess, todayMd);
 
   // 처방
   renderHomeRx(rxRes.data, todayMd);
@@ -3091,11 +3104,60 @@ function renderHomeWellness(w, sess) {
   }
 }
 
-function renderHomeGps(gps) {
+function renderHomeGps(gps, wellness, sess, todayMd) {
   const body = document.getElementById('home-gps-body');
 
   if (!gps) {
-    body.innerHTML = `<div class="empty-state"><div class="empty-icon">📡</div>${T('gpsNoDataHome')}</div>`;
+    // GPS 없는 경우(GK 등): 웰니스 요약 + 체중 + 주기화 정보 표시
+    const COLORS = { 1:'#e04040', 2:'#d07030', 3:'#c0a030', 4:'#3aaa6a', 5:'#30cc80' };
+    const mdBadge = todayMd ? `<span class="badge badge-md" style="font-size:9px;">${todayMd}</span>` : '';
+
+    if (!wellness) {
+      body.innerHTML = `
+        <div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:11px;color:var(--text3);">GPS 미사용 포지션</span>
+          ${mdBadge}
+        </div>
+        <div class="empty-state" style="padding-top:4px;"><div class="empty-icon">💚</div>오늘 컨디션을 입력해주세요</div>`;
+      return;
+    }
+
+    const wItems = [
+      { l: T('condFatigue'),   v: wellness.fatigue },
+      { l: T('condSleep'),     v: wellness.sleep_quality },
+      { l: T('condSoreness'),  v: wellness.muscle_soreness },
+    ].filter(i => i.v);
+
+    const wt = wellness.morning_weight;
+    let wtHtml = '';
+    if (wt) {
+      let diffHtml = '';
+      if (sess?.post_weight) {
+        const diff = (sess.post_weight - wt).toFixed(1);
+        const dc = diff > 0.5 ? '#d09030' : '#3aaa6a';
+        diffHtml = `<span style="font-size:10px;color:${dc};margin-left:6px;">▼${diff}kg</span>`;
+      }
+      wtHtml = `
+        <div style="padding:8px 14px;border-top:0.5px solid var(--border2);display:flex;align-items:center;gap:6px;">
+          <span style="font-size:11px;color:var(--text3);">아침 체중</span>
+          <span style="font-size:16px;font-weight:500;color:#d0d4f0;">${wt} kg</span>
+          ${diffHtml}
+        </div>`;
+    }
+
+    body.innerHTML = `
+      <div style="padding:8px 14px 6px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:10px;color:var(--text3);">GPS 미사용 · 컨디션 요약</span>
+        ${mdBadge}
+      </div>
+      <div style="display:flex;gap:0;padding:0 10px 8px;">
+        ${wItems.map(i => `
+          <div style="flex:1;text-align:center;padding:6px 4px;">
+            <div style="font-size:9px;color:var(--text3);margin-bottom:3px;">${i.l}</div>
+            <div style="font-size:16px;font-weight:500;color:${COLORS[i.v] || 'var(--text)'};">${i.v}<span style="font-size:10px;color:var(--text3);">/5</span></div>
+          </div>`).join('')}
+      </div>
+      ${wtHtml}`;
     return;
   }
 
@@ -5068,12 +5130,15 @@ async function init() {
   setLang(localStorage.getItem('ip_lang') || 'ko');
 
   supa = supabase.createClient(SUPA_URL, SUPA_KEY);
-  const saved = localStorage.getItem('ip_player');
-  if (saved) {
-    const p = JSON.parse(saved);
-    const { data } = await supa.from('player_profiles').select('*').eq('id', p.id).single();
-    if (data) { await loginSuccess(data); return; }
+  // 인증 세션이 있어야만 자동 로그인 (RLS 적용 후 anon 조회는 불가)
+  const { data: { session } } = await supa.auth.getSession();
+  if (session) {
+    const { data } = await supa.from('player_profiles')
+      .select('*').eq('auth_user_id', session.user.id).single();
+    if (data && data.status !== 'transferred') { await loginSuccess(data); return; }
+    await supa.auth.signOut();
   }
+  localStorage.removeItem('ip_player'); // 구버전(비인증) 세션 정리 → 재로그인 필요
   document.getElementById('screen-login').style.display = 'flex';
 }
 
