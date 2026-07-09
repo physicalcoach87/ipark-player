@@ -5165,5 +5165,33 @@ window.onload = init;
     </div>
   </div>
 </div>
+
+<!-- 에러 자동 수집 (superadmin 에러 로그) -->
+<script>
+(function(){
+  let _errSent = 0;
+  const _errSeen = new Set();
+  function _reportErr(message, stack){
+    try {
+      if(_errSent >= 5 || typeof supa === 'undefined' || !supa) return; // 세션당 최대 5건
+      const key = String(message||'').slice(0,120);
+      if(_errSeen.has(key)) return; // 같은 에러 반복 방지
+      _errSeen.add(key); _errSent++;
+      supa.from('app_errors').insert({
+        app: 'player',
+        club_id: (typeof currentPlayer!=='undefined' && currentPlayer && currentPlayer.club_id) || null,
+        user_info: (typeof currentPlayer!=='undefined' && currentPlayer && currentPlayer.id) || null,
+        message: String(message||'').slice(0,500),
+        stack: String(stack||'').slice(0,2000),
+        url: location.pathname + location.hash.slice(0,100),
+        user_agent: navigator.userAgent.slice(0,200)
+      }).then(()=>{}, ()=>{}); // 실패해도 조용히 무시 (테이블 없어도 안전)
+    } catch(_e) {}
+  }
+  window.addEventListener('error', e => _reportErr(e.message, e.error && e.error.stack));
+  window.addEventListener('unhandledrejection', e => _reportErr(
+    (e.reason && e.reason.message) || String(e.reason), e.reason && e.reason.stack));
+})();
+</script>
 </body>
 </html>
