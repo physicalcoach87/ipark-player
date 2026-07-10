@@ -5133,9 +5133,13 @@ async function init() {
   // 인증 세션이 있어야만 자동 로그인 (RLS 적용 후 anon 조회는 불가)
   const { data: { session } } = await supa.auth.getSession();
   if (session) {
-    const { data } = await supa.from('player_profiles')
-      .select('*').eq('auth_user_id', session.user.id).single();
-    if (data && data.status !== 'transferred') { await loginSuccess(data); return; }
+    // 저장된 토큰이 만료됐을 수 있음 → 서버 검증·갱신 후 조회 (불필요한 재로그인 방지)
+    const { data: { user }, error: uErr } = await supa.auth.getUser();
+    if (!uErr && user) {
+      const { data } = await supa.from('player_profiles')
+        .select('*').eq('auth_user_id', user.id).single();
+      if (data && data.status !== 'transferred') { await loginSuccess(data); return; }
+    }
     await supa.auth.signOut();
   }
   localStorage.removeItem('ip_player'); // 구버전(비인증) 세션 정리 → 재로그인 필요
