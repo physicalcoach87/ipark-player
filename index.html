@@ -2606,29 +2606,40 @@ async function loginSuccess(player) {
   setTimeout(() => updateNotifTabBadge(), 2000);
   if (window._notifBadgeTimer) clearInterval(window._notifBadgeTimer);
   window._notifBadgeTimer = setInterval(() => updateNotifTabBadge(), 60000);
-  // 미확인 부상위험 알림 팝업
-  setTimeout(() => checkInjuryAlertPopup(), 1800);
+  // 앱 진입 시 안 읽은 알림을 팝업으로
+  setTimeout(() => checkNotifPopups(), 1800);
 }
 
-async function checkInjuryAlertPopup(){
+async function checkNotifPopups(){
   if(!currentPlayer) return;
-  // 최근 2일 이내 알림만 (읽음 여부와 무관 — 알림탭 열면 읽음처리되므로 별도 추적)
-  const since = new Date(); since.setDate(since.getDate()-2);
+  // 안 읽은 알림(공지/개인/포지션) — 알림탭과 동일 조건 + 최근 3일
+  const since = new Date(); since.setDate(since.getDate()-3);
   const { data } = await supa.from('notifications')
-    .select('id,meta,created_at')
-    .eq('target_type','player').eq('target_value', currentPlayer.id)
+    .select('id,title,body,meta,created_at')
+    .or(`target_type.eq.all,and(target_type.eq.player,target_value.eq.${currentPlayer.id}),and(target_type.eq.position,target_value.eq.${currentPlayer.position})`)
+    .not('title', 'ilike', '[유산소 처방]%')
+    .is('player_read_at', null)
     .gte('created_at', since.toISOString())
     .order('created_at',{ascending:false})
     .limit(40);
   if(!data?.length) return;
-  // injury/wellness/rpe 타입별 가장 최근 1개씩, 우선순위 순으로 큐 구성
-  // 이미 이 기기에서 팝업으로 본 알림은 제외
-  const queue = ['injury','wellness','rpe']
-    .map(t=>data.find(d=>d.meta?.type===t && !localStorage.getItem('popup_shown_'+d.id)))
-    .filter(Boolean);
+  // 이미 이 기기에서 팝업으로 본 알림 제외, 최근 5개까지만
+  const queue = data
+    .filter(d => !localStorage.getItem('popup_shown_'+d.id))
+    .slice(0, 5);
   if(!queue.length) return;
   window._alertQueue = queue;
   _showNextAlert();
+}
+
+// 푸시를 탭해 앱이 다시 보일 때도 안 읽은 알림을 팝업으로 (이미 열려있던 경우 대응)
+if(!window._notifPopupVisWired){
+  window._notifPopupVisWired = true;
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible' && currentPlayer && !document.getElementById('alert-popup')){
+      checkNotifPopups();
+    }
+  });
 }
 
 function _showNextAlert(){
@@ -2709,6 +2720,23 @@ function _showAlertPopup(n){
         <button onclick="${closeAndMark}"
           style="width:100%;padding:10px;border-radius:10px;border:1px solid #818cf8;background:transparent;color:#818cf8;font-size:13px;cursor:pointer;font-family:inherit">
           나중에
+        </button>
+      </div>`;
+  } else {
+    // 일반 알림(공지·코치 메시지·처방 등) — 제목/내용 카드
+    const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    const title = esc(n.title || '📢 새 알림');
+    const body  = esc(n.body || '');
+    inner = `
+      <div style="background:var(--surface);border:2px solid var(--accent2);border-radius:18px;padding:20px;width:100%;max-width:360px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:15px;font-weight:700;color:var(--text);flex:1;min-width:0">${title}</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:8px;flex-shrink:0">코치 알림</span>
+        </div>
+        ${body?`<div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;white-space:pre-wrap;max-height:40vh;overflow-y:auto">${body}</div>`:''}
+        <button onclick="${closeAndMark}"
+          style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+          확인
         </button>
       </div>`;
   }
