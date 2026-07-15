@@ -2598,7 +2598,7 @@ async function loginSuccess(player) {
   setTimeout(() => checkPushBanner(), 500);
   // 이미 권한 허용된 경우엔 자동으로 구독 등록/갱신
   setTimeout(() => {
-    if (Notification.permission === 'granted') {
+    if (('Notification' in window) && Notification.permission === 'granted') {
       enablePushNotifications().catch(e => console.warn('push setup', e));
     }
   }, 1500);
@@ -2785,7 +2785,7 @@ function checkPushBanner() {
 
 async function enablePushNotifications() {
   if (!currentPlayer) return;
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
   try {
     const reg = await navigator.serviceWorker.register('/ipark-player/sw.js', { scope: '/ipark-player/' });
     await navigator.serviceWorker.ready;
